@@ -1,0 +1,237 @@
+body, html {
+	margin:0;
+	height:100%;
+}
+body {
+	font-family:ubuntu,sans-serif;
+	padding-top:51px;
+}
+/*a {
+	text-decoration:none;
+	color:#005271;
+}
+button {
+	background:#005271;
+	color:#fff;
+	padding:.5em;
+	border:none;
+}
+button a {
+	color:#fff;
+}*/
+button a,button a:hover {
+	color:#fff;
+	text-decoration:none;
+}
+.kpi_desc,.page_desc {
+	margin-top:1em;
+	font-size:1.2em;
+}
+.container[role=main] {
+	padding-top:2em;
+}
+.panel-heading {
+	overflow:auto;
+}
+#type_title a:hover {
+	text-decoration:none;
+}
+#home-hero-unit{
+	background-image: url("http://upload.wikimedia.org/wikipedia/commons/b/b7/EK-95015_-_Flight_From_Yerevan_to_Moscow_(5709287475).jpg");
+	background-position: left center;
+	min-height: 300px;
+	margin-top:2em;
+}
+#home-hero-unit p{
+	color:#fff;
+	font-size:18px;
+}
+#map_container {
+	width:100%;
+	height:200px;
+}
+#map_container:after {
+	position: absolute;
+	bottom: 2%;
+	left: 10.5%;
+	background-color: #f5f5f5;
+	padding: .5em;
+	color: #666;
+	opacity: .8;
+	border-radius: 6px;
+}
+#map_container.air:after {
+	content: "Map: Air travel destinations";
+}
+#map_container.hotel:after {
+	content: "Map: Hotel locations";
+}
+#map_container.car:after {
+	content: "Map: Rental car pick up locations";
+}
+#content_header {
+	background: #eeeeee; /* Old browsers */
+	background: -moz-linear-gradient(top,  #eeeeee 0%, #cccccc 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eeeeee), color-stop(100%,#cccccc)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #eeeeee 0%,#cccccc 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 ); /* IE6-9 */
+	margin-top:0;
+	padding:1em 0;
+	border-top:1px solid #ccc;
+}
+#content_header p {
+	background-color: white;
+	padding: 1em;
+	box-shadow: inset 4px 4px 10px #ccc;
+	border-radius: 6px;
+}
+#content_header h1 {
+	margin-top:.25em;
+	color:tomato;
+}
+#content_header h1 a {
+	color:tomato;
+}
+.content_band {
+	padding:2em 0;
+}
+.wrapper {
+	max-width:1200px;
+	width:100%;
+	margin:0 auto;
+	position:relative;
+}
+#site_header {
+	background-color:#005271;
+	padding:.5em;
+}
+#site_header h1 {
+	margin:0;
+	line-height:1em;
+	font-size:1.2em;
+}
+#site_header h1 a {
+	color:#fff;
+}
+#site_header button {
+	font-size:1.8em;
+	position:absolute;
+	padding:0;
+	cursor:pointer;
+}
+
+#site_functions_toggle {
+	right:1.5em;
+	top:-.35em;
+}
+
+#site_nav_toggle {
+	right:0;
+	top:-.5em;	
+}
+#site_nav,#site_functions {
+	height:0;
+	overflow:hidden;
+	list-style:none;
+	-webkit-transition:height .5s ease-in-out;
+	-moz-transition:height .5s ease-in-out;
+	-ms-transition:height .5s ease-in-out;
+	-o-transition:height .5s ease-in-out;
+	transition:height .5s ease-in-out;
+	text-align:right;
+	margin-top:.5em;
+	margin-bottom:-.5em;
+}
+#site_nav a,#site_functions a {
+	color:#fff;
+	text-align:right;
+}
+#site_nav_toggle.active + #site_nav,#site_functions_toggle.active + #site_functions {
+	height:3.6em;
+}
+#site_content {
+
+}
+#menu_band {
+	background-color:#3999BD;
+}
+#menu_band select, #menu_band button {
+	-webkit-appearance:none;
+	border:none;
+	padding:.5em;
+	color:#fff;
+	background-color:#005271;
+	border-radius:0;
+	font-size:1.4em;
+}
+#menu_band h1 {
+	color:#005271;
+	font-size:5em;
+	line-height:.8em;
+	margin:0;
+}
+#kpi_select {
+	margin-top:1em;
+}
+.viz_slots {
+	padding-top:1em;
+}
+.viz_slot {
+	padding-top:33%;
+	position:relative;
+	display:block;
+	cursor:pointer;
+}
+.viz_slots .viz_slot:hover {
+	background-color:#f5f5f5;
+	box-shadow:4px 4px 10px #ccc;
+	border-radius:6px;
+}
+.viz_slot h2 {
+	color:#005271;
+	font-size:1.4em;
+	position:absolute;
+	top:0;
+	left:0;
+	right: 0;
+	text-align: center;
+}
+.viz_container {
+	position:absolute;
+	top:20%;
+	height:80%;
+	left:0;
+	right:0;
+}
+.viz_slot #agency_select, .viz_slot .subtext {
+	position:absolute;
+	top:3.6em;
+	left:0;
+	right:0;
+	width:100%;
+	text-align:center;
+}
+@media screen and (max-width:1199px) {
+	#home-hero-unit p {
+		background-color: rgba(42,152,215,.8);
+		color: #fff;
+		padding: 1em;
+	}	
+}
+@media screen and (max-width:992px) {
+	.viz_slot {
+		width:49%;
+		padding-top:49%;
+		display:inline-block;
+	}
+}
+@media screen and (max-width:767px) {
+	.viz_slot {
+		width:100%;
+		padding-top:100%;
+		display:block;
+	}
+}

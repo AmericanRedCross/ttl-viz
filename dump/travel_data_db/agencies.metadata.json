@@ -1,0 +1,1 @@
+{ "options" : { "create" : "agencies" }, "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "travel_data_db.agencies", "name" : "_id_" } ] }

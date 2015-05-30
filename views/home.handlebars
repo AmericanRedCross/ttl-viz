@@ -1,0 +1,30 @@
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Welcome</h1>
+	</div>
+</header>
+<div class="row">
+	<div class="col-md-12">
+		<p>{{opts.description}}</p>
+					<hr>
+	</div>
+</div>
+{{#if user}}{{else}}
+	{{#if error}}
+		<div class="alert alert-danger alert-dismissable">
+			  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+			  <p><strong>Sorry, we've hit a snag logging you in.</strong> <em>{{error}}</em></p> 
+		</div>
+	{{/if}}
+	<form class="row" role="form" action="/user/login" method="POST">
+		<div class="col-md-6">
+			<div class="form-group">
+				<input type="email" placeholder="Email" name="email" class="form-control">
+			</div>
+			<div class="form-group">
+				<input type="password" placeholder="Password" name="password" class="form-control">
+			</div>
+			<button type="submit" class="btn btn-success sharp">Log In</button>
+		</div>
+	</form>
+{{/if}}

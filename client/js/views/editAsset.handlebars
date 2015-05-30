@@ -1,0 +1,92 @@
+<fieldset>
+	<legend>Asset Details</legend>
+	{{#if date}}
+		<div class="form-group">
+			<label for="date">Date</label>
+			<input type="date" class="form-control" id="date" name="date" value="{{formatDate date 'YYYY-MM-DD'}}" required>
+		</div>
+	{{/if}}
+	<div class="form-group">
+		<label for="title">Title</label>
+		<input type="text" class="form-control" name="title" id="title" value="{{title}}" required>
+	</div>
+	<div class="form-group">
+		<label for="description">Description</label>
+		<textarea class="form-control" name="description" id="description" required>{{description}}</textarea>
+	</div>
+	<div class="form-group">
+		<label for="map_size">Map Size</label>
+		<input type="number" class="form-control" name="map_size" id="map_size" value="{{map_size}}">
+	</div>
+</fieldset>
+<fieldset>
+	<legend>Geo Data</legend>
+	<div class="form-group">
+		<label for="longitude">Longitude</label>
+		<input type="number" class="form-control" name="longitude" id="longitude" value="{{longitude}}">
+	</div>
+	<div class="form-group">
+		<label for="latitude">Latitude</label>
+		<input type="number" class="form-control" name="latitude" id="latitude"  value="{{latitude}}">
+	</div>
+</fieldset>
+<fieldset>
+	<legend>Thumbnail</legend>
+	<div class="form-group">
+		<label for="thumbnail_id">Thumbnail ID</label>
+		<input type="text" class="form-control" name="thumbnail_id" id="thumbnail_id" value="{{thumbnail_id}}">
+	</div>
+	<strong>or</strong>
+	<div class="form-group">
+		<label for="thumbnail">Upload Thumbnail</label>
+		<input type="file" class="form-control" name="thumbnail" id="thumbnail" accept="image/*">
+	</div>
+</fieldset>
+<fieldset>
+	<legend>File</legend>
+	<div class="form-group">
+		<label for="filename">Filename</label>
+		<input type="text" class="form-control" name="filename" id="filename" value="{{filename}}">
+	</div>
+	<strong>or</strong>
+	<div class="form-group">
+		<label for="file">Upload File</label>
+		<input type="file" class="form-control" name="file" id="file" size="50">
+	</div>
+	<strong>or</strong>
+	<div class="form-group">
+		<label for="link">URL</label>
+		<input type="text" class="form-control" name="link" id="link" data-rule-url="true"  value="{{link}}">
+	</div>
+</fieldset>
+<fieldset>
+	<legend>Tags</legend>
+	<div class="form-group">
+		<label for="sector">Sector(s)</label>
+		<select class="form-control" id="sector" name="sector" required multiple>
+			{{#each opts.sectors}}
+				<option value="{{this}}"
+				{{#each ../sector}}
+					{{#eq this ../this}}
+						selected
+					{{/eq}}
+				{{/each}}
+				>{{this}}</option>
+			{{/each}}
+		</select>
+	</div>	
+	<div class="form-group">
+		<label for="extent">Extent(s)</label>
+		<select class="form-control" id="extent" name="extent" required multiple>
+			{{#each opts.extents}}
+				<option value="{{this}}"
+				{{#each ../extent}}
+					{{#eq this ../this}}
+						selected
+					{{/eq}}
+				{{/each}}
+				>{{this}}</option>
+			{{/each}}
+		</select>
+	</div>
+</fieldset>	

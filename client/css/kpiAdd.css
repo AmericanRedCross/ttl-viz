@@ -1,0 +1,26 @@
+.form_list {
+	list-style:none;
+	padding-left:0;
+}
+#addKPIForm .form-group {
+	max-height:0;
+	transition:max-height .5s ease;
+	overflow:hidden;
+}
+#addKPIForm .form-group:first-child, #addKPIForm .valid + .form-group {
+	max-height:200px;
+}
+#addKPIForm .form-group li {
+	max-height:none;
+}
+
+#addKPIForm .form-group:last-child.valid {
+	max-height:500px;
+}
+
+#kpi_compare_method{margin-bottom:1em;}
+#kpi_type{margin-bottom:1em;}
+
+.step_back{cursor:pointer;}
+
+#kpi_cases > div{margin-top:1em;}

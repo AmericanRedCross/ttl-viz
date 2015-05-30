@@ -1,0 +1,15 @@
+.form-group {
+	max-height:0;
+	transition:max-height .5s ease;
+	overflow:hidden;
+}
+.form-group:first-child, .valid + .form-group {
+	max-height:200px;
+}
+.form-group li {
+	max-height:none;
+}
+
+.form-group:last-child.valid {
+	max-height:500px;
+}

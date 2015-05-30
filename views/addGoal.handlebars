@@ -1,0 +1,64 @@
+<link rel="stylesheet" href="/stylesheets/goalAdd.css" />
+<script src="/js/goalCtrl.js"></script>
+<script>
+	$(function() {
+		new GoalAdd($("form[action='/goal/add']"),{{{json user}}},{{{json kpis}}}{{#if kpi}},"{{kpi._id}}"{{/if}})
+	})
+</script>
+<div class="container" role="main">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h1>Add a Goal</h1>
+		</div>
+		<div class="panel-body">
+			<div class="col-md-6 col-md-offset-3">
+				<form action="/goal/add" method="POST" id="addGoalForm">
+					{{#eq user.permissions "super"}}
+						<div class="form-group {{#if agency}}valid{{/if}}">
+						    <label for="goal_agency">What <strong>agency</strong> is this goal for?</label>
+						    <select id="goal_agency" class="form-control" name="goal_agency">
+						    	<option></option>
+						    	{{#each agencies}}
+						    		<option value="{{_id}}" {{#if ../agency}}{{#eq ../../agency this._id}}selected{{/eq}}{{/if}}>{{name}}</option>
+						    	{{/each}}
+						    </select>
+						</div>		
+					{{else}}
+						<div class="form-group valid">
+							<input type="hidden" name="goal_agency" value="{{user.agency}}">
+						</div>
+					{{/eq}}
+					<div class="form-group {{#if type}}valid{{/if}}">
+					    <label for="goal_type">What <strong>type of travel</strong> is this goal for?</label>
+					    <select id="goal_type" class="form-control">
+					    	<option></option>
+					    	<option value="air" {{#if type}}{{#eq type "air"}}selected{{/eq}}{{/if}}>Air Travel</option>
+					    	<option value="hotel" {{#if type}}{{#eq type "hotel"}}selected{{/eq}}{{/if}}>Hotel</option>
+					    	<option value="car" {{#if type}}{{#eq type "car"}}selected{{/eq}}{{/if}}>Car Rental</option>
+					    </select>
+					</div>	
+					<div class="form-group {{#if kpi}}valid{{/if}}">
+					    <label for="goal_indicator">What <strong>indicator</strong> is this goal for?</label>
+					    <select id="goal_indicator" class="form-control" name="goal_indicator">
+					    	<option></option>
+					    	{{#each kpis}}
+					    		<option value="{{_id}}" {{#if ../kpi}}{{#eq ../../kpi._id this._id}}selected{{/eq}}{{/if}}>{{title}}</option>
+					    	{{/each}}
+					    </select>
+					</div>	
+					<div class="form-group">
+					    {{#if kpi.cases}}<label>Set goal values for each segment of this indicator (percent):</label>{{else}}
+					    <label>Set a goal value for this indicator:</label>{{/if}}
+					    <ul id="goal_cases"></ul>
+					</div>		
+					<div class="form-group">
+						<button type="submit" class="btn btn-success btn-lg">
+							<span class="glyphicon glyphicon-save"></span>
+							Save Goal
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>	
+</div>

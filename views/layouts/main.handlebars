@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{{opts.siteName}}</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+		<script src="/js/application.js"></script>
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+		<link rel="stylesheet" href="/css/theme.css">
+		<link rel="shortcut icon" href="/media/favicon.ico" type="image/x-icon">
+		<link rel="icon" href="/media/favicon.ico" type="image/x-icon">
+	</head>
+	<body>
+		<div class="container-fluid">
+			<div id="nav-toggle"><i class="fa fa-bars"></i></div>
+			<header id="site-header" class="navbar navbar-inverse" role="navigation">
+	          	<h1><a class="navbar-brand" href="/">{{opts.siteName}}</a></h1>
+	          	{{#if user}}
+      				<form class="navbar-form" role="form" action="/user/logout" method="POST">
+      					<button type="submit" class="btn btn-warning sharp" title="Log Out"><b class="glyphicon glyphicon-export"></b></button>
+      					<p>{{user.email}}</p>
+	    			</form>
+	          		<hr>
+	          		<nav>
+		          		<ul class="nav navbar-nav">
+		          			<li>
+		          				<a href="/assets"><b class="glyphicon glyphicon-globe"></b> Manage Assets</a>
+		          			</li>
+		          			{{#eq user.permissions "super"}}
+			          			<li>
+			          				<a href="/users"><b class="glyphicon glyphicon-user"></b> Manage Users</a>
+			          			</li>
+		          			{{/eq}}
+		          		</ul>
+	          		</nav>
+	          	{{/if}}
+		    </header>
+			<section id="site-content">
+				{{{body}}}
+			</section>
+			<footer id="site-footer">
+				<div class="row row-logo">
+		          	<a href="http://www.ifrc.org/" target="_blank"><img src="media/IFRC_logo_English_CMYK.png" id="ifrclogo"></a>
+			        <a href="www.nrcs.org/" target="_blank"><img src="media/NepalRedCross-logo.png" id="nrcslogo"></a>
+			        <a href="http://redcross.org" target="_blank"><img src="media/redcross-logo.png" id="arclogo"></a>
+			        <a href="http://redcross.org.uk" target="_blank"><img src="media/British_Red_Cross.png" id="brclogo"></a>
+		        </div>
+			</footer>
+		</div>
+	</body>
+</html>
