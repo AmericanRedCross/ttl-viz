@@ -3,8 +3,10 @@ var http = require('http');
 var url = require('url');
 var moment = require('moment');
 var fs = require('fs');
+var gm = require('gm').subClass({imageMagick: true});
 var localConfig = require('../config');
 var bcrypt = require('bcrypt-nodejs');
+var PDFImage = require("pdf-image").PDFImage;
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
@@ -52,8 +54,10 @@ var assetSchema = new Schema({
   filename: String,
   file: String,
   file_mime: String,
+  file_ids: Array,
   thumbnail: String,
   thumbnail_mime: String,
+  thumbnail_ids: Array,
   map_size:	Number,
   extent: {type: Array, required:true},
   sector: {type: Array, required:true},
@@ -177,27 +181,120 @@ Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg) {
 	        res.redirect("/assets");
 	    })
 	}
-	var requests = 0;
-		console.log(req.files);
+	var requests = {active:0};
 	for (key in req.files) {
 		var file = req.files[key];
-		var filename = file.originalname;
-		var read_stream = fs.createReadStream(file.path);
-		asset[key] = filename;
-		asset[key+"_mime"] = file.mimetype;
-		requests++;
-		read_stream.on('end',function() {
-			requests--;
-			if (!requests) {
-				complete();
-			}
-		}).pipe(ctrl.gfs.createWriteStream({
+		if (asset[key+"_ids"] && asset[key+"_ids"].length) {
+			for (var i=0;i<asset[key+"_ids"].length;i++) {
+				var id = asset[key+"_ids"][i];
+				requests.active++;
+				ctrl.gfs.remove({"_id":id},function(err) {
+					requests.active--;
+					if (!requests.active) {
+						ctrl.handleFile(asset,key,file,requests,function() {
+							requests.active--;
+							!requests.active && (complete());
+						})
+					}
+				})
+			}	
+		} else {
+			ctrl.handleFile(asset,key,file,requests,function() {
+				requests.active--;
+				!requests.active && (complete());
+			});			
+		}
+	}
+	!requests.active && complete();
+}
+
+Ctrl.prototype.handleFile = function(asset,key,file,requests,callback) {
+	var ctrl = this;
+	var filename = file.originalname;
+	var read_stream = fs.createReadStream(file.path);
+	asset[key] = filename;
+	asset[key+"_mime"] = file.mimetype;
+	asset[key+"_ids"] = [];
+	asset.map_size = file.size;
+	requests.active++;
+	(function(file) {
+		var ws = ctrl.gfs.createWriteStream({
 	        filename: filename
-	    }));
-	}
-	if (!requests) {
-		complete();
-	}
+	    });
+	    ws.on("close",function(writeFile) {
+	    	asset[key+"_ids"].push(writeFile._id);
+	    	if (key == "file" && file.extension == "pdf") {
+				var pdfImage = new PDFImage(file.path);
+				pdfImage.convertPage(0).then(function (imagePath) {
+					var filename = imagePath.replace("/tmp/","");
+					asset.thumbnail = filename;
+					asset.thumbnail_mime = "image/png";
+					if (asset.thumbnail_ids && asset.thumbnail_ids.length) {
+						for (var i=0;i<asset.thumbnail_ids.length;i++) {
+							var id = asset.thumbnail_ids[i]
+							requests.active++;
+							ctrl.gfs.remove({"_id":id},function(err,result) {
+								requests.active--;
+								if (requests.active == 1) {
+									ctrl.createThumbnails(asset,requests,imagePath,function() {
+										callback();
+									})
+								}
+							})
+						}
+					} else {
+						ctrl.createThumbnails(asset,requests,imagePath,function() {
+							callback();
+						})
+					}
+				})
+			} else {
+				callback();
+			}
+	    })
+		read_stream.pipe(ws);
+   })(file);
+}
+
+Ctrl.prototype.createThumbnails = function(asset,requests,imagePath,callback) {
+	var ctrl = this;
+	asset.thumbnail_ids = [];
+	requests.active++;
+	gm(imagePath).resize(500).stream(function (err,stdout,stderr) {
+		var ws = ctrl.gfs.createWriteStream({
+			filename:asset.thumbnail
+		});
+		ws.on("close",function(writeFile) {
+			asset.thumbnail_ids.push(writeFile._id);
+			requests.active--;
+			(requests.active == 1) && (callback());
+		})
+		stdout.pipe(ws);
+	});
+	requests.active++;
+	gm(imagePath).resize(250).stream(function (err,stdout,stderr) {
+		var ws = ctrl.gfs.createWriteStream({
+			filename:"md_"+asset.thumbnail
+		});
+		ws.on("close",function(writeFile) {
+			asset.thumbnail_ids.push(writeFile._id);
+			requests.active--;
+			(requests.active == 1) && (callback());
+		})
+		stdout.pipe(ws);
+	});
+	requests.active++;
+	gm(imagePath).resize(100).stream(function (err,stdout,stderr) {
+		var ws = ctrl.gfs.createWriteStream({
+			filename:"sm_"+asset.thumbnail
+		});
+		ws.on("close",function(writeFile) {
+			asset.thumbnail_ids.push(writeFile._id);
+			requests.active--;
+			(requests.active == 1) && (callback());
+		})
+		stdout.pipe(ws);
+	});
 }
 
 Ctrl.prototype.getAssets = function(user,callback) {
@@ -251,14 +348,36 @@ Ctrl.prototype.getAssetFile = function(id,callback,req,res) {
    	})
 }
 
-Ctrl.prototype.getAssetThumb = function(id,callback,req,res) {
+Ctrl.prototype.getAssetThumb = function(id,size,callback,req,res) {
 	var ctrl = this;
 	Asset.findOne({_id:id}, function(err, asset) {
 		if (!err) { 
+			var filename = asset.thumbnail;
+			switch (size) {
+				case "med":
+				case "medium":
+				case "md":
+				case "m":
+					filename = "med_"+filename;
+				break;
+				case "sm":
+				case "small":
+				case "s":
+					filename = "sm_"+filename;
+				break;
+				case "":
+				case undefined:
+				case "large":
+				case "lg":
+				case "l":
+				default:
+					filename = filename;
+				break;
+			}
 			ctrl.gfs.files.find({filename:asset.thumbnail}).toArray(function(err,files) {
 				if (!err && files.length > 0) {
 					res.set('Content-Type', asset.thumbnail_mime);
-		            var read_stream = ctrl.gfs.createReadStream({filename: asset.thumbnail});
+		            var read_stream = ctrl.gfs.createReadStream({filename: filename});
 		            read_stream.pipe(res);
 				} else {
 					callback();

@@ -234,11 +234,15 @@ app.get('/api/asset/:id/file',function(req,res) {
 	},req,res)
 })
 
-app.get('/api/asset/:id/thumbnail',function(req,res) {
+app.get('/api/asset/:id/thumbnail/:size',function(req,res) {
 	res.header('Access-Control-Allow-Origin', '*');
-	ctrl.getAssetThumb(req.params.id,function() {
+	ctrl.getAssetThumb(req.params.id,req.params.size,function() {
 		res.status(404).send();
 	},req,res)
+})
+
+app.get('/api/asset/:id/thumbnail',function(req,res) {
+	res.redirect("/api/asset/"+req.params.id+"/thumbnail/lg");
 })
 
 app.get('/api/asset/:id',function(req,res) {
