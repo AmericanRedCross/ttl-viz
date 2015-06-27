@@ -1,0 +1,121 @@
+<script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+<script src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.2/handlebars.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.2/moment.min.js"></script>
+<script src="/js/assets.js"></script>
+<script>
+	var localConfig = {{{json opts}}};
+</script>
+<link href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css" rel="stylesheet">
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Assets</h1>
+	</div>
+</header>
+<nav class="navbar row">
+	<ul class="nav navbar-nav">
+		<li>
+			<a href="#" id="add-toggle" data-toggle="modal" data-target="#add-asset-modal"><b class="glyphicon glyphicon-plus"></b> Create Asset</a>
+		</li>
+	</ul>
+</nav>
+<div class="row">
+	<div class="col-md-12">
+		{{#if error}}
+			<div class="alert alert-danger alert-dismissable">
+				  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+				  <p><strong>Sorry, we've hit a snag.</strong> <em>{{error}}</em></p>
+			</div>
+		{{/if}}
+		<table class="six-col">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Title</th>
+					<th>Creator</th>
+					<th>Sector(s)</th>
+					<th>Extent(s)</th>
+					<th class="btn-col"></th>
+				</tr>
+			</thead>
+			<tbody>
+			{{#each assets}}
+				<tr>
+					<td>{{formatDate date 'MM/DD/YYYY'}}</td>
+					<td>{{title}}</td>
+					<td>{{user}}</td>
+					<td>{{#each sector}}{{this}}{{#if @last}}{{else}}, {{/if}}{{/each}}</td>
+					<td>{{#each extent}}{{this}}{{#if @last}}{{else}}, {{/if}}{{/each}}</td>
+					<td>
+						<div class="btn-group">
+							<button class="btn btn-warning sharp edit-toggle" title="Edit Asset" data-toggle="modal" data-target="#edit-asset-modal" rel="{{_id}}"><b class="glyphicon glyphicon-edit"></b></button></a>
+							<button class="btn btn-danger sharp delete-toggle" title="Delete Asset" data-toggle="modal" data-target="#delete-asset-modal" rel="{{_id}}"><b class="glyphicon glyphicon-remove"></b></button>
+						</div>
+					</td>
+				</tr>
+			{{/each}}
+			</tbody>
+		</table>
+		<div id="delete-asset-modal" class="modal fade" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						Delete Asset
+					</div>
+					<div class="modal-body">
+						<p>Are you sure you want to delete this asset?</p>
+						<p><strong>This action cannot be undone.</strong></p>
+					</div>
+					<div class="modal-footer">
+						<form action="/asset" method="POST" id="delete-asset">
+							<input type="hidden" name="_method" value="DELETE">
+							<div class="btn-group">
+								<button class="btn btn-danger sharp">Yes</button>
+								<button type="button" class="btn btn-warning sharp" data-dismiss="modal">Cancel</button>
+							</div>
+						</form>
+					</div>
+			    </div>
+		   	</div>
+		</div>
+		<div id="edit-asset-modal" class="modal fade" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title">Edit Asset</h4>
+					</div>
+					<form action="/asset" method="POST" id="edit-asset" enctype="multipart/form-data" >
+						<input type="hidden" name="_method" value="PUT">
+						<div class="modal-body">	
+						</div>		
+						<div class="modal-footer">
+							<div class="btn-group">
+								<button class="btn btn-success sharp">Save</button>
+								<button type="button" class="btn btn-warning sharp" data-dismiss="modal">Cancel</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div id="add-asset-modal" class="modal fade" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title">Create Asset</h4>
+					</div>
+					<form action="/asset" method="POST" id="add-asset" enctype="multipart/form-data" >
+						<div class="modal-body">	
+						</div>		
+						<div class="modal-footer">
+							<div class="btn-group">
+								<button class="btn btn-success sharp">Create</button>
+								<button type="button" class="btn btn-warning sharp" data-dismiss="modal">Cancel</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,26 @@
+{{#if edit}}
+	<div class="form-group">
+		<label for="email">Email Address</label>
+		<p>{{email}}</p>
+	</div>
+{{else}}
+	<div class="form-group">
+		<label for="email">Email Address</label>
+		<input type="email" class="form-control" name="email" id="email" required>
+	</div>
+{{/if}}
+<div class="form-group">
+	<label for="password">{{#if edit}}New {{/if}}Password</label>
+	<input type="password" class="form-control" name="password" id="password" {{#if edit}}{{else}}required{{/if}}>
+</div>
+<div class="form-group">
+	<label for="password">Confirm Password</label>
+	<input type="password" class="form-control" name="password-confirm" id="password-confirm" {{#if edit}}{{else}}required{{/if}} data-rule-equalto="#password" data-msg-equalto="Passwords must match.">
+</div>
+<div class="form-group">
+	<label for="permissions">Permissions Level</label>
+	<select class="form-control" id="permissions" name="permissions" required>
+		<option value="user" {{#eq permissions "user"}}selected{{/eq}}>User</option>
+		<option value="super" {{#eq permissions "super"}}selected{{/eq}}>Super Admin</option>
+	</select>
+</div>

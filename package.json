@@ -1,0 +1,41 @@
+{
+  "name": "disaster-asset-manager",
+  "version": "0.0.1",
+  "description": "Node app to make building the Mapfolio a lot easier.",
+  "main": "config.js",
+  "dependencies": {
+    "bcrypt": "^0.8.3",
+    "bcrypt-nodejs": "^0.0.3",
+    "body-parser": "^1.12.4",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.3.5",
+    "express": "^4.12.4",
+    "express-session": "^1.11.2",
+    "express3-handlebars": "^0.5.2",
+    "gridfs-stream": "^1.1.1",
+    "moment": "^2.10.3",
+    "mongodb": "^2.0.14",
+    "mongoose": "^4.0.3",
+    "morgan": "^1.5.3",
+    "multer": "^0.1.8",
+    "passport": "^0.2.2",
+    "passport-local": "^1.0.0",
+    "gm": "^1.18.1",
+    "pdf-image": "^0.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AmericanRedCross/disaster-asset-manager.git"
+  },
+  "author": "American Red Cross and Kevin Lustig",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/AmericanRedCross/disaster-asset-manager/issues"
+  },
+  "homepage": "https://github.com/AmericanRedCross/disaster-asset-manager"
+}
