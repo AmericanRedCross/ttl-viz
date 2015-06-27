@@ -6,13 +6,13 @@ A Node.js server that enables storing and maintaining assets for disaster relief
 
 ## Installation
 
-### In the project directory, simply install via NPM
+**In the project directory, simply install via NPM**
 
 ```console
 npm install
 ```
 
-### Configure the application by modifying **config.js** in the project directory. 
+**Configure the application by modifying **config.js** in the project directory. **
 
 **siteName**: The name of the site as it will be displayed to your users in the site header.
 
@@ -26,13 +26,13 @@ npm install
 
 **asset_opts > sectors**: Available keyword tags that can be applied to your assets for filtering and sorting.
 
-### Start the application
+**Start the application**
 
 ```console
 node server
 ```
 
-### Visit the application in your browser
+**Visit the application in your browser**
 
 If you used port 80, the URL should simply be the IP address or URL of the server where you're running the application
 
@@ -52,12 +52,12 @@ e.g.,
 http://www.redcross.org:8888
 ```
 
-### Log in with the default super user
+**Log in with the default super user**
 
 Username: defaultUser@redcross.org
 
 Password: pa$$w0rd
 
-### Go to /users and create a new user
+**Go to /users and create a new user**
 
-### **Very Important:** Delete the default super user
+***Very Important:*** **Delete the default super user**
