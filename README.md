@@ -6,13 +6,13 @@ A Node.js server that enables storing and maintaining assets for disaster relief
 
 ## Installation
 
-**In the project directory, simply install via NPM**
+**Install via NPM**
 
 ```console
 npm install
 ```
 
-**Configure the application by modifying config.js in the project directory. **
+**Configure the application by modifying config.js in the project directory.**
 
 * **siteName**: The name of the site as it will be displayed to your users in the site header.
 * **description**: The description of the site as it will be displayed to your users on the homepage.
@@ -49,7 +49,9 @@ http://www.redcross.org:8888
 
 **Log in with the default super user**
 
+```console
 defaultUser@redcross.org/pa$$w0rd
+```
 
 **Go to /users and create a new user**
 
