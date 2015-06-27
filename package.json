@@ -1,7 +1,7 @@
 {
   "name": "disaster-asset-manager",
-  "version": "0.0.1",
-  "description": "Node app to make building the Mapfolio a lot easier.",
+  "version": "0.2.0",
+  "description": "An application using Node.js that enables storing and maintaining assets for disaster relief such as situation reports and maps and accessing those assets for display and use via a robust API.",
   "main": "config.js",
   "dependencies": {
     "bcrypt": "^0.8.3",

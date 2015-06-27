@@ -163,16 +163,6 @@ app.get('/users',function(req,res) {
 	}
 })
 
-app.get('/api/user/:email',function(req,res) {
-	if (req.user && req.user.permissions == "super") {
-		ctrl.getUser(req.params.email,function(user) {
-			res.json({email:user.email,permissions:user.permissions});
-		})
-	} else {
-		res.redirect("/");
-	}
-})
-
 app.post('/asset/:id',function(req,res) {
 	if (req.user) {
 		var opts = { '_id' :  req.params.id };
@@ -245,6 +235,16 @@ app.post('/api/authenticate', function(req, res) {
     }
   })(req, res);
 });
+
+app.get('/api/user/:email',[jwtauth.auth],function(req,res) {
+	if (req.user && req.user.permissions == "super") {
+		ctrl.getUser(req.params.email,function(user) {
+			res.json({email:user.email,permissions:user.permissions});
+		})
+	} else {
+		res.redirect("/");
+	}
+})
 
 app.get('/api/assets',[jwtauth.auth],function(req,res) {
 	console.log(req.user);

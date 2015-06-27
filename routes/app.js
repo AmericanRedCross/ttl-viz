@@ -10,8 +10,6 @@ var PDFImage = require("pdf-image").PDFImage;
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-mongoose.connect('mongodb://localhost/'+localConfig.db);
-
 var noFunc = function(){};
 
 function Session(req,res) {
@@ -99,12 +97,28 @@ var Server = mongo.Server,
 
 function Ctrl(host, port) {
 	var that = this;
-	this.kpis = [];
 	this.db = new Db(localConfig.db, new Server(host, port, {safe: false}, {auto_reconnect: true}, {}));
 	this.db.open(function(err, db) {
 		if (err) {
 			console.error("Assets App: Error: "+err);
 		}
+		mongoose.connection.on('open', function () {
+			db.collection("users",{strict:true},function(err,collection) {
+				if (!collection) {
+					var defaultUser = new User();
+					defaultUser.email = "defaultUser@redcross.org";
+					defaultUser.permissions = "super";
+					defaultUser.password = defaultUser.generateHash("pa$$w0rd");	
+					defaultUser.save(function(err) {
+		                if (err) {
+		                	console.error("Could not create default super user");
+		                }
+		            })
+				}
+			});
+		})
+		
+		mongoose.connect('mongodb://localhost/'+localConfig.db);
 	    var Grid = require('gridfs-stream');
 	    Grid.mongo = mongoose.mongo;
 	 
