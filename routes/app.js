@@ -314,6 +314,7 @@ Ctrl.prototype.createThumbnails = function(asset,requests,imagePath,callback) {
 }
 
 Ctrl.prototype.getAssets = function(user,query,callback) {
+	var ctrl = this;
 	var queryLen = 0;
 	for (queryTerm in query) {
 		var valid = false;
@@ -325,6 +326,9 @@ Ctrl.prototype.getAssets = function(user,query,callback) {
 					var queryVal = query[queryTerm];
 					query[queryTerm] = {$in:((typeof queryVal == "object") ? queryVal : [queryVal])}
 				}
+				if (queryTerm == "_id") {
+					query[queryTerm] = ctrl.MOID(query[queryTerm]);
+				}
 				queryLen++;
 			}
 		}
@@ -332,7 +336,6 @@ Ctrl.prototype.getAssets = function(user,query,callback) {
 			delete query[queryTerm];
 		}
 	}
-	var ctrl = this;
 	ctrl.db.collection("assets", {strict:true}, function(err,collection) {
 		if (!err) {
 			var opts = queryLen ? query : {};
