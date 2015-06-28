@@ -70,6 +70,7 @@ app.use(passport.session());
 app.use(flash());
 
 app.set("tokenSecret",jwtauth.tokenSecret);
+app.set("json spaces",4);
 
 app.engine('handlebars', exphbs({
 	defaultLayout: 'main',
@@ -195,7 +196,7 @@ app.post('/asset',function(req,res) {
 
 app.get('/assets',function(req,res) {
 	if (req.user) {
-		ctrl.getAssets(req.user,function(result) {
+		ctrl.getAssets(req.user,{},function(result) {
 			res.render('listAssets',{
 				user:req.user,
 				assets:result,
@@ -210,6 +211,40 @@ app.get('/assets',function(req,res) {
 	}
 })
 
+
+function apiSucceed(req,payload) {
+	var data = {
+		success: true,
+		response: payload
+	}
+	if (req.user) {
+		if (!data.auth) {
+			data.auth = {
+				user:req.user.email
+			}
+		} else {
+			data.auth.user = req.user.email;
+		}
+	}
+	if (req.token) {
+		if (!data.auth) {
+			data.auth = {
+				token:req.token
+			}
+		} else {
+			data.auth.token = req.token;
+		}
+	}
+	return data;
+}
+
+function apiFail(err) {
+	return { 
+		success: false,
+		error: err
+	}
+}
+
 app.get('/api/authenticate', function(req, res) {
 	res.render('apiAuth',{
 		error:req.flash("createMessage") || req.flash("editMessage") || req.flash("deleteMessage"),
@@ -223,65 +258,77 @@ app.post('/api/authenticate', function(req, res) {
     	if (req.query.from) {
     		res.redirect("http://"+req.query.from+"?token=INVALID");
     	} else {
-    		res.status(401).json({ error: 'Invalid username and/or password.' });
+    		res.status(401).json(apiFail("Invalid username and/or password."));
     	}
     } else {    
 	    var token = JWT.encode({ iss: user.email, exp: moment().add('hours', 24).valueOf()}, app.get('tokenSecret'));
 	    if (req.query.from) {
 	    	res.redirect("http://"+req.query.from+"?token="+token);
 	    } else {
-	    	res.json({ token : token });
+	    	res.json(apiSucceed(req,{token: token}));
 	    }
     }
   })(req, res);
 });
 
 app.get('/api/user/:email',[jwtauth.auth],function(req,res) {
-	if (req.user && req.user.permissions == "super") {
+	res.header('Access-Control-Allow-Origin', '*');
+	if (req.user && (req.user.permissions == "super" || req.user.email == req.params.email)) {
 		ctrl.getUser(req.params.email,function(user) {
-			res.json({email:user.email,permissions:user.permissions});
+			if (user) {				
+				res.json(apiSucceed(req,data));
+			} else {
+				res.status(400).json(apiFail("No user with that email address or insufficient access."))	
+			}
 		})
 	} else {
-		res.redirect("/");
+		res.status(401).json(apiFail("Access denied."));
 	}
 })
 
 app.get('/api/assets',[jwtauth.auth],function(req,res) {
-	console.log(req.user);
 	res.header('Access-Control-Allow-Origin', '*');
-	ctrl.getAssets(req.user,function(result) {
-		for(var i=0;i<result.length;i++) {
-			delete result[i].__v;
-			delete result[i].user;
+	ctrl.getAssets(req.user,req.query,function(result) {
+		if (result && result.length) {
+			for(var i=0;i<result.length;i++) {
+				delete result[i].__v;
+				delete result[i].user;
+			}
+			res.json(apiSucceed(req,result));
+		} else {
+			res.status(400).json(apiFail("No assets matching that query or insufficient access."))
 		}
-		res.json(result);
 	})
 })
 
-app.get('/api/asset/:id/file',function(req,res) {
+app.get('/api/asset/:id/file',[jwtauth.auth],function(req,res) {
 	res.header('Access-Control-Allow-Origin', '*');
-	ctrl.getAssetFile(req.params.id,function() {
+	ctrl.getAssetFile(req.user,req.params.id,function() {
 		res.status(404).send();
 	},req,res)
 })
 
-app.get('/api/asset/:id/thumbnail/:size',function(req,res) {
+app.get('/api/asset/:id/thumbnail/:size',[jwtauth.auth],function(req,res) {
 	res.header('Access-Control-Allow-Origin', '*');
-	ctrl.getAssetThumb(req.params.id,req.params.size,function() {
+	ctrl.getAssetThumb(req.user,req.params.id,req.params.size,function() {
 		res.status(404).send();
 	},req,res)
 })
 
-app.get('/api/asset/:id/thumbnail',function(req,res) {
+app.get('/api/asset/:id/thumbnail',[jwtauth.auth],function(req,res) {
 	res.redirect("/api/asset/"+req.params.id+"/thumbnail/lg");
 })
 
-app.get('/api/asset/:id',function(req,res) {
+app.get('/api/asset/:id',[jwtauth.auth],function(req,res) {
 	res.header('Access-Control-Allow-Origin', '*');
-	ctrl.getAsset(req.params.id,function(asset) {
-		delete asset.__v;
-		delete asset.user;
-		res.json(asset);
+	ctrl.getAsset(req.user,req.params.id,function(asset) {
+		if (asset) {
+			delete asset.__v;
+			delete asset.user;
+			res.json(apiSucceed(req,asset));
+		} else {
+			res.status(400).json(apiFail("No asset matching that ID or insufficient access."));
+		}
 	})
 })
 

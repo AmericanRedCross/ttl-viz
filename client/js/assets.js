@@ -40,8 +40,8 @@ $(function() {
 			var id = $(this).attr("rel");
 			$("#edit-asset").attr("action","/asset/"+id);
 			$.getJSON("/api/asset/"+id,function(result) {
-				result.opts = localConfig.asset_opts;
-				$("#edit-asset .modal-body").html(assetCtrl.templates.editAsset.tpl(result));
+				result.response.opts = localConfig.asset_opts;
+				$("#edit-asset .modal-body").html(assetCtrl.templates.editAsset.tpl(result.response));
 				$("#edit-asset").validate();
 			})
 		})		

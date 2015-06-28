@@ -313,15 +313,33 @@ Ctrl.prototype.createThumbnails = function(asset,requests,imagePath,callback) {
 	});
 }
 
-Ctrl.prototype.getAssets = function(user,callback) {
+Ctrl.prototype.getAssets = function(user,query,callback) {
+	var queryLen = 0;
+	for (queryTerm in query) {
+		var valid = false;
+		for (term in assetSchema.paths) {
+			var assetItem = assetSchema.paths[term];
+			if (term == queryTerm) {
+				valid = true;
+				if (assetItem.instance == "Array") {
+					var queryVal = query[queryTerm];
+					query[queryTerm] = {$in:((typeof queryVal == "object") ? queryVal : [queryVal])}
+				}
+				queryLen++;
+			}
+		}
+		if (!valid) {
+			delete query[queryTerm];
+		}
+	}
 	var ctrl = this;
 	ctrl.db.collection("assets", {strict:true}, function(err,collection) {
 		if (!err) {
-			var opts = undefined;
+			var opts = queryLen ? query : {};
 			if (!user) {
-				opts = {public:true};
+				opts.public = true;
 			} else if (user.permissions != "super") {
-				opts = {$or:[{public:true},{user:user.email}]};
+				opts.$or = [{public:true},{user:user.email}];
 			}
 			collection.find(opts).toArray(function(err,result) {
 				if (!err) {
@@ -336,9 +354,15 @@ Ctrl.prototype.getAssets = function(user,callback) {
 	})
 }
 
-Ctrl.prototype.getAsset = function(id,callback) {
-	Asset.findOne({_id:id}, function(err, asset) {
-		if (!err) { 
+Ctrl.prototype.getAsset = function(user,id,callback) {
+	var query = {_id:id};
+	if (!user) {
+		query.public = true;
+	} else if (user.permissions != "super") {
+		query.user = user.email;
+	}
+	Asset.findOne(query, function(err, asset) {
+		if (!err && asset) { 
 			callback(asset);
 		} else {
 			callback(undefined);
@@ -346,7 +370,7 @@ Ctrl.prototype.getAsset = function(id,callback) {
    	})
 }
 
-Ctrl.prototype.getAssetFile = function(id,callback,req,res) {
+Ctrl.prototype.getAssetFile = function(user,id,callback,req,res) {
 	var ctrl = this;
 	Asset.findOne({_id:id}, function(err, asset) {
 		if (!err) { 
@@ -366,7 +390,7 @@ Ctrl.prototype.getAssetFile = function(id,callback,req,res) {
    	})
 }
 
-Ctrl.prototype.getAssetThumb = function(id,size,callback,req,res) {
+Ctrl.prototype.getAssetThumb = function(user,id,size,callback,req,res) {
 	var ctrl = this;
 	Asset.findOne({_id:id}, function(err, asset) {
 		if (!err) { 
@@ -485,7 +509,7 @@ Ctrl.prototype.getUsers = function(callback) {
 
 Ctrl.prototype.getUser = function(email,callback) {
 	User.findOne({email:email}, function(err, user) {
-		if (!err) { 
+		if (!err && user) { 
 			callback(user);
 		} else {
 			callback(undefined);

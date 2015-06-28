@@ -37,8 +37,8 @@ $(function() {
 			var email = $(this).attr("rel");
 			$("#edit-user").attr("action","/user/"+email);
 			$.getJSON("/api/user/"+email,function(result) {
-				result.edit = true;
-				$("#edit-user .modal-body").html(userCtrl.templates.editUser.tpl(result));
+				result.response.edit = true;
+				$("#edit-user .modal-body").html(userCtrl.templates.editUser.tpl(result.response));
 				$("#edit-user").validate();
 			});
 		})		
