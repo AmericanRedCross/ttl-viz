@@ -73,6 +73,14 @@ Failed requests or requests that produce no data are responded to with the prope
 
 Returns the data for a single asset identified by its MongoDB ID. If an asset cannot be found with the provided ID or the user doesn't have permission to view that asset, a failure response is provided.
 
+**/api/asset/[id]/file**
+
+Returns the file associated with a single asset identified by its MongoDB ID. Returns a file for download if successful, or a 404 response if the file cannot be found. 
+
+**/api/asset/[id]/thumbnail/[size]**
+
+Returns the thumbnail in one of three sizes - lg (large), md (medium), sm (small) - associated with a single asset identified by its MongoDB ID. Returns a file if successful, or a 404 response if the thumbnail cannot be found. 
+
 **/api/assets**
 
 Returns the data for all public assets by default. If an access token is provided, additional assets will be included as appropriate. 
