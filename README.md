@@ -59,7 +59,7 @@ defaultUser@redcross.org/pa$$w0rd
 
 ## API
 
-The API methods provide access to the asset data in the asset manager in JSON format from any domain. Assets that are not marked as public are only accessible to users with ownership or super user permissions via the use of access tokens.
+The API methods provide access to the data in the asset manager in JSON format from any domain. Assets that are not marked as public are only accessible to users with ownership or super user permissions via the use of access tokens.
 
 ### Methods
 
@@ -69,10 +69,39 @@ Successful requests are responded to with the property **success: true** and a *
 
 Failed requests or requests that produce no data are responded to with the property **success: false** and a human readable error message. 
 
-* **/api/asset/[id]**: Returns the data for a single asset identified by its Mongo ID. If an asset cannot be found with the provided ID or the user doesn't have permission to view that asset, a failure response is provided.
-* **/api/assets**: Returns the data for all public assets by default. If an access token is provided, additional assets will be included as appropriate. Query parameters can also be included in the request, and results will be filtered to match these criteria. For example, ?type=sitrep will limit the results to assets tagged as Situation Reports. Multiple values can be provided for parameters filtering on array data to perform an OR fiter. For example, ?extent=World&extent=Nepal will filter the results to assets tagged as relevant to the World or to Nepal. Parameters that do not match the asset schema will be ignored.
+**/api/asset/[id]**
+
+Returns the data for a single asset identified by its MongoDB ID. If an asset cannot be found with the provided ID or the user doesn't have permission to view that asset, a failure response is provided.
+
+**/api/assets**
+
+Returns the data for all public assets by default. If an access token is provided, additional assets will be included as appropriate. 
+
+Query parameters can also be included in the request, and results will be filtered to match these criteria. Parameters that do not match the asset schema will be ignored.
+
+*Examples* 
+
+```console
+/api/assets?type=sitrep 
+```
+
+Limits the results to assets tagged as Situation Reports. 
+
+```console
+/api/assets?extent=World&extent=Nepal 
+```
+
+Limits the results to assets tagged as relevant to the World **or** to Nepal. 
+
+```console
+/api/assets?foo=bar 
+```
+
+Does nothing.
 
 ### Authentication
+
+All authentication methods use the authentication gateway at **/api/authenticate**.
 
 #### Pass-Through Method
 
@@ -84,7 +113,7 @@ Direct your users to the authentication gateway with your site's URL appended as
 http://www.myassetmanager.com:myport/api/authenticate?from=www.myotherapplication.com
 ```
 
-**Note:** Do **not** use "http://" or "https://" in the "from" URL.
+***Note:*** *Do not use "http://" or "https://" in the "from" URL.*
 
 Once users provide their credentials, they will be redirected back to the URL you provided with a token parameter appended to the URL. 
 
@@ -130,5 +159,5 @@ http://www.myassetmanager.com:myport/api/assets?token=12345.67890.12345
 **As a request header**
 
 ```console
-x-access-token = 12345.67890.12345
+x-access-token: 12345.67890.12345
 ```
