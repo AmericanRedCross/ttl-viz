@@ -1,6 +1,6 @@
 {
   "name": "disaster-asset-manager",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "An application using Node.js that enables storing and maintaining assets for disaster relief such as situation reports and maps and accessing those assets for display and use via a robust API.",
   "main": "config.js",
   "dependencies": {

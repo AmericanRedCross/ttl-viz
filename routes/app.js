@@ -168,6 +168,9 @@ Ctrl.prototype.updateAsset = function(req,res,opts) {
 				}
 				asset[key] = req.body[key];
 			}
+			if (!req.body.public) {
+				asset.public = false;
+			}
 		    ctrl.handleAssetFiles(req,res,asset,'editMessage','Unable to edit that asset at this time.',function() {
 		    	asset.save(function(err) {
 		    		console.log("Updated Asset",asset);
@@ -219,6 +222,7 @@ Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg,comp
 	var requests = {active:0};
 	if (req.files && req.files.file) {
 		var file = req.files.file;
+		console.log(file);
 		asset.thumbnail && (removeFile("thumbnail",function() {
 			!requests.active && (step(file));
 		}));
@@ -334,8 +338,14 @@ Ctrl.prototype.getAsset = function(user,id,callback) {
 
 Ctrl.prototype.getAssetFile = function(user,id,callback,req,res) {
 	var ctrl = this;
-	Asset.findOne({_id:id}, function(err, asset) {
-		if (!err) { 
+	var query = {_id:id};
+	if (!user) {
+		query.public = true;
+	} else if (user.permissions != "super") {
+		query.user = user.email;
+	}
+	Asset.findOne(query, function(err, asset) {
+		if (!err && asset) { 
 			ctrl.gfs.files.findOne({_id:asset.file},function(err,file) {
 				if (!err && file) {
 					res.set('Content-Type', asset.file_mime);
@@ -352,12 +362,17 @@ Ctrl.prototype.getAssetFile = function(user,id,callback,req,res) {
    	})
 }
 
-Ctrl.prototype.getAssetThumb = function(req,res,callback) {
+Ctrl.prototype.getAssetThumb = function(user,id,callback,req,res) {
 	var ctrl = this;
-	var id = req.params.id;
+	var query = {_id:id};
+	if (!user) {
+		query.public = true;
+	} else if (user.permissions != "super") {
+		query.user = user.email;
+	}
 	var size = req.params.size;
 	size = !isNaN(parseInt(size)) ? parseInt(size) : 500;
-	Asset.findOne({_id:id}, function(err, asset) {
+	Asset.findOne(query, function(err, asset) {
 		if (!err) {
 			ctrl.gfs.files.findOne({_id:asset.thumbnail},function(err,file) {
 				if (!err && file) {
