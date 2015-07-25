@@ -45,17 +45,16 @@ Session.prototype.handle = function(err,data,proceed) {
 //Supporting classes
 
 var assetSchema = new Schema({
-  thumbnail_id: String,
   title: {type: String, required:true},
   date: { type: Date, default: Date.now },
+  createDate: { type: Date, default: Date.now },
   description: {type: String, required:true},
+  file: Schema.Types.ObjectId,
   filename: String,
-  file: String,
   file_mime: String,
-  file_ids: Array,
   thumbnail: Schema.Types.ObjectId,
   thumbnail_mime: String,
-  map_size:	Number,
+  size:	Number,
   extent: {type: Array, required:true},
   sector: {type: Array, required:true},
   longitude: Number,
@@ -63,7 +62,7 @@ var assetSchema = new Schema({
   link: String,
   user: {type: String, required:true},
   public: {type: Boolean, required:true, default: false},
-  type: {type: String, required:true, default: "map"}
+  type: {type: String, required:true}
 },{
 	collection:'assets'
 })
@@ -143,7 +142,15 @@ Ctrl.prototype.createAsset = function(req,res) {
 			}	
 			newAsset.user = req.user.email;
 			
-		    ctrl.handleAssetFiles(req,res,newAsset,'createMessage','Unable to create a new asset at this time.');
+		    ctrl.handleAssetFiles(req,res,newAsset,'createMessage','Unable to create a new asset at this time.',function() {
+		    	newAsset.save(function(err) {
+		    		console.log("Created Asset",newAsset);
+			        if (err) {
+			        	req.flash(flashType,flashMsg);
+			        }
+			        res.redirect("/assets");
+			    })
+		    });
        	}
    	})
 }
@@ -161,7 +168,15 @@ Ctrl.prototype.updateAsset = function(req,res,opts) {
 				}
 				asset[key] = req.body[key];
 			}
-		    ctrl.handleAssetFiles(req,res,asset,'editMessage','Unable to edit that asset at this time.');
+		    ctrl.handleAssetFiles(req,res,asset,'editMessage','Unable to edit that asset at this time.',function() {
+		    	asset.save(function(err) {
+		    		console.log("Updated Asset",asset);
+			        if (err) {
+			        	req.flash(flashType,flashMsg);
+			        }
+			        res.redirect("/assets");
+			    })
+		    });
 		} else {
 			req.flash('editMessage', 'There is no asset with that ID or you do not have permission to edit it.');
 		    res.redirect("/assets");
@@ -186,95 +201,75 @@ Ctrl.prototype.deleteAsset = function(req,res,opts) {
    	})
 }
 
-Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg) {
+Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg,complete) {
 	var ctrl = this;
-	function complete() {
-		asset.save(function(err) {
-	        if (err) {
-	        	req.flash(flashType,flashMsg);
-	        }
-	        res.redirect("/assets");
-	    })
+	function step(file) {
+		ctrl.handleFile(asset,file,function() {
+			!requests.active && (complete());
+		})
+	}
+	function removeFile(file,callback) {
+		requests.active++;
+		ctrl.gfs.remove({_id:asset[file]},function(err) {
+			delete asset[file];
+			requests.active--;
+			callback();
+		})
 	}
 	var requests = {active:0};
-	console.log(req.files);
-	if (req.files && Object.keys(req.files).length) {
-		function fileComplete() {
-			requests.active--;
-			if (!requests.active) {
-				ctrl.handleFile(asset,key,file,requests,function() {
-					!requests.active && (complete());
-				})
-			}
-		}
-		if (asset.thumbnail) {
-			requests.active++;
-			ctrl.gfs.remove({_id:asset.thumbnail},function(err) {
-				fileComplete();
-			})
-		}
-		for (key in req.files) {
-			var file = req.files[key];
-			if (asset[key+"_ids"] && asset[key+"_ids"].length) {
-				for (var i=0;i<asset[key+"_ids"].length;i++) {
-					var id = asset[key+"_ids"][i];
-					requests.active++;
-					ctrl.gfs.remove({_id:id},function(err) {
-						fileComplete();
-					})
-				}	
-			} else {
-				ctrl.handleFile(asset,key,file,requests,function() {
-					!requests.active && (complete());
-				});			
-			}
+	if (req.files && req.files.file) {
+		var file = req.files.file;
+		asset.thumbnail && (removeFile("thumbnail",function() {
+			!requests.active && (step(file));
+		}));
+		
+		if (asset.file) {
+			removeFile("file",function() {
+				!requests.active && (step(file));
+			});
+		} else {
+			!requests.active && (step(file));
 		}
 	} else {
-		!requests.active && complete();
+		complete();
 	}
 }
 
-Ctrl.prototype.handleFile = function(asset,key,file,requests,callback) {
+Ctrl.prototype.handleFile = function(asset,file,callback) {
 	var ctrl = this;
 	var filename = file.originalname;
 	var read_stream = fs.createReadStream(file.path);
-	asset[key] = filename;
-	asset[key+"_mime"] = file.mimetype;
-	asset[key+"_ids"] = [];
-	asset.map_size = file.size;
-	requests.active++;
-	(function(file) {
-		var ws = ctrl.gfs.createWriteStream({
-	        filename: filename
-	    });
-	    ws.on("close",function(writeFile) {
-	    	asset[key+"_ids"].push(writeFile._id);
-	    	if (key == "file" && file.extension == "pdf") {
-				var pdfImage = new PDFImage(file.path);
-				pdfImage.convertPage(0).then(function (imagePath) {
-					var filename = imagePath.replace("/tmp/","");
-					asset.thumbnail_mime = "image/png";
-					var rs = fs.createReadStream(imagePath);
-					var ws = ctrl.gfs.createWriteStream({
-						filename:filename
-					});
-					ws.on("close",function(writeFile) {
-						asset.thumbnail = writeFile._id;
-						requests.active--;
-						!requests.active && (callback());
-					})
-					rs.pipe(ws);
-				},function(err) {
-					console.error(err);
-					requests.active--;
-					!requests.active && (callback());
+	asset.file_mime = file.mimetype;
+	asset.size = file.size;
+	asset.filename = asset.type+"-"+(new Date().getTime())+"-"+file.originalname.replace(/[^a-zA-Z\d\.]/g,"-").toLowerCase();
+	var ws = ctrl.gfs.createWriteStream({
+        filename: asset.filename
+    });
+    ws.on("close",function(writeFile) {
+    	asset.file = writeFile._id;
+    	if (file.extension == "pdf") {
+			var pdfImage = new PDFImage(file.path);
+			pdfImage.convertPage(0).then(function (imagePath) {
+				var filename = imagePath.replace("/tmp/","");
+				asset.thumbnail_mime = "image/png";
+				var rs = fs.createReadStream(imagePath);
+				var ws = ctrl.gfs.createWriteStream({
+					filename:filename
+				});
+				ws.on("close",function(writeFile) {
+					asset.thumbnail = writeFile._id;
+					callback();
 				})
-			} else {
+				rs.pipe(ws);
+			},function(err) {
+				console.error(err);
 				callback();
-			}
-	    })
-		read_stream.pipe(ws);
-   })(file);
+			})
+		} else {
+			callback();
+		}
+    })
+	read_stream.pipe(ws);
 }
 
 Ctrl.prototype.getAssets = function(user,query,callback) {
@@ -341,11 +336,11 @@ Ctrl.prototype.getAssetFile = function(user,id,callback,req,res) {
 	var ctrl = this;
 	Asset.findOne({_id:id}, function(err, asset) {
 		if (!err) { 
-			ctrl.gfs.files.find({filename:asset.file}).toArray(function(err,files) {
-				if (!err && files.length > 0) {
+			ctrl.gfs.files.findOne({_id:asset.file},function(err,file) {
+				if (!err && file) {
 					res.set('Content-Type', asset.file_mime);
-					res.set('Content-Disposition', 'attachment; filename="'+files[0].filename+'"');
-		            var read_stream = ctrl.gfs.createReadStream({filename: asset.file});
+					res.set('Content-Disposition', 'attachment; filename="'+file.filename+'"');
+		            var read_stream = ctrl.gfs.createReadStream(file);
 		            read_stream.pipe(res);
 				} else {
 					callback();
