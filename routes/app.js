@@ -3,12 +3,12 @@ var http = require('http');
 var url = require('url');
 var moment = require('moment');
 var fs = require('fs');
-var gm = require('gm').subClass({imageMagick: true});
 var localConfig = require('../config');
 var bcrypt = require('bcrypt-nodejs');
 var PDFImage = require("pdf-image").PDFImage;
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var sharp = require('sharp');
 
 var noFunc = function(){};
 
@@ -53,9 +53,8 @@ var assetSchema = new Schema({
   file: String,
   file_mime: String,
   file_ids: Array,
-  thumbnail: String,
+  thumbnail: Schema.Types.ObjectId,
   thumbnail_mime: String,
-  thumbnail_ids: Array,
   map_size:	Number,
   extent: {type: Array, required:true},
   sector: {type: Array, required:true},
@@ -208,7 +207,6 @@ Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg) {
 					requests.active--;
 					if (!requests.active) {
 						ctrl.handleFile(asset,key,file,requests,function() {
-							requests.active--;
 							!requests.active && (complete());
 						})
 					}
@@ -216,7 +214,6 @@ Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg) {
 			}	
 		} else {
 			ctrl.handleFile(asset,key,file,requests,function() {
-				requests.active--;
 				!requests.active && (complete());
 			});			
 		}
@@ -243,26 +240,21 @@ Ctrl.prototype.handleFile = function(asset,key,file,requests,callback) {
 				var pdfImage = new PDFImage(file.path);
 				pdfImage.convertPage(0).then(function (imagePath) {
 					var filename = imagePath.replace("/tmp/","");
-					asset.thumbnail = filename;
 					asset.thumbnail_mime = "image/png";
-					if (asset.thumbnail_ids && asset.thumbnail_ids.length) {
-						for (var i=0;i<asset.thumbnail_ids.length;i++) {
-							var id = asset.thumbnail_ids[i]
-							requests.active++;
-							ctrl.gfs.remove({"_id":id},function(err,result) {
-								requests.active--;
-								if (requests.active == 1) {
-									ctrl.createThumbnails(asset,requests,imagePath,function() {
-										callback();
-									})
-								}
-							})
-						}
-					} else {
-						ctrl.createThumbnails(asset,requests,imagePath,function() {
-							callback();
-						})
-					}
+					var rs = fs.createReadStream(imagePath);
+					var ws = ctrl.gfs.createWriteStream({
+						filename:filename
+					});
+					ws.on("close",function(writeFile) {
+						asset.thumbnail = writeFile._id;
+						requests.active--;
+						!requests.active && (callback());
+					})
+					rs.pipe(ws);
+				},function(err) {
+					console.error(err);
+					requests.active--;
+					!requests.active && (callback());
 				})
 			} else {
 				callback();
@@ -270,47 +262,6 @@ Ctrl.prototype.handleFile = function(asset,key,file,requests,callback) {
 	    })
 		read_stream.pipe(ws);
    })(file);
-}
-
-Ctrl.prototype.createThumbnails = function(asset,requests,imagePath,callback) {
-	var ctrl = this;
-	asset.thumbnail_ids = [];
-	requests.active++;
-	gm(imagePath).resize(500).stream(function (err,stdout,stderr) {
-		var ws = ctrl.gfs.createWriteStream({
-			filename:asset.thumbnail
-		});
-		ws.on("close",function(writeFile) {
-			asset.thumbnail_ids.push(writeFile._id);
-			requests.active--;
-			(requests.active == 1) && (callback());
-		})
-		stdout.pipe(ws);
-	});
-	requests.active++;
-	gm(imagePath).resize(250).stream(function (err,stdout,stderr) {
-		var ws = ctrl.gfs.createWriteStream({
-			filename:"md_"+asset.thumbnail
-		});
-		ws.on("close",function(writeFile) {
-			asset.thumbnail_ids.push(writeFile._id);
-			requests.active--;
-			(requests.active == 1) && (callback());
-		})
-		stdout.pipe(ws);
-	});
-	requests.active++;
-	gm(imagePath).resize(100).stream(function (err,stdout,stderr) {
-		var ws = ctrl.gfs.createWriteStream({
-			filename:"sm_"+asset.thumbnail
-		});
-		ws.on("close",function(writeFile) {
-			asset.thumbnail_ids.push(writeFile._id);
-			requests.active--;
-			(requests.active == 1) && (callback());
-		})
-		stdout.pipe(ws);
-	});
 }
 
 Ctrl.prototype.getAssets = function(user,query,callback) {
@@ -393,37 +344,19 @@ Ctrl.prototype.getAssetFile = function(user,id,callback,req,res) {
    	})
 }
 
-Ctrl.prototype.getAssetThumb = function(user,id,size,callback,req,res) {
+Ctrl.prototype.getAssetThumb = function(req,res,callback) {
 	var ctrl = this;
+	var id = req.params.id;
+	var size = req.params.size;
+	size = !isNaN(parseInt(size)) ? parseInt(size) : 500;
 	Asset.findOne({_id:id}, function(err, asset) {
-		if (!err) { 
-			var filename = asset.thumbnail;
-			switch (size) {
-				case "med":
-				case "medium":
-				case "md":
-				case "m":
-					filename = "med_"+filename;
-				break;
-				case "sm":
-				case "small":
-				case "s":
-					filename = "sm_"+filename;
-				break;
-				case "":
-				case undefined:
-				case "large":
-				case "lg":
-				case "l":
-				default:
-					filename = filename;
-				break;
-			}
-			ctrl.gfs.files.find({filename:asset.thumbnail}).toArray(function(err,files) {
-				if (!err && files.length > 0) {
-					res.set('Content-Type', asset.thumbnail_mime);
-		            var read_stream = ctrl.gfs.createReadStream({filename: filename});
-		            read_stream.pipe(res);
+		if (!err) {
+			ctrl.gfs.files.findOne({_id:asset.thumbnail},function(err,file) {
+				if (!err && file) {
+					var stream = ctrl.gfs.createReadStream(file);
+					var resize = sharp().resize(size);
+					res.set('Content-Type', 'image/png');
+					stream.pipe(resize).pipe(res);
 				} else {
 					callback();
 				}

@@ -310,13 +310,13 @@ app.get('/api/asset/:id/file',[jwtauth.auth],function(req,res) {
 
 app.get('/api/asset/:id/thumbnail/:size',[jwtauth.auth],function(req,res) {
 	res.header('Access-Control-Allow-Origin', '*');
-	ctrl.getAssetThumb(req.user,req.params.id,req.params.size,function() {
+	ctrl.getAssetThumb(req,res,function() {
 		res.status(404).send();
-	},req,res)
+	})
 })
 
 app.get('/api/asset/:id/thumbnail',[jwtauth.auth],function(req,res) {
-	res.redirect("/api/asset/"+req.params.id+"/thumbnail/lg");
+	res.redirect("/api/asset/"+req.params.id+"/thumbnail/500");
 })
 
 app.get('/api/asset/:id',[jwtauth.auth],function(req,res) {
