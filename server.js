@@ -4,6 +4,8 @@ var localConfig = require('./config');
 var AppCtrl = require('./routes/app').Ctrl;
 var Asset = require('./routes/app').Asset;
 var moment = require('moment');
+var fs = require('fs');
+
 
 var ctrl = new AppCtrl('localhost', 27017);
 
@@ -93,6 +95,15 @@ app.engine('handlebars', exphbs({
 		},
 		formatDate: function(context,format) {
 			return moment(context).format(format);
+		},
+		logos: function() {
+			var output = "";
+			var files = fs.readdirSync("client/media/logos");
+			for (var i=0;i<files.length;i++) {
+				var file = files[i];
+				output+="<img src='/media/logos/"+file+"' class='logo'>";
+			}
+			return output;
 		}
 	},
 	partials: {

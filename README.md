@@ -218,3 +218,20 @@ http://www.myassetmanager.com:myport/api/assets?token=12345.67890.12345
 ```console
 x-access-token: 12345.67890.12345
 ```
+
+## Customizing the Interface
+
+All local resources for the default Asset Manager interface are in the "client" directory. 
+
+**Templates**
+
+Most pages are templated using Handlebars in conjunction with Express from within the Node application. These templates can be found in the "views" directory.
+
+Components of the interface that display data fetched via AJAX (right now, just the create/edit modals) are rendered via Handlebars in the browser. These templates can be found in the "client/js/views" directory.
+
+**Logos**
+
+A Handlebars helper displays the logos in the footer. It scrapes the "client/media/logos" directory for files and displays each as an image. 
+
+To modify these logos, simply add or remove files from that directory. 
+
