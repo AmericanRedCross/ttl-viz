@@ -74,6 +74,32 @@ defaultUser@redcross.org/pa$$w0rd
 
 ***Very Important:*** **Delete the default super user**
 
+## Run the Application
+
+You'll want to keep the application up and running on your server. There are multiple tools that will help you do this. We recommend [PM2](https://github.com/Unitech/pm2) or [Forever](https://github.com/foreverjs/forever).
+
+### PM2
+
+** Install PM2 **
+
+```console
+sudo npm install pm2 -g
+```
+
+** Start the Asset Manager **
+
+From the directory where the Asset Manager is installed:
+
+```console
+pm2 start server.js
+```
+
+** Restart the Asset Manager with your server **
+
+To have the Asset Manager restart itself after a reboot, server downtime, etc., you can generate a startup script. 
+
+Check the [PM2 documentation](https://github.com/Unitech/pm2#startup-script-generation) on this for more details.
+
 ## API
 
 The API methods provide access to the data in the asset manager in JSON format from any domain. Assets that are not marked as public are only accessible to users with ownership or super user permissions via the use of access tokens.
