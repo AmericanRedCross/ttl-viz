@@ -1,1 +1,1 @@
-{ "options" : { "create" : "users" }, "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "arc_assets.users", "name" : "_id_" } ] }
+{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "arc_assets.users", "name" : "_id_" } ] }
