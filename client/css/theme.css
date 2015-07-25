@@ -8,6 +8,8 @@ body { color: #555; }
 
 input, select, textarea, .form-control { border-radius: 0; }
 
+textarea { max-width: 100%; }
+
 table { background: #eee; width: 100%; }
 table.six-col td, table.six-col th { width: 17%; }
 table.five-col td, table.five-col th { width: 21.25%; }
