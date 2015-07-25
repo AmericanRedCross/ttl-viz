@@ -21,17 +21,28 @@
 </fieldset>
 <fieldset>
 	<legend>Attributes</legend>
-	<div class="form-group">
-		<div class="checkbox">
-			<label><input type="checkbox" name="public" id="public" value="true" {{#if public}}checked{{/if}}> Public</label>
+	<div class="col-md-6">
+		<div class="form-group">
+			<div class="checkbox">
+				<label><input type="checkbox" name="public" id="public" value="true" {{#if public}}checked{{/if}}> Public</label>
+			</div>
 		</div>
 	</div>
-	<div class="form-group">
-		<div class="radio">
-			<label><input type="radio" name="type" id="type_sitrep" value="sitrep" {{#eq type "sitrep"}}checked{{/eq}} required> Situation Report</label>
-		</div>
-		<div class="radio">
-			<label><input type="radio" name="type" id="type_map" value="map" {{#eq type "map"}}checked{{/eq}}> Map</label>
+	<div class="col-md-6">
+		<div class="form-group">
+			
+			<div class="radio">
+				<label><input type="radio" name="type" id="type_sitrep" value="sitrep" {{#eq type "sitrep"}}checked{{/eq}} required> Situation Report</label>
+			</div>
+			<div class="radio">
+				<label><input type="radio" name="type" id="type_map" value="map" {{#eq type "map"}}checked{{/eq}}> Map</label>
+			</div>
+			<div class="radio">
+				<label><input type="radio" name="type" id="type_info" value="info" {{#eq type "info"}}checked{{/eq}}> Infographic</label>
+			</div>
+			<div class="radio">
+				<label><input type="radio" name="type" id="type_webmap" value="webmap" {{#eq type "webmap"}}checked{{/eq}}> Web Map</label>
+			</div>
 		</div>
 	</div>
 </fieldset>
@@ -59,20 +70,19 @@
 	</div>
 </fieldset>-->
 <fieldset>
-	<legend>File</legend>
+	<legend>Resource</legend>
 	<!--<div class="form-group">
 		<label for="filename">Filename</label>
 		<input type="text" class="form-control" name="filename" id="filename" value="{{filename}}">
 	</div>
 	<strong>or</strong>-->
-	<div class="form-group">
+	<div class="form-group{{#neq type "webmap"}} active{{/neq}}{{#if type}}{{else}} active{{/if}}" id="form-file">
 		{{#if file}}<p><b>Current:</b> <em>{{file}}</em></p>{{/if}}
 		{{#if thumbnail}}<p><img src="/api/asset/{{_id}}/thumbnail/200"></p>{{/if}}
 		<label for="file">{{#if file}}Replace{{else}}Upload{{/if}} File</label>
 		<input type="file" class="form-control" name="file" id="file" size="50">
 	</div>
-	<strong>or</strong>
-	<div class="form-group">
+	<div class="form-group{{#eq type "webmap"}} active{{/eq}}" id="form-url">
 		<label for="link">URL</label>
 		<input type="text" class="form-control" name="link" id="link" data-rule-url="true"  value="{{link}}">
 	</div>

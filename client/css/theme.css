@@ -28,7 +28,6 @@ thead tr { border-width: 0 0 2px; border-color: #c0c0c0; }
 
 fieldset { border: 1px solid #c0c0c0; padding: 1em; margin-bottom: 1em; background: #eee; position: relative; padding-top: 3em; }
 fieldset legend { padding: 0; margin: 0; position: absolute; border: none; font-size: 1.5em; line-height: 1em; top: .5em; color: #c0c0c0; }
-fieldset strong { display: block; text-align: center; margin: 1em 0; text-transform: uppercase; }
 
 /*DataTables overrides*/
 #site-content table.dataTable { border-collapse: collapse; }
@@ -42,6 +41,8 @@ fieldset strong { display: block; text-align: center; margin: 1em 0; text-transf
 #site-content .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background: #c0c0c0; }
 
 form .error { color: #f00; }
+form #form-file, form #form-url { display: none; }
+form #form-file.active, form #form-url.active { display: block; }
 
 .btn.sharp { border-radius: 0; }
 

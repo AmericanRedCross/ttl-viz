@@ -81,12 +81,6 @@ fieldset {
     color:$grayMedium;
     
   }
-  strong {
-    display:block;
-    text-align:center;
-    margin:1em 0;
-    text-transform:uppercase;
-  }
 }
 
 /*DataTables overrides*/
@@ -138,6 +132,12 @@ fieldset {
 form {
   .error {
     color:#f00;
+  }
+  #form-file,#form-url {
+    display:none;
+    &.active {
+      display:block;
+    }
   }
 }
 
