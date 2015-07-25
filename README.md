@@ -80,13 +80,13 @@ You'll want to keep the application up and running on your server. There are mul
 
 ### PM2
 
-** Install PM2 **
+**Install PM2**
 
 ```console
 sudo npm install pm2 -g
 ```
 
-** Start the Asset Manager **
+**Start the Asset Manager**
 
 From the directory where the Asset Manager is installed:
 
@@ -94,7 +94,7 @@ From the directory where the Asset Manager is installed:
 pm2 start server.js
 ```
 
-** Restart the Asset Manager with your server **
+**Restart the Asset Manager with your server**
 
 To have the Asset Manager restart itself after a reboot, server downtime, etc., you can generate a startup script. 
 
