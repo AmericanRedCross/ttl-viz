@@ -66,8 +66,9 @@
 	</div>
 	<strong>or</strong>-->
 	<div class="form-group">
-		<label for="file">Upload File</label>
-		{{#if file}}<p>(<em>Current: {{file}}</em>)</p>{{/if}}
+		{{#if file}}<p><b>Current:</b> <em>{{file}}</em></p>{{/if}}
+		{{#if thumbnail}}<p><img src="/api/asset/{{_id}}/thumbnail/200"></p>{{/if}}
+		<label for="file">{{#if file}}Replace{{else}}Upload{{/if}} File</label>
 		<input type="file" class="form-control" name="file" id="file" size="50">
 	</div>
 	<strong>or</strong>
