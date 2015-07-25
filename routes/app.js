@@ -197,28 +197,41 @@ Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg) {
 	    })
 	}
 	var requests = {active:0};
-	for (key in req.files) {
-		var file = req.files[key];
-		if (asset[key+"_ids"] && asset[key+"_ids"].length) {
-			for (var i=0;i<asset[key+"_ids"].length;i++) {
-				var id = asset[key+"_ids"][i];
-				requests.active++;
-				ctrl.gfs.remove({"_id":id},function(err) {
-					requests.active--;
-					if (!requests.active) {
-						ctrl.handleFile(asset,key,file,requests,function() {
-							!requests.active && (complete());
-						})
-					}
+	console.log(req.files);
+	if (req.files && Object.keys(req.files).length) {
+		function fileComplete() {
+			requests.active--;
+			if (!requests.active) {
+				ctrl.handleFile(asset,key,file,requests,function() {
+					!requests.active && (complete());
 				})
-			}	
-		} else {
-			ctrl.handleFile(asset,key,file,requests,function() {
-				!requests.active && (complete());
-			});			
+			}
 		}
+		if (asset.thumbnail) {
+			requests.active++;
+			ctrl.gfs.remove({_id:asset.thumbnail},function(err) {
+				fileComplete();
+			})
+		}
+		for (key in req.files) {
+			var file = req.files[key];
+			if (asset[key+"_ids"] && asset[key+"_ids"].length) {
+				for (var i=0;i<asset[key+"_ids"].length;i++) {
+					var id = asset[key+"_ids"][i];
+					requests.active++;
+					ctrl.gfs.remove({_id:id},function(err) {
+						fileComplete();
+					})
+				}	
+			} else {
+				ctrl.handleFile(asset,key,file,requests,function() {
+					!requests.active && (complete());
+				});			
+			}
+		}
+	} else {
+		!requests.active && complete();
 	}
-	!requests.active && complete();
 }
 
 Ctrl.prototype.handleFile = function(asset,key,file,requests,callback) {
