@@ -1,6 +1,7 @@
 # Custom #
 ###################
 node_modules
+*.scssc
 
 # Compiled source #
 ###################
