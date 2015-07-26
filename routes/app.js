@@ -394,23 +394,33 @@ Ctrl.prototype.getAssetThumb = function(user,id,callback,req,res) {
 
 Ctrl.prototype.exportData = function(req,res,type) {
 	var ctrl = this;
-	this.getAssets(req.user,{},function(assets) {
-		var output;
-		if (type == "asset") {
-			output = ctrl.csvify(assets,assetSchema);
-		}
-		if (type == "user") {
-			output = ctrl.csvify(users,userSchema);
-		}
+	var output;
+	function complete() {
 		res.set('Content-Type', 'text/csv');
 		res.set('Content-Disposition', 'attachment; filename="'+type+'-export.csv"');
 		res.send(output);
-	})
+	}
+	if (type == "asset") {
+		this.getAssets(req.user,{},function(assets) {
+			output = ctrl.csvify(assets,assetSchema);
+			complete();
+		})
+	}
+	if (type == "user") {
+		this.getUsers(function(users) {
+			output = ctrl.csvify(users,userSchema);
+			complete();
+		})
+	}
 }
 
 Ctrl.prototype.csvify = function(data,schema) {
 	var output = "";
-	var keys = Object.keys(schema.paths);
+	var paths = schema.paths;
+	if (schema == userSchema) {
+		delete paths.password;
+	}
+	var keys = Object.keys(paths);
 	var displayKeys = [];
 	for (var i=0;i<keys.length;i++) {
 		displayKeys[i] = '"'+(keys[i].replace(/"/g,'""'))+'"';
