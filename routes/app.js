@@ -10,8 +10,6 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var sharp = require('sharp');
 var csv = require('csv');
-var json2csv = require('json2csv');
-var converter = require('json-2-csv');
 
 var noFunc = function(){};
 
