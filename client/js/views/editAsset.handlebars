@@ -46,13 +46,20 @@
 </fieldset>
 <fieldset>
 	<legend>Geo Data</legend>
-	<div class="form-group">
+	<!--<div class="form-group">
 		<label for="longitude">Longitude</label>
 		<input type="number" class="form-control" name="longitude" id="longitude" value="{{longitude}}">
 	</div>
 	<div class="form-group">
 		<label for="latitude">Latitude</label>
 		<input type="number" class="form-control" name="latitude" id="latitude"  value="{{latitude}}">
+	</div>-->
+	<div class="form-group">
+		<label>Coordinates for this Asset</label>
+		<p><em>Click a location on the map to set the longitude and latitude of the asset.</em></p>
+		<div id="centroid-map"></div>
+		<input type="hidden" name="latitude" id="latitude" value="{{latitude}}">
+		<input type="hidden" name="longitude" id="longitude" value="{{longitude}}">
 	</div>
 </fieldset>
 <!--<fieldset>

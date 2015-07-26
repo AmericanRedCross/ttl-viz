@@ -46,6 +46,8 @@ form .error { color: #f00; }
 form #form-file, form #form-url { display: none; }
 form #form-file.active, form #form-url.active { display: block; }
 
+#centroid-map { height: 300px; width: 100%; /*@include box-shadow(0 -1px 0 #e5e5e5,0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24));*/ border: 1px solid #aaa; }
+
 .btn.sharp { border-radius: 0; }
 
 .navbar { border-radius: 0; }

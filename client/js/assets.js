@@ -38,6 +38,7 @@ var assetCtrl = {
 	},
 	view: {
 		editAsset: {
+			form: undefined,
 			type: undefined,
 			file: undefined,
 			url: undefined
@@ -59,6 +60,54 @@ var assetCtrl = {
 				view.file.addClass("active");
 			}
 		})
+	},
+	geo: {
+		map: undefined,
+		tiles: undefined,
+		marker:undefined,
+		view: {
+			map:"centroid-map",
+			form:undefined,
+			lat:undefined,
+			lng:undefined
+		},
+		model: {
+			coords: undefined
+		},
+		init:function() {
+			this.view.lat = assetCtrl.view.editAsset.form.find("#latitude");
+			this.view.lng = assetCtrl.view.editAsset.form.find("#longitude");
+			try {
+				var coords = new L.LatLng(this.view.lat.val(),this.view.lng.val());
+				this.model.coords = coords;
+				this.marker = L.marker(coords)
+			} catch (e) {
+				this.model.coords = new L.LatLng(0,0);
+			};
+			this.map = L.map(this.view.map,{
+				center: this.model.coords,
+				zoom: 2
+			})
+			this.marker && (this.marker.addTo(this.map));
+			this.tiles = new L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+			    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			    id: localConfig.mapboxId,
+			    accessToken: localConfig.mapboxToken
+			})
+			this.map.addLayer(this.tiles);
+			new L.Control.GeoSearch({
+			    provider: new L.GeoSearch.Provider.Google(),
+			    showMarker: false
+			}).addTo(this.map);
+			var that = this;
+			this.map.on("click",function(e) {
+				that.model.coords = e.latlng;
+				that.view.lat.val(e.latlng.lat);
+				that.view.lng.val(e.latlng.lng);
+				that.marker && (that.map.removeLayer(that.marker));
+				that.marker = L.marker(that.model.coords).addTo(that.map);
+			})
+		}
 	}
 }
 
@@ -74,10 +123,14 @@ $(function() {
 				assetCtrl.model.editAsset = result.response;
 				$("#edit-asset .modal-body").html(assetCtrl.templates.editAsset.tpl(assetCtrl.model.editAsset));
 				$("#edit-asset").validate();
-				assetCtrl.view.editAsset.type = $("#edit-asset [name=type]");
-				assetCtrl.view.editAsset.file = $("#edit-asset #form-file");
-				assetCtrl.view.editAsset.url = $("#edit-asset #form-url");
+				assetCtrl.view.editAsset.form = $("#edit-asset");
+				assetCtrl.view.editAsset.type = assetCtrl.view.editAsset.form.find("[name=type]");
+				assetCtrl.view.editAsset.file = assetCtrl.view.editAsset.form.find("#form-file");
+				assetCtrl.view.editAsset.url = assetCtrl.view.editAsset.form.find("#form-url");
 				assetCtrl.handleType();
+				$("#edit-asset-modal").on("shown.bs.modal",function() {
+					assetCtrl.geo.init();
+				})
 			})
 		})		
 	})
