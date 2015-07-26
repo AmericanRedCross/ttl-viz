@@ -37,7 +37,7 @@ var assetCtrl = {
 		})
 	},
 	view: {
-		editAsset: {
+		asset: {
 			form: undefined,
 			type: undefined,
 			file: undefined,
@@ -45,11 +45,11 @@ var assetCtrl = {
 		}
 	},
 	model: {
-		editAsset: undefined
+		asset: undefined
 	},
 	handleType: function() {
 		var that = this;
-		var view = this.view.editAsset;
+		var view = this.view.asset;
 		view.type.on("change",function() {
 			var val = $(this).val();
 			if (val == "webmap") {
@@ -59,6 +59,15 @@ var assetCtrl = {
 				view.url.removeClass("active");
 				view.file.addClass("active");
 			}
+		})
+	},
+	setModalHandlers: function() {
+		this.view.asset.type = this.view.asset.form.find("[name=type]");
+		this.view.asset.file = this.view.asset.form.find("#form-file");
+		this.view.asset.url = this.view.asset.form.find("#form-url");
+		this.handleType();
+		this.view.asset.modal.on("shown.bs.modal",function() {
+			assetCtrl.geo.init();
 		})
 	},
 	geo: {
@@ -75,8 +84,9 @@ var assetCtrl = {
 			coords: undefined
 		},
 		init:function() {
-			this.view.lat = assetCtrl.view.editAsset.form.find("#latitude");
-			this.view.lng = assetCtrl.view.editAsset.form.find("#longitude");
+			this.map && this.map.remove();
+			this.view.lat = assetCtrl.view.asset.form.find("#latitude");
+			this.view.lng = assetCtrl.view.asset.form.find("#longitude");
 			try {
 				var coords = new L.LatLng(this.view.lat.val(),this.view.lng.val());
 				this.model.coords = coords;
@@ -115,22 +125,22 @@ $(function() {
 	$(assetCtrl).on("templatesReady",function() {
 		$("#add-asset .modal-body").html(assetCtrl.templates.editAsset.tpl({opts:localConfig.asset_opts}));
 		$("#add-asset").validate();
+		$("#site-content").on("click","#add-toggle",function() {
+			assetCtrl.view.asset.form = $("#add-asset");
+			assetCtrl.view.asset.modal = $("#add-asset-modal");
+			assetCtrl.setModalHandlers();
+		})
 		$("#site-content").on("click",".edit-toggle",function() {
 			var id = $(this).attr("rel");
 			$("#edit-asset").attr("action","/asset/"+id);
 			$.getJSON("/api/asset/"+id,function(result) {
 				result.response.opts = localConfig.asset_opts;
-				assetCtrl.model.editAsset = result.response;
-				$("#edit-asset .modal-body").html(assetCtrl.templates.editAsset.tpl(assetCtrl.model.editAsset));
+				assetCtrl.model.asset = result.response;
+				$("#edit-asset .modal-body").html(assetCtrl.templates.editAsset.tpl(assetCtrl.model.asset));
 				$("#edit-asset").validate();
-				assetCtrl.view.editAsset.form = $("#edit-asset");
-				assetCtrl.view.editAsset.type = assetCtrl.view.editAsset.form.find("[name=type]");
-				assetCtrl.view.editAsset.file = assetCtrl.view.editAsset.form.find("#form-file");
-				assetCtrl.view.editAsset.url = assetCtrl.view.editAsset.form.find("#form-url");
-				assetCtrl.handleType();
-				$("#edit-asset-modal").on("shown.bs.modal",function() {
-					assetCtrl.geo.init();
-				})
+				assetCtrl.view.asset.form = $("#edit-asset");
+				assetCtrl.view.asset.modal = $("#edit-asset-modal");
+				assetCtrl.setModalHandlers();
 			})
 		})		
 	})
