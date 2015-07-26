@@ -83,6 +83,12 @@ app.engine('handlebars', exphbs({
 			}
 			return options.inverse(this);
 		},
+		neq: function(v1,v2,options) {
+			if (v1 && v2 && v1.toString() !== v2.toString()) {  
+				return options.fn(this);
+			}
+			return options.inverse(this);
+		},
 		log: function(context,options) {
 			console.log(context);
 			return true;
@@ -166,12 +172,31 @@ app.get('/users',function(req,res) {
 				users:result,
 				opts:localConfig,
 				error:req.flash("createMessage") || req.flash("editMessage") || req.flash("deleteMessage"),
+				success:req.flash("successMessage"),
 				edit:req.query.edit
 			});
 		})
 	} else {
 		req.session.redirectTo = "/users";
 		res.redirect("/");
+	}
+})
+
+app.post('/users/import',function(req,res) {
+	if (req.user && req.user.permissions == "super") {
+		if (req.files && req.files.import) {
+			ctrl.importCSV(req,res,"user");
+		}		
+	} else {
+		res.status(401).send();
+	}
+})
+
+app.get('/users/export',function(req,res) {
+	if (req.user && req.user.permissions == "super") {
+		ctrl.exportData(req,res,"user");
+	} else {
+		res.status(401).send();
 	}
 })
 
@@ -205,6 +230,24 @@ app.post('/asset',function(req,res) {
 	}
 })
 
+app.post('/assets/import',function(req,res) {
+	if (req.user) {
+		if (req.files && req.files.import) {
+			ctrl.importCSV(req,res,"asset");
+		}		
+	} else {
+		res.redirect("/");
+	}
+})
+
+app.get('/assets/export',function(req,res) {
+	if (req.user) {
+		ctrl.exportData(req,res,"asset");
+	} else {
+		res.redirect("/");
+	}
+})
+
 app.get('/assets',function(req,res) {
 	if (req.user) {
 		ctrl.getAssets(req.user,{},function(result) {
@@ -213,6 +256,7 @@ app.get('/assets',function(req,res) {
 				assets:result,
 				opts:localConfig,
 				error:req.flash("createMessage") || req.flash("editMessage") || req.flash("deleteMessage"),
+				success:req.flash("successMessage"),
 				edit:req.query.edit
 			});
 		})
@@ -287,7 +331,7 @@ app.get('/api/user/:email',[jwtauth.auth],function(req,res) {
 	if (req.user && (req.user.permissions == "super" || req.user.email == req.params.email)) {
 		ctrl.getUser(req.params.email,function(user) {
 			if (user) {				
-				res.json(apiSucceed(req,data));
+				res.json(apiSucceed(req,user));
 			} else {
 				res.status(400).json(apiFail("No user with that email address or insufficient access."))	
 			}

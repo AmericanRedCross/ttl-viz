@@ -281,18 +281,23 @@ body > .container-fluid {
     }
   }
   nav {
-    padding-top:1em;
-    padding-bottom:1em;
-    padding-left:15px;
-    padding-right:15px;
+    padding:0;
     background:#bf3928;
+    border:0;
     color:#fff;
+    min-height:0;
     .navbar-nav {
       margin:0;
-      >li>a {
-        padding:0;
-        background:none;
-        color:#fff;
+      >li {
+        padding:1em;
+        &:hover {
+          background:rgba(0,0,0,.25);
+        }
+        >a {
+          padding:0;
+          background:none;
+          color:#fff;
+        }
       }
     }
   }

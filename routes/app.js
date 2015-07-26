@@ -9,6 +9,9 @@ var PDFImage = require("pdf-image").PDFImage;
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var sharp = require('sharp');
+var csv = require('csv');
+var json2csv = require('json2csv');
+var converter = require('json-2-csv');
 
 var noFunc = function(){};
 
@@ -70,12 +73,14 @@ var assetSchema = new Schema({
 var Asset = mongoose.model('Asset',assetSchema);
 
 var userSchema = new Schema({
-  email: {type:String,required:true},
+  email: {type:String,required:true,unique:true},
   password: {type:String,required:true},
   permissions: {type:String,required:true}
 },{
 	collection:'users'
 })
+
+userSchema.index({email:1},{unique:true});
 
 userSchema.methods.generateHash = function(password) {
     return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
@@ -222,7 +227,6 @@ Ctrl.prototype.handleAssetFiles = function(req,res,asset,flashType,flashMsg,comp
 	var requests = {active:0};
 	if (req.files && req.files.file) {
 		var file = req.files.file;
-		console.log(file);
 		asset.thumbnail && (removeFile("thumbnail",function() {
 			!requests.active && (step(file));
 		}));
@@ -390,6 +394,56 @@ Ctrl.prototype.getAssetThumb = function(user,id,callback,req,res) {
    	})
 }
 
+Ctrl.prototype.exportData = function(req,res,type) {
+	var ctrl = this;
+	this.getAssets(req.user,{},function(assets) {
+		var output;
+		if (type == "asset") {
+			output = ctrl.csvify(assets,assetSchema);
+		}
+		if (type == "user") {
+			output = ctrl.csvify(users,userSchema);
+		}
+		res.set('Content-Type', 'text/csv');
+		res.set('Content-Disposition', 'attachment; filename="'+type+'-export.csv"');
+		res.send(output);
+	})
+}
+
+Ctrl.prototype.csvify = function(data,schema) {
+	var output = "";
+	var keys = Object.keys(schema.paths);
+	var displayKeys = [];
+	for (var i=0;i<keys.length;i++) {
+		displayKeys[i] = '"'+(keys[i].replace(/"/g,'""'))+'"';
+	}
+	output += displayKeys.join(",")+"\n";
+	for (var i=0;i<data.length;i++) {
+		var item = data[i];
+		var row = [];
+		for (var j=0;j<keys.length;j++) {
+			var val = item[keys[j]];
+			if (val && typeof val == "object") {
+				if (val.length) {
+					val = val.join(", ");
+				} else {
+					val = JSON.stringify(val).replace(/"/g,"");
+				}
+			}
+			if (val && typeof val != "string") {
+				val = val.toString();
+			}
+			val = !val ? '' : val;
+			val = '"'+(val.replace(/"/g,'""'))+'"';
+			row.push(val);
+		}
+		row = row.join(",");
+		row += "\n";
+		output += row;
+	}
+	return output;
+}
+
 Ctrl.prototype.createUser = function(req,res) {
 	 User.findOne({ 'email' :  req.body.email }, function(err, user) {
 		if (err) { req.flash('createMessage', 'Unable to save a new user account at this time.'); };
@@ -474,6 +528,78 @@ Ctrl.prototype.getUser = function(email,callback) {
 			callback(undefined);
 		}
    	})
+}
+
+Ctrl.prototype.importCSV = function(req,res,type) {
+	var file = req.files.import;
+	if (file.mimetype != "text/csv") {
+		res.flash("createMessage","Invalid file type. Please upload a CSV file.");
+		res.redirect("/"+type+"s");
+	} else {
+		var rs = fs.createReadStream(file.path);
+		var parser = csv.parse();
+		var output = [];
+		parser.on("data",function(data) {
+			output.push(data);
+		})
+		parser.on("finish",function() {
+			var headers = output.shift();
+			var requests = 0;
+			var count = 0;
+			var errors = [];
+			for (var i=0;i<output.length;i++) {
+				var row = output[i];
+				var newEntity;
+				if (type == "asset") { 
+					newEntity = new Asset();
+				} else if (type == "user") {
+					newEntity = new User();
+				}
+				for (var j=0;j<row.length;j++) {
+					var cell = row[j];
+					var header = headers[j];
+					if (type == "asset" && (header == "extent" || header == "sector")) {
+						cell = cell.replace(/\s/g,"").split(",");
+					}
+					if (type == "user" || (header != "file" && header != "thumbnail")) {
+						newEntity[header] = cell;
+					}
+				}
+				if (type == "asset") {
+					newEntity.user = req.user.email;
+				}
+				requests++;
+		    	newEntity.save(function(err) {
+		    		requests--;
+			        if (err) {
+			        	if (err.toString().indexOf("E11000") != -1) {
+			        		var val = err.toString().split("{ : ")[1].replace(" }","");
+			        		if (type == "asset") {
+			        			err = "There is already an asset with the title "+val+".";
+			        		}
+							if (type == "user") {
+			        			err = "There is already an account associated with the email address "+val+".";
+			        		}
+			        		
+			        	}
+			        	errors.push(err);
+			        } else {
+			        	count++;
+			        }
+			        if (!requests) {
+			        	if (errors.length) {
+			        		req.flash("createMessage","<br>"+errors.join("<br>"));
+			        	}
+			        	if (count > 0) {
+			        		req.flash("successMessage","Successfully imported "+count+" "+type+"(s).");
+			        	}
+			        	res.redirect("/"+type+"s");
+			        }
+			    })
+			}
+		})
+		rs.pipe(parser);
+	}
 }
 
 
