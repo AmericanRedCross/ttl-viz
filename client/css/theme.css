@@ -81,9 +81,9 @@ body > .container-fluid { padding: 0; }
 #site-content .header + nav { margin-top: -2em; margin-bottom: 2em; }
 #site-content nav { padding: 0; background: #bf3928; border: 0; color: #fff; min-height: 0; }
 #site-content nav .navbar-nav { margin: 0; }
-#site-content nav .navbar-nav > li { padding: 1em; }
+#site-content nav .navbar-nav > li { padding: 0; }
 #site-content nav .navbar-nav > li:hover { background: rgba(0, 0, 0, 0.25); }
-#site-content nav .navbar-nav > li > a { padding: 0; background: none; color: #fff; }
+#site-content nav .navbar-nav > li > a { padding: 1em; background: none; color: #fff; }
 #site-content h1 { font-size: 2em; font-weight: 200; text-transform: uppercase; padding-top: .6em; padding-bottom: .5em; color: #555; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; height: 2.333em; }
 
 #nav-toggle { font-family: "FontAwesome"; position: absolute; top: 0; left: 0; font-size: 2.3em; background: #222; color: #fff; line-height: 1em; padding: 1em .5em; width: 2.3em; height: 3em; text-align: center; cursor: pointer; display: none; z-index: 10; }
