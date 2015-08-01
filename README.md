@@ -16,9 +16,9 @@ npm install
 
 Some modules have additional dependencies:
 
-* imagemagick
-* ghostscript
-* poppler-utils
+* [imagemagick](http://www.imagemagick.org/script/index.php)
+* [ghostscript](http://www.ghostscript.com/)
+* [poppler-utils](http://poppler.freedesktop.org/)
 * libvips
 
 On Ubuntu, run:
@@ -27,18 +27,23 @@ On Ubuntu, run:
 sudo apt-get imagemagick ghostscript poppler-utils
 ```
 
+For other systems, please refer to the documentation for individual dependencies.
+
 For more information on installing and configuring libvips properly, visit the [Sharp project](http://sharp.dimens.io/en/stable/install/).
 
 **Configure the application by modifying config.js in the project directory.**
 
-* **siteName**: The name of the site as it will be displayed to your users in the site header.
-* **description**: The description of the site as it will be displayed to your users on the homepage.
-* **db**: The name of the MongoDB database you will use for this application (will store users, assets, and asset files.) When you start the application for the first time, this database will be created if it doesn't already exist.
-* **port**: The port at which to run the application's public-facing server. If you do not have any other HTTP activity on your server, use port **80**. 
-* **mapboxId**: The project ID for the MapBox project you want to use to provide tiles for maps used for geolocation activities
-* **mapboxToken**: The Mapbox public access token to use to provide tiles for maps used for geolocation activities
-* **asset_opts > extents**: Available geographic area tags that can be applied to your assets for filtering and sorting. 
-* **asset_opts > sectors**: Available keyword tags that can be applied to your assets for filtering and sorting.
+* **siteName (string)**: The name of the site as it will be displayed to your users in the site header.
+* **description (string)**: The description of the site as it will be displayed to your users on the homepage.
+* **db (string)**: The name of the MongoDB database you will use for this application (will store users, assets, and asset files.) When you start the application for the first time, this database will be created if it doesn't already exist.
+* **port (integer)**: The port at which to run the application's public-facing server. If you do not have any other HTTP activity on your server, use port **80**. 
+* **mapboxId (string)**: The project ID for the MapBox project you want to use to provide tiles for maps used for geolocation activities
+* **mapboxToken (string)**: The Mapbox public access token to use to provide tiles for maps used for geolocation activities
+* **asset_opts > geolocation (boolean)**: Whether or not to show the geolocation controls in order to assign longitude/latitude coordinates to assets
+* **asset_opts > types (array)**: The text values for the different document types assets can have
+* **asset_opts > tags (object)**: An object containing customized sets of tags. Each set of tags has a name (the key) and two properties: 
+	* **required (boolean)**: Whether or not the user is required to provide at least one tag in this set in order to save an asset
+	* **values (array)**: The text values for the tags in this set
 
 **Start the application**
 
@@ -138,7 +143,13 @@ Returns the data for all public assets by default. If an access token is provide
 
 Query parameters can also be included in the request, and results will be filtered to match these criteria. Parameters that do not match the asset schema will be ignored.
 
-*Examples* 
+**Note:** In order to filter on nested properties of objects, such as tags, use dot notation. For example:
+
+```console
+/api/assets?tag.Sector=AmericanRedCross 
+```
+
+*Some More Examples* 
 
 ```console
 /api/assets?type=sitrep 
