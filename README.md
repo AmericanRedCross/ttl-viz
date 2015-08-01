@@ -40,8 +40,8 @@ For more information on installing and configuring libvips properly, visit the [
 * **mapboxId (string)**: The project ID for the MapBox project you want to use to provide tiles for maps used for geolocation activities
 * **mapboxToken (string)**: The Mapbox public access token to use to provide tiles for maps used for geolocation activities
 * **asset_opts > geolocation (boolean)**: Whether or not to show the geolocation controls in order to assign longitude/latitude coordinates to assets
-* **asset_opts > types (array)**: The text values for the different document types assets can have
-* **asset_opts > tags (object)**: An object containing customized sets of tags. Each set of tags has a name (the key) and two properties: 
+* **asset_opts > types (array)**: The different document types that can be assigned to assets
+* **asset_opts > tags (object)**: Customized sets of tags that can be assigned to assets. Each set of tags has a name (the key) and two properties: 
 	* **required (boolean)**: Whether or not the user is required to provide at least one tag in this set in order to save an asset
 	* **values (array)**: The text values for the tags in this set
 
@@ -149,7 +149,7 @@ Query parameters can also be included in the request, and results will be filter
 /api/assets?tag.Sector=AmericanRedCross 
 ```
 
-*Some More Examples* 
+**Some More Examples**
 
 ```console
 /api/assets?type=sitrep 
