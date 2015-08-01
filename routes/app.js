@@ -439,7 +439,16 @@ Ctrl.prototype.csvify = function(data,schema) {
 		var item = data[i];
 		var row = [];
 		for (var j=0;j<keys.length;j++) {
-			var val = item[keys[j]];
+			var key = keys[j]
+			if (key.indexOf(".") != -1) {
+				key = key.split(".");
+			}
+			var val;
+			if (typeof key == "object" && key[0] == "tags") {
+				val = item[key[0]][key[1]];
+			} else {
+				val = item[key];
+			}
 			if (val && typeof val == "object") {
 				if (val.length) {
 					val = val.join(", ");
