@@ -23,6 +23,9 @@ var assetCtrl = {
 		Handlebars.registerHelper('formatDate', function(context,format) {
 			return moment(context).utc().format(format);
 		})
+		Handlebars.registerHelper('log', function(context) {
+			console.log(context);
+		})
 		Handlebars.registerHelper('eq',function(v1,v2,options) {
 			if (v1 && v2 && v1.toString() === v2.toString()) {  
 				return options.fn(this);
@@ -34,6 +37,25 @@ var assetCtrl = {
 				return options.fn(this);
 			}
 			return options.inverse(this);
+		})
+		Handlebars.registerHelper('eachAtIndex',function(array,index,options) {
+			var lookup;
+			if (array && (index != undefined)) {
+				lookup = array[index];
+			}
+			var output = "";
+			if (lookup && lookup.length) {
+				for (var i=0;i<lookup.length;i++) {
+					var value = {
+						value: lookup[i]
+					}
+					value["$first"] = (i==0);
+					value["$last"] = (i==lookup.length-1);
+					value["$index"] = i;
+					output += options.fn(value);
+				}
+			}
+			return output;
 		})
 	},
 	view: {
@@ -52,7 +74,7 @@ var assetCtrl = {
 		var view = this.view.asset;
 		view.type.on("change",function() {
 			var val = $(this).val();
-			if (val == "webmap") {
+			if (val == "Web Map") {
 				view.file.removeClass("active");
 				view.url.addClass("active");
 			} else {
@@ -66,9 +88,11 @@ var assetCtrl = {
 		this.view.asset.file = this.view.asset.form.find("#form-file");
 		this.view.asset.url = this.view.asset.form.find("#form-url");
 		this.handleType();
-		this.view.asset.modal.on("shown.bs.modal",function() {
-			assetCtrl.geo.init();
-		})
+		if ($("#"+assetCtrl.geo.view.map).length) {
+			this.view.asset.modal.on("shown.bs.modal",function() {
+				assetCtrl.geo.init();
+			})
+		}
 	},
 	geo: {
 		map: undefined,
@@ -84,39 +108,46 @@ var assetCtrl = {
 			coords: undefined
 		},
 		init:function() {
-			this.map && this.map.remove();
-			this.view.lat = assetCtrl.view.asset.form.find("#latitude");
-			this.view.lng = assetCtrl.view.asset.form.find("#longitude");
-			try {
-				var coords = new L.LatLng(this.view.lat.val(),this.view.lng.val());
-				this.model.coords = coords;
-				this.marker = L.marker(coords)
-			} catch (e) {
-				this.model.coords = new L.LatLng(0,0);
-			};
-			this.map = L.map(this.view.map,{
-				center: this.model.coords,
-				zoom: 2
-			})
-			this.marker && (this.marker.addTo(this.map));
-			this.tiles = new L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-			    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-			    id: localConfig.mapboxId,
-			    accessToken: localConfig.mapboxToken
-			})
-			this.map.addLayer(this.tiles);
-			new L.Control.GeoSearch({
-			    provider: new L.GeoSearch.Provider.Google(),
-			    showMarker: false
-			}).addTo(this.map);
-			var that = this;
-			this.map.on("click",function(e) {
-				that.model.coords = e.latlng;
-				that.view.lat.val(e.latlng.lat);
-				that.view.lng.val(e.latlng.lng);
-				that.marker && (that.map.removeLayer(that.marker));
-				that.marker = L.marker(that.model.coords).addTo(that.map);
-			})
+			if ($("#"+this.view.map).is(":visible")) {
+				this.map && this.map.remove();
+				this.view.lat = assetCtrl.view.asset.form.find("#latitude");
+				this.view.lng = assetCtrl.view.asset.form.find("#longitude");
+				try {
+					var coords = new L.LatLng(this.view.lat.val(),this.view.lng.val());
+					this.model.coords = coords;
+					this.marker = L.marker(coords)
+				} catch (e) {
+					this.model.coords = new L.LatLng(0,0);
+					this.marker = undefined;
+				};
+				this.map = L.map(this.view.map,{
+					center: this.model.coords,
+					zoom: 2
+				})
+				this.marker && (this.marker.addTo(this.map));
+				this.tiles = new L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+				    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+				    id: localConfig.mapboxId,
+				    accessToken: localConfig.mapboxToken
+				})
+				this.map.addLayer(this.tiles);
+				new L.Control.GeoSearch({
+				    provider: new L.GeoSearch.Provider.Google(),
+				    showMarker: false
+				}).addTo(this.map);
+				var that = this;
+				this.map.on("click",function(e) {
+					that.model.coords = e.latlng;
+					that.view.lat.val(e.latlng.lat);
+					that.view.lng.val(e.latlng.lng);
+					that.marker && (that.map.removeLayer(that.marker));
+					that.marker = L.marker(that.model.coords).addTo(that.map);
+				})
+			} else {
+				setTimeout((function() {
+					this.init();
+				}).bind(this),100);
+			}
 		}
 	}
 }

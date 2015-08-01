@@ -45,8 +45,9 @@
 					<th>Date</th>
 					<th>Title</th>
 					<th>Creator</th>
-					<th>Sector(s)</th>
-					<th>Extent(s)</th>
+					{{#each opts.asset_opts.tags}}
+						<th>{{@key}}</th>
+					{{/each}}
 					<th class="btn-col"></th>
 				</tr>
 			</thead>
@@ -56,8 +57,9 @@
 					<td>{{formatDate date 'MM/DD/YYYY'}}</td>
 					<td>{{title}}</td>
 					<td>{{user}}</td>
-					<td>{{#each sector}}{{this}}{{#if @last}}{{else}}, {{/if}}{{/each}}</td>
-					<td>{{#each extent}}{{this}}{{#if @last}}{{else}}, {{/if}}{{/each}}</td>
+					{{#each ../opts.asset_opts.tags}}
+						<td>{{#eachAtIndex ../tags @key}}{{value}}{{#if $last}}{{else}}, {{/if}}{{/eachAtIndex}}</td>
+					{{/each}}
 					<td>
 						<div class="btn-group">
 							<button class="btn btn-warning sharp edit-toggle" title="Edit Asset" data-toggle="modal" data-target="#edit-asset-modal" rel="{{_id}}"><b class="glyphicon glyphicon-edit"></b></button></a>

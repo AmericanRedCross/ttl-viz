@@ -56,8 +56,6 @@ var assetSchema = new Schema({
   thumbnail: Schema.Types.ObjectId,
   thumbnail_mime: String,
   size:	Number,
-  extent: {type: Array, required:true},
-  sector: {type: Array, required:true},
   longitude: Number,
   latitude: Number,
   link: String,
@@ -67,6 +65,15 @@ var assetSchema = new Schema({
 },{
 	collection:'assets'
 })
+
+var tagPath = {};
+
+for (key in localConfig.asset_opts.tags) {
+	var tag = localConfig.asset_opts.tags[key];
+	tagPath[key] = {type:Array,required:tag.required};
+}
+
+assetSchema.add({tags:tagPath});
 
 var Asset = mongoose.model('Asset',assetSchema);
 
@@ -164,9 +171,11 @@ Ctrl.prototype.updateAsset = function(req,res,opts) {
 		if (err) { req.flash('editMessage', 'Unable to edit that asset at this time.'); };
 		if (asset) {
 			for (key in req.body) {
-				if (key == "sector" || key == "extent") {
-					if (typeof req.body[key] != "object") {
-						req.body[key] = [req.body[key]];
+				if (key == "tags") {
+					for (tagSet in req.body[key]) {
+						if (typeof req.body[key][tagSet] != "object") {
+							req.body[key][tagSet] = [req.body[key][tagSet]];
+						}
 					}
 				}
 				asset[key] = req.body[key];
@@ -178,7 +187,7 @@ Ctrl.prototype.updateAsset = function(req,res,opts) {
 		    	asset.save(function(err) {
 		    		console.log("Updated Asset",asset);
 			        if (err) {
-			        	req.flash(flashType,flashMsg);
+			        	req.flash('editMessage','Unable to edit that asset at this time.');
 			        }
 			        res.redirect("/assets");
 			    })
@@ -247,7 +256,7 @@ Ctrl.prototype.handleFile = function(asset,file,callback) {
 	var read_stream = fs.createReadStream(file.path);
 	asset.file_mime = file.mimetype;
 	asset.size = file.size;
-	asset.filename = asset.type+"-"+(new Date().getTime())+"-"+file.originalname.replace(/[^a-zA-Z\d\.]/g,"-").toLowerCase();
+	asset.filename = asset.type.replace(/[^a-zA-Z\d\.]/g,"-").toLowerCase()+"-"+(new Date().getTime())+"-"+file.originalname.replace(/[^a-zA-Z\d\.]/g,"-").toLowerCase();
 	var ws = ctrl.gfs.createWriteStream({
         filename: asset.filename
     });
@@ -566,11 +575,24 @@ Ctrl.prototype.importCSV = function(req,res,type) {
 				for (var j=0;j<row.length;j++) {
 					var cell = row[j];
 					var header = headers[j];
-					if (type == "asset" && (header == "extent" || header == "sector")) {
-						cell = cell.replace(/\s/g,"").split(",");
+					if (/\[*\]/.test(header)) {
+						header = header.split("[");
+						for (var i=0;i<header.length;i++) {
+							header[i] = header[i].replace(/]/g,"");
+						}
+					}
+					if (type == "asset" && (typeof header == "object" && header[0] == "tags")) {
+						cell = cell.split(",");
 					}
 					if (type == "user" || (header != "file" && header != "thumbnail")) {
-						newEntity[header] = cell;
+						if (typeof header == "object") {
+							if (!newEntity[header[0]]) {
+								newEntity[header[0]] = {};
+							}
+							newEntity[header[0]][header[1]] = cell;
+						} else {
+							newEntity[header] = cell;
+						}
 					}
 				}
 				if (type == "asset") {

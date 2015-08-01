@@ -102,6 +102,25 @@ app.engine('handlebars', exphbs({
 		formatDate: function(context,format) {
 			return moment(context).format(format);
 		},
+		eachAtIndex: function(array,index,options) {
+			var lookup;
+			if (array && (index != undefined)) {
+				lookup = array[index];
+			}
+			var output = "";
+			if (lookup && lookup.length) {
+				for (var i=0;i<lookup.length;i++) {
+					var value = {
+						value: lookup[i]
+					}
+					value["$first"] = (i==0);
+					value["$last"] = (i==lookup.length-1);
+					value["$index"] = i;
+					output += options.fn(value);
+				}
+			}
+			return output;
+		},
 		logos: function() {
 			var output = "";
 			var files = fs.readdirSync("client/media/logos");
