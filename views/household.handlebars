@@ -1,0 +1,48 @@
+<script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.2/handlebars.min.js"></script>
+<!-- <script src="/js/users.js"></script> -->
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.css">
+
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Households</h1>
+	</div>
+</header>
+<nav class="navbar row">
+	<ul class="nav navbar-nav">
+		<li>
+			<!-- <a href="#" id="add-toggle" data-toggle="modal" data-target="#add-user-modal"><b class="glyphicon glyphicon-plus"></b> Create User</a> -->
+		</li>
+	</ul>
+</nav>
+
+<table data-sortable id="myTable" class="sortable-theme-minimal">
+
+  <thead>
+  <tr>
+    <th>Last name</th>
+    <th>First name</th>
+    <th>Household ID</th>
+  </tr>
+  </thead>
+
+  <tbody>
+    {{#each pgdata}}
+      <tr>
+        <td>{{this.head_of_hh_lname}}</td>
+        <td>{{this.head_of_hh_fname}}</td>
+        <td>{{this.household_id}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+
+</table>
+
+<script>
+
+$(document).ready( function () {
+    $('#myTable').DataTable();
+} );
+
+</script>

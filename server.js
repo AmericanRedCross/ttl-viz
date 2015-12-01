@@ -231,6 +231,21 @@ app.get('/shelter',function(req,res) {
 	}
 })
 
+app.get('/households',function(req,res) {
+	if (req.user) {
+		pghelper.query(reports.household_list, function(err, data){
+	    res.render('household', {
+				user:req.user,
+	      opts:localConfig.page,
+	      pgdata:data,
+				error:req.flash("loginMessage")
+	    });
+	  });
+	} else {
+		res.redirect("/");
+	}
+})
+
 
 app.listen(localConfig.application.port);
 console.log('Listening on port '+localConfig.application.port);

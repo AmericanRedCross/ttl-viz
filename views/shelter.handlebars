@@ -9,7 +9,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Modal title</h4>
+        <h4 class="modal-title">Household Id: <small><span id="modal-hh-id"></span></small></h4>
       </div>
       <div class="modal-body">
         <img src="" style="width:100%;">
@@ -53,7 +53,7 @@
         <td>{{this.hh_respondent_first_name}}</td>
         <td>{{this.hh_respondent_last_name}}</td>
         <td>{{this.hh_type}}</td>
-        <td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#pic-modal" data-filename={{this.photo_shelter_one}} ><span class="glyphicon glyphicon-camera" aria-hidden="true"></span></button></td>
+        <td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#pic-modal" data-filename={{this.photo_shelter_one}} data-hhid={{this.hh_id_qr}} ><span class="glyphicon glyphicon-camera" aria-hidden="true"></span></button></td>
       </tr>
     {{/each}}
   </tbody>
@@ -70,7 +70,9 @@ $('#pic-modal').on('show.bs.modal', function (event) {
   var button = $(event.relatedTarget); // Button that triggered the modal
   var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + button.data('filename'); // Extract info from data-* attributes
   var modal = $(this);
+  var hhId = (button.data('hhid').toString().length > 0) ? button.data('hhid').toString() : "<i>QR code not scanned</i>";
   modal.find('.modal-body img').attr("src", src);
+  modal.find('#modal-hh-id').html(hhId);
 })
 
 

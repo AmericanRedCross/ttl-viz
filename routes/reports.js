@@ -7,6 +7,8 @@ reports.retrieve_locations = "SELECT ST_AsGeoJSON(geom) as shape FROM enumeratio
 
 reports.shelter = "SELECT * FROM core_shelter_100_percent_completion";
 
+reports.household_list = 'SELECT * FROM public."HOUSEHOLD"';
+
 try{
   module.exports = reports;
 }

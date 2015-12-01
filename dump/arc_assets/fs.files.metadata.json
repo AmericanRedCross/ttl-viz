@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "arc_assets.fs.files", "name" : "_id_" }, { "v" : 1, "key" : { "filename" : 1 }, "ns" : "arc_assets.fs.files", "name" : "filename_1", "w" : 0 } ] }
