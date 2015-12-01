@@ -21,7 +21,7 @@ var userCtrl = {
 			})(key)
 		}
 		Handlebars.registerHelper('eq',function(v1,v2,options) {
-			if (v1 && v2 && v1.toString() === v2.toString()) {  
+			if (v1 && v2 && v1.toString() === v2.toString()) {
 				return options.fn(this);
 			}
 			return options.inverse(this);
@@ -34,20 +34,20 @@ $(function() {
 		$("#add-user .modal-body").html(userCtrl.templates.editUser.tpl());
 		$("#add-user").validate();
 		$("#site-content").on("click",".edit-toggle",function() {
-			var email = $(this).attr("rel");
-			$("#edit-user").attr("action","/user/"+email);
-			$.getJSON("/api/user/"+email,function(result) {
+			var username = $(this).attr("rel");
+			$("#edit-user").attr("action","/user/"+username);
+			$.getJSON("/api/user/"+username,function(result) {
 				result.response.edit = true;
 				$("#edit-user .modal-body").html(userCtrl.templates.editUser.tpl(result.response));
 				$("#edit-user").validate();
 			});
-		})		
+		})
 	})
 	userCtrl.prepTemplates();
 	$(".delete-toggle").click(function() {
 		$("#delete-user").attr("action","/user/"+$(this).attr("rel"));
 	})
-	
+
 	$("table").DataTable({
       "aoColumnDefs": [
           { 'bSortable': false, 'aTargets': [ -1 ] }

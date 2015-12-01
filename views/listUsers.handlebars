@@ -13,14 +13,6 @@
 		<li>
 			<a href="#" id="add-toggle" data-toggle="modal" data-target="#add-user-modal"><b class="glyphicon glyphicon-plus"></b> Create User</a>
 		</li>
-		<li>
-			<a href="#" id="import-toggle" data-toggle="modal" data-target="#import-user-modal"><b class="glyphicon glyphicon-open"></b> Import Users</a>
-		</li>
-		{{#eq user.permissions "super"}}
-			<li>
-				<a href="/users/export" target="_blank" id="export-toggle"><b class="glyphicon glyphicon-save"></b> Export Users</a>
-			</li>
-		{{/eq}}
 	</ul>
 </nav>
 <div class="row">
@@ -40,7 +32,7 @@
 		<table class="{{#if edit}}five-col{{else}}three-col{{/if}}">
 			<thead>
 				<tr>
-					<th>Email Address</th>
+					<th>Username</th>
 					<th>Permissions</th>
 					{{#if edit}}
 						<th>New Password</th>
@@ -52,17 +44,17 @@
 			<tbody>
 			{{#each users}}
 				<tr>
-					<td>{{email}}</td>
+					<td>{{username}}</td>
 					<td>{{permissions}}</td>
 					{{#if ../../edit}}
 						<td></td>
 						<td></td>
 					{{/if}}
 					<td>
-						{{#eq email ../../user.email}}{{else}}
+						{{#eq username ../../user.username}}{{else}}
 							<div class="btn-group">
-								<button class="btn btn-warning sharp edit-toggle" title="Edit User" data-toggle="modal" data-target="#edit-user-modal" rel="{{email}}"><b class="glyphicon glyphicon-edit"></b></button></a>
-								<button class="btn btn-danger sharp delete-toggle" title="Delete User" data-toggle="modal" data-target="#delete-user-modal" rel="{{email}}"><b class="glyphicon glyphicon-remove"></b></button>
+								<button class="btn btn-warning sharp edit-toggle" title="Edit User" data-toggle="modal" data-target="#edit-user-modal" rel="{{username}}"><b class="glyphicon glyphicon-edit"></b></button></a>
+								<button class="btn btn-danger sharp delete-toggle" title="Delete User" data-toggle="modal" data-target="#delete-user-modal" rel="{{username}}"><b class="glyphicon glyphicon-remove"></b></button>
 							</div>
 						{{/eq}}
 					</td>
@@ -97,8 +89,8 @@
 					</div>
 					<form action="/user" method="POST" id="edit-user">
 						<input type="hidden" name="_method" value="PUT">
-						<div class="modal-body">	
-						</div>		
+						<div class="modal-body">
+						</div>
 						<div class="modal-footer">
 							<div class="btn-group">
 								<button class="btn btn-success sharp">Save</button>
@@ -116,8 +108,8 @@
 						<h4 class="modal-title">Create User</h4>
 					</div>
 					<form action="/user" method="POST" id="add-user">
-						<div class="modal-body">	
-						</div>		
+						<div class="modal-body">
+						</div>
 						<div class="modal-footer">
 							<div class="btn-group">
 								<button class="btn btn-success sharp">Create</button>
