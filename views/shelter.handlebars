@@ -1,0 +1,77 @@
+<script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.2/handlebars.min.js"></script>
+<!-- <script src="/js/users.js"></script> -->
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.css">
+
+<div id="pic-modal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Modal title</h4>
+      </div>
+      <div class="modal-body">
+        <img src="" style="width:100%;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Core Shelter 100% Complete</h1>
+	</div>
+</header>
+<nav class="navbar row">
+	<ul class="nav navbar-nav">
+		<li>
+			<!-- <a href="#" id="add-toggle" data-toggle="modal" data-target="#add-user-modal"><b class="glyphicon glyphicon-plus"></b> Create User</a> -->
+		</li>
+	</ul>
+</nav>
+
+<table data-sortable id="myTable" class="sortable-theme-minimal">
+
+  <thead>
+  <tr>
+    <th>First name</th>
+    <th>Last name</th>
+    <th>HH type</th>
+    <th>Pic 1</th>
+  </tr>
+  </thead>
+
+  <tbody>
+    {{#each pgdata}}
+      <tr>
+        <td>{{this.hh_respondent_first_name}}</td>
+        <td>{{this.hh_respondent_last_name}}</td>
+        <td>{{this.hh_type}}</td>
+        <td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#pic-modal" data-filename={{this.photo_shelter_one}} ><span class="glyphicon glyphicon-camera" aria-hidden="true"></span></button></td>
+      </tr>
+    {{/each}}
+  </tbody>
+
+</table>
+
+<script>
+
+$(document).ready( function () {
+    $('#myTable').DataTable();
+} );
+
+$('#pic-modal').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget); // Button that triggered the modal
+  var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + button.data('filename'); // Extract info from data-* attributes
+  var modal = $(this);
+  modal.find('.modal-body img').attr("src", src);
+})
+
+
+</script>

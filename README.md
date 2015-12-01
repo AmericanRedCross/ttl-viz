@@ -8,6 +8,9 @@
 ```console
 npm install
 ```
+
+**Start mongo and postgres databases**
+
 **Start the application**
 
 ```console

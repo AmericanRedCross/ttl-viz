@@ -189,7 +189,7 @@ app.get('/users',function(req,res) {
 			res.render('listUsers',{
 				user:req.user,
 				users:result,
-				opts:localConfig,
+				opts:localConfig.page,
 				error:req.flash("createMessage") || req.flash("editMessage") || req.flash("deleteMessage"),
 				success:req.flash("successMessage"),
 				edit:req.query.edit
@@ -201,51 +201,36 @@ app.get('/users',function(req,res) {
 	}
 })
 
-
-
-
-
-function apiSucceed(req,payload) {
-	var data = {
-		success: true,
-		response: payload
-	}
-	if (req.user) {
-		if (!data.auth) {
-			data.auth = {
-				user:req.user.username
-			}
-		} else {
-			data.auth.user = req.user.username;
-		}
-	}
-	if (req.token) {
-		if (!data.auth) {
-			data.auth = {
-				token:req.token
-			}
-		} else {
-			data.auth.token = req.token;
-		}
-	}
-	return data;
-}
-
-function apiFail(err) {
-	return {
-		success: false,
-		error: err
-	}
-}
-
 app.get('/',function (req,res) {
 	res.render('home',{
 		user:req.user,
-		opts:localConfig,
+		opts:localConfig.page,
 		error:req.flash("loginMessage")
 	});
 })
 
 
-app.listen(localConfig.port);
-console.log('Listening on port '+localConfig.port);
+// dashboard pages using a postgres connection
+var reports = require('./routes/reports.js');
+var PostGresHelper = require("./routes/postGresHelper.js");
+var pghelper = new PostGresHelper();
+
+
+app.get('/shelter',function(req,res) {
+	if (req.user) {
+		pghelper.query(reports.shelter, function(err, data){
+	    res.render('shelter', {
+				user:req.user,
+	      opts:localConfig.page,
+	      pgdata:data,
+				error:req.flash("loginMessage")
+	    });
+	  });
+	} else {
+		res.redirect("/");
+	}
+})
+
+
+app.listen(localConfig.application.port);
+console.log('Listening on port '+localConfig.application.port);

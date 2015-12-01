@@ -73,7 +73,7 @@ var Server = mongo.Server,
 
 function Ctrl(host, port) {
 	var that = this;
-	this.db = new Db(localConfig.db, new Server(host, port, {safe: false}, {auto_reconnect: true}, {}));
+	this.db = new Db(localConfig.application.db, new Server(host, port, {safe: false}, {auto_reconnect: true}, {}));
 	this.db.open(function(err, db) {
 		if (err) {
 			console.error("Assets App: Error: "+err);
@@ -94,7 +94,7 @@ function Ctrl(host, port) {
 			});
 		})
 
-		mongoose.connect('mongodb://localhost/'+localConfig.db);
+		mongoose.connect('mongodb://localhost/'+localConfig.application.db);
 
 	})
 }
