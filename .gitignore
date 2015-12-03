@@ -2,6 +2,7 @@
 ###################
 node_modules
 *.scssc
+config.js
 
 # Compiled source #
 ###################
