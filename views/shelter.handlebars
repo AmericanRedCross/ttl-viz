@@ -1,3 +1,5 @@
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="/js/crossfilter.min.js"></script>
 <script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/dc/1.7.5/dc.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.2/handlebars.min.js"></script>
@@ -15,3 +17,132 @@
 		</li>
 	</ul>
 </nav>
+
+<div class="container">
+  <div class="row">
+    <div>
+      <div id="dataCount" class="dc-data-count">
+         <!-- <span class="filter-count"></span> selected out of <span class="total-count"></span> records | <a href="javascript:dc.filterAll(); dc.renderAll();">Reset All</a> -->
+       </div>
+     </div>
+  </div>
+
+  <div class="row">
+    <div class='col-md-4'>
+      <div id="qrChart">
+        <strong>Beneficiary QR code scanned?</strong>
+        <span class='reset' style='display: none;'>
+          Current filter: <span class='filter'></span>
+        </span><div class="clearfix"></div>
+      </div>
+    </div>
+    <div class='col-md-4'>
+      <div id="typeChart">
+        <strong>Structure type</strong>
+        <span class='reset' style='display: none;'>
+          Current filter: <span class='filter'></span>
+        </span><div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class='col-xs-12' id='timeChart'>
+      <h4>Events by time
+        <span>
+          <a class="reset" href="javascript:timeChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+        </span>
+      </h4>
+    </div>
+  </div>
+
+</div> <!-- container -->
+
+
+<script>
+
+var qrChart = dc.pieChart('#qrChart');
+var typeChart = dc.pieChart('#typeChart');
+var shelterCount = dc.dataCount('#dataCount');
+var timeChart = dc.barChart('#timeChart');
+
+function loadData(){
+
+  var data = JSON.parse('{{{json pgdata}}}');
+  data.forEach(function (d) {
+    d.hh_completed = new Date(d.hh_completed)
+  });
+
+  var shelters = crossfilter(data);
+  var all = shelters.groupAll();
+
+  var volumeByDayDimension = shelters.dimension(function (d) {
+    return d3.time.day(d.hh_completed);
+  });
+  var volumeByDayGroup = volumeByDayDimension.group()
+    .reduceCount(function(d){return d.hh_completed});
+
+  var qrDimension = shelters.dimension(function (d) {
+    return d.have_qr;
+  });
+  var qrGroup = qrDimension.group();
+
+  var typeDimension = shelters.dimension(function (d) {
+    return d.hh_type;
+  });
+  var typeGroup = typeDimension.group();
+
+  qrChart
+    .width(180)
+    .height(180)
+    .radius(80)
+    .dimension(qrDimension)
+    .group(qrGroup)
+    .colors(['#e41a1c', '#4daf4a'])
+    .label(function (d) {
+        // console.log(d.data)
+        var label = d.data.key;
+        if (all.value()) {
+            label += ' (' + d.value + ')';
+        }
+        return label;
+    })
+
+    typeChart
+      .width(180)
+      .height(180)
+      .radius(80)
+      .dimension(typeDimension)
+      .group(typeGroup)
+      .colors(['#7570b3', '#d95f02'])
+      .label(function (d) {
+          if (typeChart.hasFilter() && !typeChart.hasFilter(d.data.key)) {
+            return d.data.key + ' (0)';
+          }
+          var label = d.data.key;
+          if (all.value()) {
+              label += ' (' + d.value + ')';
+          }
+          return label;
+      })
+
+    timeChart.width(960)
+      .height(200)
+      .margins({top: 10, right: 10, bottom: 20, left: 40})
+      .dimension(volumeByDayDimension)
+      .group(volumeByDayGroup)
+      .transitionDuration(500)
+      .elasticY(true)
+      .x(d3.time.scale().domain(d3.extent(data, function(d) { return d.hh_completed; })))
+      .xAxis();
+
+      shelterCount
+        .dimension(shelters)
+        .group(all)
+
+  dc.renderAll();
+}
+
+loadData();
+
+</script>
