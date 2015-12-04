@@ -10,7 +10,7 @@
 		<!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script> -->
 		<script src="/js/application.js"></script>
 		<!-- <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" /> -->
-		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/css/theme.css">
 		<link rel="shortcut icon" href="/media/favicon.ico" type="image/x-icon">
@@ -30,17 +30,20 @@
 	          		<nav>
 		          		<ul class="nav navbar-nav">
 										<li>
-											<a href="/households"><b class="glyphicon glyphicon-list"></b> Households</a>
+											<a href="/households"><b class="fa fa-list"></b> Households</a>
 										</li>
 										<li>
-											<a href="/households-map"><b class="glyphicon glyphicon-globe"></b> Households map</a>
+											<a href="/households-map"><b class="fa fa-globe"></b> Households map</a>
 										</li>
 		          			<li>
-		          				<a href="/shelter"><b class="glyphicon glyphicon-list"></b> Shelter 100% List</a>
+		          				<a href="/shelter-list"><b class="fa fa-list"></b> Shelter 100% List</a>
 		          			</li>
+										<li>
+											<a href="/"><b class="fa fa-line-chart"></b> Shelter</a>
+										</li>
 		          			{{#eq user.permissions "super"}}
 			          			<li>
-			          				<a href="/users"><b class="glyphicon glyphicon-user"></b> Manage Users</a>
+			          				<a href="/users"><b class="fa fa-user"></b> Manage Users</a>
 			          			</li>
 		          			{{/eq}}
 		          		</ul>

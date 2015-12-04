@@ -216,10 +216,10 @@ var PostGresHelper = require("./routes/postGresHelper.js");
 var pghelper = new PostGresHelper();
 
 
-app.get('/shelter',function(req,res) {
+app.get('/shelter-list',function(req,res) {
 	if (req.user) {
 		pghelper.query(reports.shelter, function(err, data){
-	    res.render('shelter', {
+	    res.render('shelter-list', {
 				user:req.user,
 	      opts:localConfig.page,
 	      pgdata:data,
@@ -250,6 +250,21 @@ app.get('/households-map',function(req,res) {
 	if (req.user) {
 		pghelper.query(reports.household_list, function(err, data){
 	    res.render('households-map', {
+				user:req.user,
+	      opts:localConfig.page,
+	      pgdata:data,
+				error:req.flash("loginMessage")
+	    });
+	  });
+	} else {
+		res.redirect("/");
+	}
+})
+
+app.get('/shelter',function(req,res) {
+	if (req.user) {
+		pghelper.query(reports.shelter, function(err, data){
+	    res.render('shelter', {
 				user:req.user,
 	      opts:localConfig.page,
 	      pgdata:data,
