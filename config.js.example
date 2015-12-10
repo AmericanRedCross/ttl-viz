@@ -3,11 +3,14 @@
 
 var settings = {}
 
-settings.application = {
+settings.page = {
 	siteName: "Site name",
 	description: "Use this site to do things.",
+}
+
+settings.application = {
 	db: "users",
-	port: 8888
+	port: 8000
 }
 
 settings.pg = {
