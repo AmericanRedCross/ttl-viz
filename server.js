@@ -201,6 +201,54 @@ app.get('/users',function(req,res) {
 	}
 })
 
+function apiSucceed(req,payload) {
+	var data = {
+		success: true,
+		response: payload
+	}
+	if (req.user) {
+		if (!data.auth) {
+			data.auth = {
+				user:req.user.email
+			}
+		} else {
+			data.auth.user = req.user.email;
+		}
+	}
+	if (req.token) {
+		if (!data.auth) {
+			data.auth = {
+				token:req.token
+			}
+		} else {
+			data.auth.token = req.token;
+		}
+	}
+	return data;
+}
+
+function apiFail(err) {
+	return {
+		success: false,
+		error: err
+	}
+}
+
+app.get('/api/user/:email',[jwtauth.auth],function(req,res) {
+	res.header('Access-Control-Allow-Origin', '*');
+	if (req.user && (req.user.permissions == "super" || req.user.email == req.params.email)) {
+		ctrl.getUser(req.params.email,function(user) {
+			if (user) {
+				res.json(apiSucceed(req,user));
+			} else {
+				res.status(400).json(apiFail("No user with that email address or insufficient access."))
+			}
+		})
+	} else {
+		res.status(401).json(apiFail("Access denied."));
+	}
+})
+
 app.get('/',function (req,res) {
 	res.render('home',{
 		user:req.user,
@@ -276,6 +324,20 @@ app.get('/shelter',function(req,res) {
 	}
 })
 
+app.get('/ccg',function(req,res) {
+	if (req.user) {
+		pghelper.query(reports.retrieve_livelihood_ccg, function(err, data){
+	    res.render('ccg', {
+				user:req.user,
+	      opts:localConfig.page,
+	      pgdata:data,
+				error:req.flash("loginMessage")
+	    });
+	  });
+	} else {
+		res.redirect("/");
+	}
+})
 
 
 app.listen(localConfig.application.port);
