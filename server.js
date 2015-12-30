@@ -263,19 +263,11 @@ var reports = require('./routes/reports.js');
 var PostGresHelper = require("./routes/postGresHelper.js");
 var pghelper = new PostGresHelper();
 
-
-app.get('/shelter-list',function(req,res) {
-	if (req.user) {
-		pghelper.query(reports.shelter, function(err, data){
-	    res.render('shelter-list', {
-				user:req.user,
-	      opts:localConfig.page,
-	      pgdata:data,
-				error:req.flash("loginMessage")
-	    });
-	  });
-	} else {
-		res.redirect("/");
+app.get('/query/:queryStr',function(req,res) {
+	if (req.user && req.params.queryStr) {
+		pghelper.query(req.params.queryStr, function(err, data){
+			res.send(data);
+		})
 	}
 })
 
@@ -309,31 +301,25 @@ app.get('/households-map',function(req,res) {
 	}
 })
 
-app.get('/shelter',function(req,res) {
+app.get('/ccg',function(req,res) {
 	if (req.user) {
-		pghelper.query(reports.shelter, function(err, data){
-	    res.render('shelter', {
-				user:req.user,
-	      opts:localConfig.page,
-	      pgdata:data,
-				error:req.flash("loginMessage")
-	    });
-	  });
+    res.render('ccg', {
+			user:req.user,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
 	} else {
 		res.redirect("/");
 	}
 })
 
-app.get('/ccg',function(req,res) {
+app.get('/core-shelter',function(req,res) {
 	if (req.user) {
-		pghelper.query(reports.retrieve_livelihood_ccg, function(err, data){
-	    res.render('ccg', {
-				user:req.user,
-	      opts:localConfig.page,
-	      pgdata:data,
-				error:req.flash("loginMessage")
-	    });
-	  });
+    res.render('core-shelter', {
+			user:req.user,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
 	} else {
 		res.redirect("/");
 	}

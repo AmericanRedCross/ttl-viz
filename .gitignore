@@ -3,6 +3,7 @@
 node_modules
 *.scssc
 config.js
+notes/*
 
 # Compiled source #
 ###################

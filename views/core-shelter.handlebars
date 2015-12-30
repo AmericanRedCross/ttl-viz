@@ -1,0 +1,79 @@
+<script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.2/handlebars.min.js"></script>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.js"></script>
+<script src="//cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+
+<link rel="stylesheet" href="//cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.css" />
+<link rel="stylesheet" href="/css/core-shelter.css" />
+<link rel="stylesheet" href="/css/dashboard.css" />
+
+<div id="pic-modal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Household Id: <small><span id="modal-hh-id"></span></small></h4>
+      </div>
+      <div class="modal-body">
+        <p></p>
+        <img src="" style="width:100%;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Core Shelter</h1>
+	</div>
+</header>
+<nav class="navbar row">
+	<ul class="nav navbar-nav">
+	</ul>
+</nav>
+
+
+
+<div id="loader" class="text-center">
+	<img src="/media/ajax_loader_gray_512.gif" alt="loading..." />
+</div>
+
+<div class="dashboard-section">
+  <h3>Number of core shelters completed by barangay<br><small><span id="coreTotal"></span> total completed</small></h3>
+	<div id="coreByBarangay"></div>
+</div>
+
+<hr style="margin:0;">
+
+<div class="dashboard-section">
+  <h3>Core shelters completed by date</h3>
+	<div id="progressGraph"></div>
+</div>
+
+<hr style="margin:0;">
+
+<!-- <div class="dashboard-section">
+	<div id="myMap"></div>
+</div>
+
+<hr style="margin:0;"> -->
+
+<div class="dashboard-section">
+  <h3>Core shelter beneficiaries</h3>
+	<table data-sortable id="beneficiaryTable" class="sortable-theme-minimal">
+
+	</table>
+</div>
+
+
+
+
+
+
+
+<script src="/js/core-shelter.js"></script>
