@@ -4,6 +4,7 @@
   "description": "An application using Node.js that enables storing and maintaining assets for disaster relief such as situation reports and maps and accessing those assets for display and use via a robust API.",
   "main": "config.js",
   "dependencies": {
+    "aws-sdk": "^2.2.26",
     "bcrypt": "^0.8.3",
     "bcrypt-nodejs": "^0.0.3",
     "body-parser": "^1.13.1",
@@ -12,6 +13,7 @@
     "express": "^4.13.0",
     "express-session": "^1.11.2",
     "express3-handlebars": "^0.5.2",
+    "flow": "^0.2.3",
     "gridfs-stream": "^1.1.1",
     "jwt-simple": "^0.3.0",
     "moment": "^2.10.3",

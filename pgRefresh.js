@@ -13,10 +13,10 @@ path = require('path'),
 fs = require('fs'),
 zlib = require('zlib')
 pg = require('pg'),
-settings = require(path.join(__dirname, 'settings/settings.js')),
+settings = require('./config.js'),
 spawn = require('child_process').spawn,
-flow = require('flow'),
-CronJob = require('cron').CronJob;
+flow = require('flow')
+// CronJob = require('cron').CronJob;
 
 AWS.config.region = 'us-west-2';
 var s3 = new AWS.S3();

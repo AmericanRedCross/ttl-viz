@@ -4,6 +4,8 @@ node_modules
 *.scssc
 config.js
 notes/*
+backups/*
+!backups/note.txt
 
 # Compiled source #
 ###################
