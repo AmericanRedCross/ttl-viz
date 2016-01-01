@@ -229,7 +229,6 @@ function vizTable(){
     var modal = $(this);
     var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + button.data('filename'); // Extract info from data-* attributes
     modal.find('.modal-body img').attr("src", src);
-    $.each(data, function(index, beneficiary){
     for(i=0;i<data.length;i++){
       if(button.data('uuid') === data[i]['_uuid']){
         var hhId = (data[i].hh_id !== null) ? data[i].hh_id.toString() : "<i>QR code not scanned</i>";
@@ -237,7 +236,7 @@ function vizTable(){
         var benDetailsHtml = "<b>Beneficiary respondent:</b> " + data[i].hh_respondent_first_name + " ";
         benDetailsHtml += (data[i].hh_respondent_middle_name.length > 0) ? data[i].hh_respondent_middle_name + " " : "";
         benDetailsHtml += data[i].hh_respondent_last_name + "<br>" +
-          "<b>Location:</b> " + locationLookup[data[i].location_id].barangay + ", " + locationLookup[data[i].location_id].municipality + "<br>" + 
+          "<b>Location:</b> " + locationLookup[data[i].location_id].barangay + ", " + locationLookup[data[i].location_id].municipality + "<br>" +
           "<b>Type:</b> " + data[i].hh_type + "<br>" +
           "<b>Date completed:</b> " + modalReadableTime(new Date(data[i].hh_completed)) + "<br>" +
           "<b>Team leader:</b> " + data[i].team_leader_first_name + " ";
@@ -247,7 +246,6 @@ function vizTable(){
         break;
       }
     }
-  })
 });
 
   $('#beneficiaryTable').DataTable();

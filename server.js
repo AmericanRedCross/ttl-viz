@@ -259,7 +259,6 @@ app.get('/',function (req,res) {
 
 
 // dashboard pages using a postgres connection
-var reports = require('./routes/reports.js');
 var PostGresHelper = require("./routes/postGresHelper.js");
 var pghelper = new PostGresHelper();
 
@@ -273,7 +272,7 @@ app.get('/query/:queryStr',function(req,res) {
 
 app.get('/households',function(req,res) {
 	if (req.user) {
-		pghelper.query(reports.household_list, function(err, data){
+		pghelper.query('SELECT * FROM "HOUSEHOLD";', function(err, data){
 	    res.render('household', {
 				user:req.user,
 	      opts:localConfig.page,
@@ -288,7 +287,7 @@ app.get('/households',function(req,res) {
 
 app.get('/households-map',function(req,res) {
 	if (req.user) {
-		pghelper.query(reports.household_list, function(err, data){
+		pghelper.query('SELECT * FROM "HOUSEHOLD";', function(err, data){
 	    res.render('households-map', {
 				user:req.user,
 	      opts:localConfig.page,
