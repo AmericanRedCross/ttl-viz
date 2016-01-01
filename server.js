@@ -325,6 +325,18 @@ app.get('/core-shelter',function(req,res) {
 	}
 })
 
+app.get('/sted',function(req,res) {
+	if (req.user) {
+    res.render('sted', {
+			user:req.user,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect("/");
+	}
+})
+
 
 app.listen(localConfig.application.port);
 console.log('Listening on port '+localConfig.application.port);
