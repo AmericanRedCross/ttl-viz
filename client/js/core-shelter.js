@@ -12,6 +12,17 @@ var locationLookup = {};
 // **Summary Chart/Graphs:**
 // Households completed per barangay, core house completion over time
 
+// # HELPERS
+function adminText(locationId, type){
+  if(locationLookup[locationId] === undefined){ return "no data"}
+  else if (type === "muni") {
+    return locationLookup[locationId].barangay;
+  } else if (type === "brgy") {
+    return locationLookup[locationId].municipality;
+  } else { return "error" }
+}
+
+
 function getLocationData(){
   queryStr = 'SELECT * FROM "TARGET_LOCATION";';
   url = window.location.origin + "/query/" + queryStr ;
@@ -90,7 +101,9 @@ function vizByBrgy(){
       .attr("y", barHeight / 2)
       .attr("dy", ".35em")
       .classed("brgy-label", true)
-      .text(function(d) { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; });
+      .text(function(d) {
+        return adminText(d.key, 'brgy') + ", " + adminText(d.key, 'muni') ;
+      });
   bar.append("text")
       .attr("x", function(d) { return x(d.values) - 3; })
       .attr("y", barHeight / 2)
@@ -216,8 +229,8 @@ function vizTable(){
     .html(function(d){
       return "<td>" + d.hh_respondent_first_name + "</td>" +
       "<td>" + d.hh_respondent_last_name + "</td>" +
-      "<td>" + locationLookup[d.location_id].barangay + "</td>" +
-      "<td>" + locationLookup[d.location_id].municipality + "</td>" +
+      "<td>" + adminText(d.location_id, 'brgy') + "</td>" +
+      "<td>" + adminText(d.location_id, 'muni') + "</td>" +
       '<td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#pic-modal" data-filename="' + d.photo_shelter_one +
       '" data-uuid="' + d['_uuid'] + '"><b class="fa fa-info"></b></button></td>';
     });
