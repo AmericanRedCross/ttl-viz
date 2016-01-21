@@ -1,20 +1,7 @@
-.coreByBarangay {
-  width: 100%;
-}
-.coreByBarangay rect {
-  fill: steelblue;
-}
-.coreByBarangay text {
-  fill: black;
-  font: 10px sans-serif;
-  text-anchor: end;
-}
-
 .panel-body .checkbox {
   display: inline-block;
   margin-right: 8px;
 }
-
 #brgyBars rect {
   fill: #c11b2b;
 }

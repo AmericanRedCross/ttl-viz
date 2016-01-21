@@ -1,7 +1,19 @@
-#loader img {
-  height: 200px;
+.panel-body .checkbox {
+  display: inline-block;
+  margin-right: 8px;
 }
-
-.dashboard-section {
-  padding: 20px 0;
+#brgyBars rect {
+  fill: #c11b2b;
+}
+#brgyBars text {
+  font-size: 11px;
+  font-family: inherit;
+}
+text.brgy-label {
+  text-anchor: end;
+  fill: black;
+}
+text.brgy-total {
+  text-anchor: start;
+  fill: black;
 }
