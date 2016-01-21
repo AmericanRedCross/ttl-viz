@@ -492,29 +492,29 @@ function drawBars(){
       .data(brgyBarsData, function(d){ return d['key']; })
 
   var gEnter = g.enter().append("g")
-  var bar = gEnter.append('rect')
+  gEnter.append('rect')
       .attr("height", brgyBarsMeas.barHeight - 1)
-  var text1 = gEnter.append("text")
+  gEnter.append("text")
       .attr("class","brgy-label")
       .attr("x", -5)
       .attr("y", brgyBarsMeas.barHeight / 2)
       .attr("dy", ".35em")
-  var text2 = gEnter.append("text")
+  gEnter.append("text")
       .attr("class","brgy-total")
       .attr("y", brgyBarsMeas.barHeight / 2)
       .attr("dy", ".35em")
 
-  g.exit().remove();
-
-  brgyBars.selectAll('g').sort(function(a, b) { return b.values - a.values; })
+  g.sort(function(a, b) { return b.values - a.values; }).transition().duration(1000).ease("sin-in-out")
       .attr("transform", function(d, i) { return "translate(" + brgyBarsMeas.left + "," + i * brgyBarsMeas.barHeight + ")"; });
-  brgyBars.selectAll("rect")
-      .attr("width", function(d) { return brgyBarsX(d.values); })
-  brgyBars.selectAll(".brgy-label")
+  g.select("rect").transition().duration(1000).ease("sin-in-out")
+    .attr("width", function(d) { return brgyBarsX(d.values); })
+  g.select(".brgy-label")
       .text(function(d) { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; });
-  brgyBars.selectAll(".brgy-total")
+  g.select(".brgy-total").transition().duration(1000).ease("sin-in-out")
       .attr("x", function(d) { return brgyBarsX(d.values) + 3; })
       .text(function(d) { return d.values; });
+
+  g.exit().remove();
 
   buildList();
 
