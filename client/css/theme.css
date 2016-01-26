@@ -107,3 +107,10 @@ body > .container-fluid { padding: 0; }
   table thead td:last-child, table thead th:last-child, table tbody td:last-child, table tbody th:last-child { width: 20% !important; }
   .btn { border: none; }
   .btn-group .btn + .btn, .btn-group .btn + .btn-group, .btn-group .btn-group + .btn, .btn-group .btn-group + .btn-group { margin-left: 0; } }
+
+.icon-intervention { font-size:60px; float:left; margin:12px;}
+.rcred { color:#ed1b2e;}
+.rcred2 { color:#7f181b;}
+.under-thick { border-bottom:2px solid #d7d7d8; }
+.under-thin { border-bottom:1px solid #d7d7d8; }
+.section-spacer { height: 24px; }

@@ -10,9 +10,12 @@
 		<!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script> -->
 		<script src="/js/application.js"></script>
 		<!-- <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" /> -->
+
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 		<link rel="stylesheet" href="/css/theme.css">
+		<link rel="stylesheet" href="/css/ocha-style.css">
+
 		<link rel="shortcut icon" href="/media/favicon.ico" type="image/x-icon">
 		<link rel="icon" href="/media/favicon.ico" type="image/x-icon">
 	</head>
@@ -30,6 +33,9 @@
 	          		<nav>
 		          		<ul class="nav navbar-nav">
 										<li>
+											<a href="/"><b class="fa fa-chevron-right fa-fw"></b> Home</a>
+										</li>
+										<li>
 											<a href="/ccg"><b class="fa fa-money"></b> CCG</a>
 										</li>
 										<li>
@@ -39,12 +45,10 @@
 											<a href="/core-shelter"><b class="fa fa-home"></b> Core Shelter</a>
 										</li>
 										<li>
-											<a href="/households"><b class="fa fa-list"></b> Households</a>
-										</li>
-										<li>
 											<a href="/households-map"><b class="fa fa-globe"></b> Households map</a>
 										</li>
 		          			{{#eq user.permissions "super"}}
+										<hr>
 			          			<li>
 			          				<a href="/users"><b class="fa fa-user"></b> Manage Users</a>
 			          			</li>
@@ -58,10 +62,6 @@
 			</section>
 			<footer id="site-footer">
 				<div class="row row-logo">
-		          	<!--<a href="http://www.ifrc.org/" target="_blank"><img src="/media/IFRC_logo_English_CMYK.png" id="ifrclogo"></a>
-			        <a href="www.nrcs.org/" target="_blank"><img src="/media/NepalRedCross-logo.png" id="nrcslogo"></a>
-			        <a href="http://redcross.org" target="_blank"><img src="/media/redcross-logo.png" id="arclogo"></a>
-			        <a href="http://redcross.org.uk" target="_blank"><img src="/media/British_Red_Cross.png" id="brclogo"></a>-->
 			        {{{logos}}}
 		        </div>
 			</footer>
