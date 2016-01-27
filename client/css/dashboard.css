@@ -1,3 +1,5 @@
+/* CCG */
+/* ### */
 .panel-body .checkbox {
   display: inline-block;
   margin-right: 8px;
@@ -16,4 +18,47 @@ text.brgy-label {
 text.brgy-total {
   text-anchor: start;
   fill: black;
+}
+
+
+/* CORE SHELTER */
+/* ############ */
+#coreByBarangay {
+  width: 100%;
+}
+#coreByBarangay rect {
+  fill: #c11b2b;
+}
+#coreByBarangay text {
+  font-size: 11px;
+  font-family: inherit;
+}
+#progressGraph {
+  width:100%;
+  font: 10px sans-serif;
+}
+#progressGraph .detail {
+  font-size: 14px;
+}
+
+#progressGraph path {
+    stroke: #7f181b;
+    stroke-width: 2;
+    fill: none;
+}
+#progressGraph .axis path,
+#progressGraph .axis line {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+.focus circle {
+  fill: rgba(237,27,46,0.6);
+  stroke: #ed1b2e;
+  stroke-width: 1.5px;
 }

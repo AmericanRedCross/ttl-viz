@@ -526,7 +526,7 @@ function buildList(){
         if(buttonId === filteredData[i]['id']){
           var hhId = filteredData[i].household_id.toString();
           var name = filteredData[i].participant_fname + " ";
-          name += (filteredData[i].participant_mname.length > 0) ? filteredData[i].participant_mname + " " : "";
+          name += (filteredData[i].participant_mname !== null) ? filteredData[i].participant_mname + " " : "";
           name += filteredData[i].participant_lname;
           modal.find('.modal-title').html(name);
           var location = (locationLookup[filteredData[i].location_id] === undefined) ? "not known" : locationLookup[filteredData[i].location_id].barangay + ", " +

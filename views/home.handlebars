@@ -1,8 +1,19 @@
 <header class="row header">
-	<div class="col-md-12">
-		<h1>Stand Up, Help Leytenos</h1>
+	<div class="jumbotron">
+
+		<div class="container">
+			<div class="jumbotron-logos">
+				<img src="/media/logos/01-prc.png">
+				<img src="/media/logos/02-arc.png">
+			</div>
+			<h1>Tindog Tabang Leyteno<br>
+			<small>Stand Up, Help Leytenos</small></h1>
+		</div>
 	</div>
 </header>
+
+<div class="container">
+
 {{#if user}}
 <div class="row">
 	<div class="col-sm-7">
@@ -73,8 +84,15 @@
 
 </div>
 
+<hr>
+<footer id="site-footer">
+	<div class="row row-logo">
+				{{{logos}}}
+			</div>
+</footer>
+
 {{else}}
-	{{#if error}}
+{{#if error}}
 		<div class="alert alert-danger alert-dismissable">
 			  <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
 			  <p><strong>Sorry, we've hit a snag logging you in.</strong> <em>{{error}}</em></p>
@@ -88,7 +106,11 @@
 			<div class="form-group">
 				<input type="password" placeholder="Password" name="password" class="form-control">
 			</div>
-			<button type="submit" class="btn btn-success sharp">Log In</button>
+			<button type="submit" class="btn btn-dark">Log In</button>
 		</div>
 	</form>
 {{/if}}
+
+
+
+</div>

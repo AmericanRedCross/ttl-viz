@@ -336,6 +336,19 @@ app.get('/sted',function(req,res) {
 	}
 })
 
+app.get('/spot-maps',function(req,res) {
+	if (req.user) {
+    res.render('spot-maps', {
+			user:req.user,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect("/");
+	}
+})
+
+
 
 app.listen(localConfig.application.port);
 console.log('Listening on port '+localConfig.application.port);

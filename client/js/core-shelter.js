@@ -105,7 +105,7 @@ function vizByBrgy(){
         return adminText(d.key, 'brgy') + ", " + adminText(d.key, 'muni') ;
       });
   bar.append("text")
-      .attr("x", function(d) { return x(d.values) - 3; })
+      .attr("x", function(d) { return x(d.values) + 3; })
       .attr("y", barHeight / 2)
       .attr("dy", ".35em")
       .classed("brgy-total", true)

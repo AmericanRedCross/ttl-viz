@@ -7,64 +7,108 @@
 
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+		<script src="js/metisMenu.min.js"></script>
 		<!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script> -->
-		<script src="/js/application.js"></script>
 		<!-- <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" /> -->
 
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-		<link rel="stylesheet" href="/css/theme.css">
 		<link rel="stylesheet" href="/css/ocha-style.css">
+		<link rel="stylesheet" href="/css/main.css">
+
 
 		<link rel="shortcut icon" href="/media/favicon.ico" type="image/x-icon">
 		<link rel="icon" href="/media/favicon.ico" type="image/x-icon">
 	</head>
 	<body>
-		<div class="container-fluid">
-			<div id="nav-toggle"><i class="fa fa-bars"></i></div>
-			<header id="site-header" class="navbar navbar-inverse" role="navigation">
-	          	<h1><a class="navbar-brand" href="/">{{opts.siteName}}</a></h1>
-	          	{{#if user}}
-      				<form class="navbar-form" role="form" action="/user/logout" method="POST">
-      					<button type="submit" class="btn btn-warning sharp" title="Log Out"><b class="glyphicon glyphicon-export"></b></button>
-      					<p>{{user.username}}</p>
-	    			</form>
-	          		<hr>
-	          		<nav>
-		          		<ul class="nav navbar-nav">
+
+		{{#if user}}
+		<!-- Navigation -->
+		<a id="menu-toggle" href="#" class="btn btn-dark btn-lg toggle"><i class="fa fa-bars"></i></a>
+		<nav id="sidebar-wrapper">
+				<ul id="side-menu" class="sidebar-nav metismenu">
+						<a id="menu-close" href="#" class="btn btn-light btn-lg pull-right toggle"><i class="fa fa-times"></i></a>
+						<li class="sidebar-brand">
+								<a href="/" >Home</a>
+						</li>
+						<li>
+								<a href="#">Summary <i class="fa nav-arrow nav-float-right"></i></a>
+								<ul class="second-level">
 										<li>
-											<a href="/"><b class="fa fa-chevron-right fa-fw"></b> Home</a>
+												<a href="#" class="temp-disable">Overall progress</a>
 										</li>
 										<li>
-											<a href="/ccg"><b class="fa fa-money"></b> CCG</a>
+												<a href="#" class="temp-disable">Hardware indicators</a>
 										</li>
 										<li>
-											<a href="/sted"><b class="fa fa-briefcase"></b> STED</a>
+												<a href="#" class="temp-disable">Software indicators</a>
+										</li>
+								</ul>
+						</li>
+						<li>
+								<a href="#" class="temp-disable"><i class="fa fa-fw fa-picture-o"></i> &nbsp; Gallery</a>
+						</li>
+						<li>
+								<a href="#">Interventions<i class="fa nav-arrow nav-float-right"></i></a>
+								<ul class="second-level">
+										<li>
+												<a href="/ccg"><i class="fa fa-fw fa-money"></i> &nbsp; Conditional cash grants</a>
 										</li>
 										<li>
-											<a href="/core-shelter"><b class="fa fa-home"></b> Core Shelter</a>
+												<a href="/sted"><i class="fa fa-fw fa-briefcase"></i> &nbsp; STED</a>
 										</li>
 										<li>
-											<a href="/households-map"><b class="fa fa-globe"></b> Households map</a>
+												<a href="/core-shelter"><i class="fa fa-fw fa-home"></i> &nbsp; Core shelter</a>
 										</li>
-		          			{{#eq user.permissions "super"}}
-										<hr>
-			          			<li>
-			          				<a href="/users"><b class="fa fa-user"></b> Manage Users</a>
-			          			</li>
-		          			{{/eq}}
-		          		</ul>
-	          		</nav>
-	          	{{/if}}
-		    </header>
-			<section id="site-content">
+								</ul>
+						</li>
+						<li>
+								<a href="#">Community mobilization <i class="fa nav-arrow nav-float-right"></i></a>
+								<ul class="second-level">
+										<li>
+												<a href="/spot-maps"><i class="fa fa-fw fa-map-o"></i> &nbsp; Barangay SPOT maps</a>
+										</li>
+								</ul>
+						</li>
+
+						<li style="border-top:1px solid #6d6e70;">
+							<form id="form-logout" style="display:none;" class="navbar-form" role="form" action="/user/logout" method="POST"></form>
+							<a href="#top"  onclick = document.getElementById('form-logout').submit(); >{{user.username}}
+								<span class="logout nav-float-right">Logout &nbsp;<i class="fa fa-sign-out"></i></span>
+							</a>
+						</li>
+						{{#eq user.permissions "super"}}
+							<li>
+								<a href="/users"><i class="fa fa-user"></i> &nbsp; Manage users</a>
+							</li>
+						{{/eq}}
+
+				</ul>
+		</nav>
+		{{/if}}
+
+
+			<div id="site-content">
 				{{{body}}}
-			</section>
-			<footer id="site-footer">
-				<div class="row row-logo">
-			        {{{logos}}}
-		        </div>
-			</footer>
-		</div>
-	</body>
+			</div>
+
+
+<script>
+// # closes the sidebar menu
+$("#menu-close").click(function(e) {
+		e.preventDefault();
+		$("#sidebar-wrapper").toggleClass("active");
+});
+// # opens the sidebar menu
+$("#menu-toggle").click(function(e) {
+		e.preventDefault();
+		$("#sidebar-wrapper").toggleClass("active");
+});
+// # creates the dropdowns in the sidebar menu
+$(function() {
+    $('#side-menu').metisMenu();
+});
+</script>
+
+</body>
 </html>
