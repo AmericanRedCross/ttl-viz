@@ -262,6 +262,28 @@ app.get('/',function (req,res) {
 var PostGresHelper = require("./routes/postGresHelper.js");
 var pghelper = new PostGresHelper();
 
+app.get('/progress',function(req,res) {
+	if (req.user) {
+	    res.render('progress', {
+				user:req.user,
+	      opts:localConfig.page,
+				error:req.flash("loginMessage")
+	    });
+	} else {
+		res.redirect("/");
+	}
+})
+
+app.post('/progress', function (req,res){
+	if (req.user){
+		var queryStr = 'SELECT * FROM "INDICATOR_TRACKING_TABLE";';
+		pghelper.query(queryStr, function(err, data){
+			res.send(data);
+		})
+	}
+})
+
+
 app.get('/query/:queryStr',function(req,res) {
 	if (req.user && req.params.queryStr) {
 		pghelper.query(req.params.queryStr, function(err, data){
