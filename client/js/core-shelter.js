@@ -28,7 +28,7 @@ function adminText(locationId, type){
 
 function getLocationData(){
   queryStr = 'SELECT * FROM "TARGET_LOCATION";';
-  url = window.location.origin + "/query/" + queryStr ;
+  url = "query/" + queryStr ;
   $.get(url, queryStr, function(response){
     $.each(response, function(index, location){
       locationLookup[location.location_id] = location;
@@ -55,7 +55,7 @@ function getLocationData(){
 
 function fetchData(){
   queryStr = 'SELECT * FROM "core_shelter_100_percent_completion";';
-  url = window.location.origin + "/query/" + queryStr ;
+  url = "query/" + queryStr ;
   $.get(url, queryStr, function(response){
     data = response;
     var counter = 0;

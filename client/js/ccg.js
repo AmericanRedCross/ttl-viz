@@ -33,7 +33,7 @@ function clearAllCheckboxes(){
 
 function getLocationData(){
   queryStr = 'SELECT * FROM "TARGET_LOCATION";';
-  url = window.location.origin + "/query/" + queryStr ;
+  url = "query/" + queryStr ;
   $.get(url, queryStr, function(response){
     $.each(response, function(index, location){
       locationLookup[location['location_id']] = location;
@@ -60,7 +60,7 @@ function getLocationData(){
 
 function fetchData(){
   queryStr = 'SELECT household_id, amount_category, livelihood_category, livelihood_proposal FROM "LIVELIHOOD_CCG";';
-  url = window.location.origin + "/query/" + queryStr ;
+  url = "query/" + queryStr ;
   $.get(url, queryStr, function(response){
     data = response;
     var counter = 0;
@@ -74,7 +74,7 @@ function fetchData(){
       d['location'] = [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
       // # get the names
       queryStr = 'SELECT head_of_hh_fname, head_of_hh_lname FROM "HOUSEHOLD" WHERE household_id=' + "'" + d.household_id  + "';";
-      url = window.location.origin + "/query/" + queryStr ;
+      url = "query/" + queryStr ;
       $.get(url, queryStr, function(response){
         // # response should be an array containing one object
         for(var key in response[0]){

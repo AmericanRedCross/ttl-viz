@@ -31,7 +31,7 @@ function clearAllCheckboxes(){
 
 function getLocationData(){
   queryStr = 'SELECT * FROM "TARGET_LOCATION";';
-  url = window.location.origin + "/query/" + queryStr ;
+  url = "query/" + queryStr ;
   $.get(url, queryStr, function(response){
     $.each(response, function(index, location){
       locationLookup[location['location_id']] = location;
@@ -56,7 +56,7 @@ function ageCheck(input) {
 
 function fetchSTED(){
   queryStr = 'SELECT * FROM "LIVELIHOOD_STED_PARTICIPANT";';
-  url = window.location.origin + "/query/" + queryStr ;
+  url = "query/" + queryStr ;
   $.get(url, queryStr, function(response){
     data = response;
     var counter = 0;
