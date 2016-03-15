@@ -1,9 +1,12 @@
-var data;
+var data, filteredData;;
 var locationLookup = {};
 
 // ISSUES //
 // ###### //
-// some dont have a photo, e.g. 1311600502
+
+
+// FOR BUILDING LOCATION FILTERS.... USE HOUSEHOLD ID, ALL TABLES NEED TO HAVE IT...
+// ERROR CHECK FOR JUST THAT MISSING... DEALING WITH DIFFERENT SCENARIOS IS A PAIN...
 
 
 // # Core Shelter:
@@ -29,6 +32,7 @@ function getLocationData(){
   $.get(url, queryStr, function(response){
     $.each(response, function(index, location){
       locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
     });
 
 // locationLookup = {
@@ -45,24 +49,99 @@ function getLocationData(){
 //   ...
 // };
 
-    fetchShelters();
+    fetchData();
   });
 }
 
-function fetchShelters(){
+function fetchData(){
   queryStr = 'SELECT * FROM "core_shelter_100_percent_completion";';
   url = window.location.origin + "/query/" + queryStr ;
   $.get(url, queryStr, function(response){
-    $.each(response, function(index, item){
-      item.location_id = item.hh_municipality + item.hh_barangay;
-    });
     data = response;
-    vizByBrgy();
-    vizTime();
-    vizTable();
-    // vizMap();
-    $('#loader').hide();
+    var counter = 0;
+    data.forEach(function(d){
+      // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
+      // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
+      d['hh_type'] = [d['hh_type']];
+      d['hh_relocation'] = [d['hh_relocation']];
+      d['wash_solution'] = [d['wash_solution']];
+      d['location_id'] = [d['hh_municipality'] + d['hh_barangay']];
+      d['location'] = [d['hh_municipality'], d['location_id']];
+      counter++;
+      if(counter === data.length){ buildFilters(); }
+    });
   });
+}
+
+function buildFilters(){
+  // # get the unique values from the data for all our filter fields
+  var typeArray = [],
+      relocationArray = [],
+      washArray = [],
+      locationArray = [];
+  $.each(data, function(i,item){
+    item['hh_type'].forEach(function(d){
+      if($.inArray(d, typeArray) === -1){ typeArray.push(d) }
+    });
+    item['hh_relocation'].forEach(function(d){
+      if($.inArray(d, relocationArray) === -1){ relocationArray.push(d) }
+    });
+    item['wash_solution'].forEach(function(d){
+      if($.inArray(d, washArray) === -1){ washArray.push(d) }
+    });
+    item['location_id'].forEach(function(d){
+      if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
+    });
+
+  });
+  // # alphabetize them arrays
+  typeArray.sort(d3.ascending);
+  relocationArray.sort(d3.ascending);
+  washArray.sort(d3.ascending);
+  locationArray.sort(function(a, b) { return a - b; });
+  // # build the html and add it to the page
+  var panelTitles = [];
+  var panelBodies = [];
+  function panelHtml(title, dataId, array, geo){
+    var thisTitleHtml = '<span class="panel-title">' +
+      '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-' +
+        dataId + '" aria-expanded="false" aria-controls="collapse' + dataId + '">' +
+        title + '</a></span>';
+    panelTitles.push(thisTitleHtml);
+    var thisBodyHtml = '<div id="collapse-' + dataId + '" class="collapse" role="tabpanel">' +
+      '<div class="panel-body">';
+    if(geo === true) {
+      var municipArray = [];
+      $.each(array, function(i, a){
+        var thisMunicip = a.toString().slice(0,2);
+        if($.inArray(thisMunicip, municipArray) === -1){
+          municipArray.push(thisMunicip);
+          thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
+          thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+              thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
+        }
+        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>';
+      })
+    } else {
+      $.each(array, function(i, a){
+        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
+            dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
+      })
+    }
+    thisBodyHtml += '</div>' + '</div>';
+    $('.filter-panel.panel').append(thisBodyHtml);
+  }
+  panelHtml('House type', 'hh_type', typeArray);
+  panelHtml('Relocation', 'hh_relocation', relocationArray);
+  panelHtml('Wash solution', 'wash_solution', washArray);
+  panelHtml('Location', null, locationArray, true);
+  $('.filter-panel.panel-heading').html(panelTitles.join('&nbsp; | &nbsp;'));
+
+  filteredData = data;
+  $('#loader').hide();
+  // buildBars();
+
 }
 
 

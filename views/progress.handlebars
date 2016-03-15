@@ -47,7 +47,7 @@ function getNumber(str){
 function getProgress(){
   $.ajax({
     type: 'POST',
-    url: '/progress',
+    url: 'progress',
     dataType: 'JSON'
   }).done(function(response){
     buildPage(response);

@@ -89,7 +89,7 @@ fieldset legend { padding: 0; margin: 0; position: absolute; border: none; font-
 
 /* Side Menu */
 #sidebar-wrapper {
-    z-index: 1000;
+    z-index: 1001;
     position: fixed;
     right: 0;
     width: 250px;

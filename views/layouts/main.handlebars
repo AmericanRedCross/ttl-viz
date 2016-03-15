@@ -13,12 +13,12 @@
 
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-		<link rel="stylesheet" href="/css/ocha-style.css">
-		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="css/ocha-style.css">
+		<link rel="stylesheet" href="css/main.css">
 
 
-		<link rel="shortcut icon" href="/media/favicon.ico" type="image/x-icon">
-		<link rel="icon" href="/media/favicon.ico" type="image/x-icon">
+		<link rel="shortcut icon" href="media/favicon.ico" type="image/x-icon">
+		<link rel="icon" href="media/favicon.ico" type="image/x-icon">
 	</head>
 	<body>
 
@@ -29,7 +29,7 @@
 				<ul id="side-menu" class="sidebar-nav metismenu">
 						<a id="menu-close" href="#" class="btn btn-light btn-lg pull-right toggle"><i class="fa fa-times"></i></a>
 						<li class="sidebar-brand">
-								<a href="/" >Home</a>
+								<a href="{{location}}" >Home</a>
 						</li>
 						<li>
 								<a href="#">Summary <i class="fa nav-arrow nav-float-right"></i></a>
@@ -52,13 +52,13 @@
 								<a href="#">Interventions<i class="fa nav-arrow nav-float-right"></i></a>
 								<ul class="second-level">
 										<li>
-												<a href="/ccg"><i class="fa fa-fw fa-money"></i> &nbsp; Conditional cash grants</a>
+												<a href="ccg"><i class="fa fa-fw fa-money"></i> &nbsp; Conditional cash grants</a>
 										</li>
 										<li>
-												<a href="/sted"><i class="fa fa-fw fa-briefcase"></i> &nbsp; STED</a>
+												<a href="sted"><i class="fa fa-fw fa-briefcase"></i> &nbsp; STED</a>
 										</li>
 										<li>
-												<a href="/core-shelter"><i class="fa fa-fw fa-home"></i> &nbsp; Core shelter</a>
+												<a href="core-shelter"><i class="fa fa-fw fa-home"></i> &nbsp; Core shelter</a>
 										</li>
 								</ul>
 						</li>
@@ -66,20 +66,20 @@
 								<a href="#">Community mobilization <i class="fa nav-arrow nav-float-right"></i></a>
 								<ul class="second-level">
 										<li>
-												<a href="/spot-maps"><i class="fa fa-fw fa-map-o"></i> &nbsp; SPOT maps and CAPs</a>
+												<a href="spot-maps"><i class="fa fa-fw fa-map-o"></i> &nbsp; SPOT maps and CAPs</a>
 										</li>
 								</ul>
 						</li>
 
 						<li style="border-top:1px solid #6d6e70;">
-							<form id="form-logout" style="display:none;" class="navbar-form" role="form" action="/user/logout" method="POST"></form>
+							<form id="form-logout" style="display:none;" class="navbar-form" role="form" action="user/logout" method="POST"></form>
 							<a href="#top"  onclick = document.getElementById('form-logout').submit(); >{{user.username}}
 								<span class="logout nav-float-right">Logout &nbsp;<i class="fa fa-sign-out"></i></span>
 							</a>
 						</li>
 						{{#eq user.permissions "super"}}
 							<li>
-								<a href="/users"><i class="fa fa-user"></i> &nbsp; Manage users</a>
+								<a href="users"><i class="fa fa-user"></i> &nbsp; Manage users</a>
 							</li>
 						{{/eq}}
 

@@ -6,7 +6,7 @@ var throttleTimer;
 function throttle() {
   window.clearTimeout(throttleTimer);
     throttleTimer = window.setTimeout(function() {
-      $('.coreByBarangay').empty();
+      // $('.coreByBarangay').empty();
       resize();
     }, 200);
 }

@@ -126,7 +126,7 @@ app.engine('handlebars', exphbs({
 			var files = fs.readdirSync("client/media/logos");
 			for (var i=0;i<files.length;i++) {
 				var file = files[i];
-				output+="<img src='/media/logos/"+file+"' class='logo'>";
+				output+="<img src='media/logos/"+file+"' class='logo'>";
 			}
 			return output;
 		}
@@ -141,19 +141,19 @@ app.use(express.static('client'));
 
 app.post('/user/logout',function(req,res) {
 	req.session.destroy(function() {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	})
 })
 
 app.post('/user/login',passport.authenticate('local-login', {
-    failureRedirect: '/',
+    failureRedirect: localConfig.application.nginxlocation,
     failureFlash: true
 }),function(req,res) {
 	if (req.session.redirectTo) {
 		res.redirect(req.session.redirectTo);
 		delete req.session.redirectTo;
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -167,11 +167,11 @@ app.post('/user/:username',function(req,res) {
 				ctrl.updateUser(req,res);
 			break;
 			default:
-				res.redirect("/");
+				res.redirect(localConfig.application.nginxlocation);
 			break;
 		}
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -179,7 +179,7 @@ app.post('/user',function(req,res) {
 	if (req.user && req.user.permissions == "super") {
 		ctrl.createUser(req,res);
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -189,6 +189,7 @@ app.get('/users',function(req,res) {
 			res.render('listUsers',{
 				user:req.user,
 				users:result,
+				location:localConfig.application.nginxlocation,
 				opts:localConfig.page,
 				error:req.flash("createMessage") || req.flash("editMessage") || req.flash("deleteMessage"),
 				success:req.flash("successMessage"),
@@ -197,7 +198,7 @@ app.get('/users',function(req,res) {
 		})
 	} else {
 		req.session.redirectTo = "/users";
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -252,6 +253,7 @@ app.get('/api/user/:email',[jwtauth.auth],function(req,res) {
 app.get('/',function (req,res) {
 	res.render('home',{
 		user:req.user,
+		location:localConfig.application.nginxlocation,
 		opts:localConfig.page,
 		error:req.flash("loginMessage")
 	});
@@ -266,11 +268,12 @@ app.get('/progress',function(req,res) {
 	if (req.user) {
 	    res.render('progress', {
 				user:req.user,
+				location:localConfig.application.nginxlocation,
 	      opts:localConfig.page,
 				error:req.flash("loginMessage")
 	    });
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -297,13 +300,14 @@ app.get('/households',function(req,res) {
 		pghelper.query('SELECT * FROM "HOUSEHOLD";', function(err, data){
 	    res.render('household', {
 				user:req.user,
+				location:localConfig.application.nginxlocation,
 	      opts:localConfig.page,
 	      pgdata:data,
 				error:req.flash("loginMessage")
 	    });
 	  });
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -312,13 +316,14 @@ app.get('/households-map',function(req,res) {
 		pghelper.query('SELECT * FROM "HOUSEHOLD";', function(err, data){
 	    res.render('households-map', {
 				user:req.user,
+				location:localConfig.application.nginxlocation,
 	      opts:localConfig.page,
 	      pgdata:data,
 				error:req.flash("loginMessage")
 	    });
 	  });
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -326,11 +331,12 @@ app.get('/ccg',function(req,res) {
 	if (req.user) {
     res.render('ccg', {
 			user:req.user,
+			location:localConfig.application.nginxlocation,
       opts:localConfig.page,
 			error:req.flash("loginMessage")
     });
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -338,11 +344,12 @@ app.get('/core-shelter',function(req,res) {
 	if (req.user) {
     res.render('core-shelter', {
 			user:req.user,
+			location:localConfig.application.nginxlocation,
       opts:localConfig.page,
 			error:req.flash("loginMessage")
     });
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -350,11 +357,12 @@ app.get('/sted',function(req,res) {
 	if (req.user) {
     res.render('sted', {
 			user:req.user,
+			location:localConfig.application.nginxlocation,
       opts:localConfig.page,
 			error:req.flash("loginMessage")
     });
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 
@@ -362,11 +370,12 @@ app.get('/spot-maps',function(req,res) {
 	if (req.user) {
     res.render('spot-maps', {
 			user:req.user,
+			location:localConfig.application.nginxlocation,
       opts:localConfig.page,
 			error:req.flash("loginMessage")
     });
 	} else {
-		res.redirect("/");
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 

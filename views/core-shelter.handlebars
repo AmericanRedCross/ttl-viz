@@ -6,7 +6,7 @@
 
 <link rel="stylesheet" href="//cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
 <link rel="stylesheet" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.css" />
-<link rel="stylesheet" href="/css/dashboard.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
 
 <div id="pic-modal" class="modal fade" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg">
@@ -35,16 +35,29 @@
 </header>
 
 
-<div id="loader" class="text-center">
+<!-- <div id="loader" class="text-center">
 	<img src="/media/ajax_loader_gray_512.gif" alt="loading..." />
+</div> -->
+
+<p><u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span></p>
+<a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
+
+<div class="filter-panel panel-group" id="accordion" role="tablist" >
+  <div class="filter-panel panel panel-default">
+    <div class="filter-panel panel-heading" role="tab">
+			<!-- panel titles go here -->
+    </div>
+		<!-- collapse divs go here -->
+  </div>
 </div>
 
-<div class="dashboard-section">
-  <h3>Number of core shelters completed by barangay<br><small><span id="coreTotal"></span> total completed</small></h3>
-	<div id="coreByBarangay"></div>
+<hr>
+
+<div class="row">
+	<div id="brgyBars"></div>
 </div>
 
-<hr style="margin:0;">
+<hr>
 
 <div class="dashboard-section">
   <h3>Core shelters completed by date</h3>
@@ -53,18 +66,17 @@
 
 <hr style="margin:0;">
 
-<!-- <div class="dashboard-section">
-	<div id="myMap"></div>
-</div>
-
-<hr style="margin:0;"> -->
-
+<!--
 <div class="dashboard-section">
   <h3>Core shelter beneficiaries</h3>
 	<table data-sortable id="beneficiaryTable" class="sortable-theme-minimal">
 
 	</table>
-</div>
+</div> -->
+
+<hr>
+
+<div id="listTable"></div>
 
 
 
@@ -76,4 +88,4 @@
 </footer>
 </div>
 
-<script src="/js/core-shelter.js"></script>
+<script src="js/core-shelter.js"></script>
