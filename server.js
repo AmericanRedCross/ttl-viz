@@ -286,6 +286,50 @@ app.post('/progress', function (req,res){
 	}
 })
 
+app.get('/hardware',function(req,res) {
+	if (req.user) {
+	    res.render('hardware', {
+				user:req.user,
+				location:localConfig.application.nginxlocation,
+	      opts:localConfig.page,
+				error:req.flash("loginMessage")
+	    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
+app.post('/hardware', function (req,res){
+	if (req.user){
+		var queryStr = 'SELECT * FROM "HARDWARE_INDICATORS";';
+		pghelper.query(queryStr, function(err, data){
+			res.send(data);
+		})
+	}
+})
+
+app.get('/software',function(req,res) {
+	if (req.user) {
+	    res.render('software', {
+				user:req.user,
+				location:localConfig.application.nginxlocation,
+	      opts:localConfig.page,
+				error:req.flash("loginMessage")
+	    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
+app.post('/software', function (req,res){
+	if (req.user){
+		var queryStr = 'SELECT * FROM "SOFTWARE_INDICATORS";';
+		pghelper.query(queryStr, function(err, data){
+			res.send(data);
+		})
+	}
+})
+
 
 app.get('/query/:queryStr',function(req,res) {
 	if (req.user && req.params.queryStr) {
