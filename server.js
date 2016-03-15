@@ -197,7 +197,7 @@ app.get('/users',function(req,res) {
 			});
 		})
 	} else {
-		req.session.redirectTo = "/users";
+		req.session.redirectTo = "users";
 		res.redirect(localConfig.application.nginxlocation);
 	}
 })
