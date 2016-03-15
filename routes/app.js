@@ -108,7 +108,7 @@ Ctrl.prototype.createUser = function(req,res) {
 		if (err) { req.flash('createMessage', 'Unable to save a new user account at this time.'); };
 		if (user) {
 		    req.flash('createMessage', 'There is already an account associated with that username.');
-		    res.redirect("/users");
+		    res.redirect("users");
 		} else {
 			var newUser = new User();
 			newUser.username = req.body.username;
@@ -118,7 +118,7 @@ Ctrl.prototype.createUser = function(req,res) {
                 if (err) {
                 	req.flash('createMessage', 'Unable to save a new user account at this time.');
                 }
-                res.redirect("/users");
+                res.redirect("users");
             })
        	}
    	})
@@ -136,11 +136,11 @@ Ctrl.prototype.updateUser = function(req,res) {
                 if (err) {
                 	req.flash('editMessage', 'Unable to edit that user account at this time.');
                 }
-                res.redirect("/users");
+                res.redirect("users");
             })
 		} else {
 			req.flash('editMessage', 'There is no user account associated with that username.');
-		    res.redirect("/users");
+		    res.redirect("users");
        	}
    	})
 }
@@ -153,11 +153,11 @@ Ctrl.prototype.deleteUser = function(req,res) {
                 if (err) {
                 	req.flash('deleteMessage', 'Unable to delete that user account at this time.');
                 }
-                res.redirect("/users");
+                res.redirect("users");
             })
 		} else {
 			req.flash('deleteMessage', 'There is no user account associated with that username.');
-		    res.redirect("/users");
+		    res.redirect("users");
        	}
    	})
 }
