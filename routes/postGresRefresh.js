@@ -8,7 +8,7 @@ var exec = require('child_process').exec;
 var flow = require('flow');
 // CronJob = require('cron').CronJob;
 
-var PostGresHelper = require("./routes/postGresHelper.js");
+var PostGresHelper = require("../routes/postGresHelper.js");
 var pghelper = new PostGresHelper();
 
 
@@ -85,7 +85,7 @@ PostGresRefresh.prototype.run = function(cb){
 }
 
 
-PostGresRefresh.prototype.fetchBackup(cb){
+PostGresRefresh.prototype.fetchBackup = function(cb){
 
   var self = this;
 
@@ -150,3 +150,5 @@ PostGresRefresh.prototype.fetchBackup(cb){
     }
   });
 }
+
+module.exports = PostGresRefresh;
