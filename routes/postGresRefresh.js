@@ -31,21 +31,30 @@ PostGresRefresh.prototype.run = function(cb){
     },
     function() {
 
-      // this will then kill all existing connections
-      var sql = "SELECT pg_terminate_backend(pid) " +
-      "FROM pg_stat_activity " +
-      "WHERE datname='" + settings.pg.database + "';";
-      pghelper.adminQuery(sql, this);
-
-    },
-    function(){
-
-      var sql = "DROP DATABASE " + settings.pg.database + ";";
-      pghelper.adminQuery(sql, this);
+      pghelper.closeAll(this);
 
     },
     function() {
 
+      console.log('kill connections')
+      // this will then kill all existing connections
+      var command = 'sudo -u postgres psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=' + "'" + settings.pg.database + "'" + ';" postgres';
+      // var command = 'psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=' + "'" + settings.pg.database + "'" + ';" postgres'; // ### for local testing ###
+      self.execute(command, this);
+
+    },
+    function(){
+
+      console.log('drop database')
+      var command = 'sudo -u postgres psql -c "DROP DATABASE ' + settings.pg.database + ';" postgres';
+      // var command = 'psql -c "DROP DATABASE ' + settings.pg.database + ';" postgres'; // ### for local testing ###
+      self.execute(command, this);
+
+
+    },
+    function() {
+
+      console.log('create database')
       // create a new db
       var command = 'sudo -u postgres createdb -O ubuntu '+ settings.pg.database;
       // var command = 'createdb '+ settings.pg.database; // ### for local testing ###
@@ -53,7 +62,8 @@ PostGresRefresh.prototype.run = function(cb){
 
     },
     function() {
-
+      
+      console.log('add postgis extensions')
       var sql = "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
       pghelper.query(sql, this);
 
@@ -63,14 +73,6 @@ PostGresRefresh.prototype.run = function(cb){
       // restore the db from the backup
       var command = "psql " + settings.pg.database + " < " + self.filePath;
       self.execute(command, this);
-
-    },
-    function() {
-
-      var sql = "UPDATE pg_database " +
-      "SET datallowconn = 'true' " +
-      "WHERE datname = '" + settings.pg.database + "';";
-      pghelper.adminQuery(sql, this)
 
     },
     function() {
