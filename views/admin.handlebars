@@ -42,15 +42,15 @@
 
 $(document).ready(function() {
   $('#refreshdb').submit(function() {
-    d3.select("#uploadBtn").classed("disabled", true);
-    d3.select("#uploadBtn i").classed({'fa-refresh':false, 'fa-spinner':true, 'fa-pulse':true});
+    d3.select("#refreshBtn").classed("disabled", true);
+    d3.select("#refreshBtn i").classed({'fa-refresh':false, 'fa-spinner':true, 'fa-pulse':true});
     $(this).ajaxSubmit({
       error: function(xhr) {
         $('#refresh-status').empty().text('error');
       },
       success: function(response) {
-        d3.select("#uploadBtn").classed("disabled", false);
-        d3.select("#uploadBtn i").classed({'fa-refresh':true, 'fa-spinner':false, 'fa-pulse':false});
+        d3.select("#refreshBtn").classed("disabled", false);
+        d3.select("#refreshBtn i").classed({'fa-refresh':true, 'fa-spinner':false, 'fa-pulse':false});
         $('#refresh-status').empty().text('success');
       }
     });

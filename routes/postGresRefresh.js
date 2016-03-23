@@ -30,34 +30,25 @@ PostGresRefresh.prototype.run = function(cb){
 
     },
     function() {
-      console.log("step 2")
-      // this will prevent connections to the database and
-      var sql = "UPDATE pg_database " +
-      "SET datallowconn = 'false' " +
-      "WHERE datname = '" + settings.pg.database + "';";
-      pghelper.adminQuery(sql, this)
-
-    },
-    function() {
 
       // this will then kill all existing connections
-      var sql = "SELECT pg_terminate_backend (pg_stat_activity.pid) " +
+      var sql = "SELECT pg_terminate_backend(pid) " +
       "FROM pg_stat_activity " +
-      "WHERE pg_stat_activity.datname = '" + settings.pg.database + "' AND pid <> pg_backend_pid();";
+      "WHERE datname='" + settings.pg.database + "';";
       pghelper.adminQuery(sql, this);
 
     },
-    function() {
+    function(){
 
-      var sql = "DROP DATABASE IF EXISTS " + settings.pg.database + ";";
-      pghelper.adminQuery(sql, this)
+      var sql = "DROP DATABASE " + settings.pg.database + ";";
+      pghelper.adminQuery(sql, this);
 
     },
     function() {
 
       // create a new db
       var command = 'sudo -u postgres createdb -O ubuntu '+ settings.pg.database;
-      // var command = 'createdb '+ settings.pg.database;
+      // var command = 'createdb '+ settings.pg.database; // ### for local testing ###
       self.execute(command, this);
 
     },
@@ -72,6 +63,14 @@ PostGresRefresh.prototype.run = function(cb){
       // restore the db from the backup
       var command = "psql " + settings.pg.database + " < " + self.filePath;
       self.execute(command, this);
+
+    },
+    function() {
+
+      var sql = "UPDATE pg_database " +
+      "SET datallowconn = 'true' " +
+      "WHERE datname = '" + settings.pg.database + "';";
+      pghelper.adminQuery(sql, this)
 
     },
     function() {
