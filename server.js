@@ -261,6 +261,19 @@ app.get('/',function (req,res) {
 	});
 })
 
+app.get('/admin',function(req,res) {
+	if (req.user && req.user.permissions == "super") {
+		res.render('admin',{
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+			opts:localConfig.page,
+			error:req.flash("loginMessage")
+		});
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
 var PostGresRefresh = require("./routes/postGresRefresh.js");
 var pgRefresh = new PostGresRefresh();
 

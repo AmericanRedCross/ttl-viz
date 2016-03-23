@@ -1,0 +1,65 @@
+
+<style>
+
+
+</style>
+
+<div class="container">
+
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Site admin </h1>
+	</div>
+</header>
+
+<hr>
+
+<form id="refreshdb" action="refresh" method="post">
+  <div class="input-group">
+      <span class="input-group-btn">
+          <span id="refreshBtn" class="btn btn-dark btn-file">
+              Refresh database &nbsp;<i class="fa fa-refresh"></i>
+					</span>
+      </span>
+  </div>
+  <span id = "refresh-status"></span>
+</form>
+
+
+
+<hr>
+<footer id="site-footer">
+	<div class="row row-logo">
+				{{{logos}}}
+			</div>
+</footer>
+
+</div> <!-- / container -->
+
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
+<script>
+
+$(document).ready(function() {
+  $('#refreshdb').submit(function() {
+    d3.select("#uploadBtn").classed("disabled", true);
+    d3.select("#uploadBtn i").classed({'fa-refresh':false, 'fa-spinner':true, 'fa-pulse':true});
+    $(this).ajaxSubmit({
+      error: function(xhr) {
+        $('#refresh-status').empty().text('error');
+      },
+      success: function(response) {
+        d3.select("#uploadBtn").classed("disabled", false);
+        d3.select("#uploadBtn i").classed({'fa-refresh':true, 'fa-spinner':false, 'fa-pulse':false});
+        $('#refresh-status').empty().text('success');
+      }
+    });
+    return false;
+  });
+});
+
+$('#refreshBtn').on('click', function() {
+  $('#refreshdb').submit();
+});
+
+</script>
