@@ -51,7 +51,7 @@ $(document).ready(function() {
       success: function(response) {
         d3.select("#refreshBtn").classed("disabled", false);
         d3.select("#refreshBtn i").classed({'fa-refresh':true, 'fa-spinner':false, 'fa-pulse':false});
-        $('#refresh-status').empty().text('success');
+        $('#refresh-status').empty().text('done');
       }
     });
     return false;

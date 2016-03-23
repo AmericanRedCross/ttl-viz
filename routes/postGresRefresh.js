@@ -31,6 +31,10 @@ PostGresRefresh.prototype.run = function(cb){
     },
     function() {
 
+      // this helps avoid at least one error when killing connections in the nest step
+      // calling `pg.end()` disconnects all idle clients within all active pools, and has all client pools terminate.
+      // ? Any currently open, checked out clients will still need to be returned to the pool before they will be shut down and disconnected.
+      // https://github.com/brianc/node-postgres/wiki/pg#events
       pghelper.closeAll(this);
 
     },
@@ -62,7 +66,7 @@ PostGresRefresh.prototype.run = function(cb){
 
     },
     function() {
-      
+
       console.log('add postgis extensions')
       var sql = "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
       pghelper.query(sql, this);
