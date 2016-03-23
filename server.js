@@ -259,6 +259,17 @@ app.get('/',function (req,res) {
 	});
 })
 
+var PostGresRefresh = require("./routes/postGresRefresh.js");
+var pgRefresh = new PostGresRefresh();
+
+app.post('/refresh', function (req,res){
+	if (req.user && req.user.permissions == "super"){
+		pgRefresh.run(function(err,data){
+			console.log("done db refresh");
+			res.end('Ran db refresh');
+		});
+	}
+})
 
 // dashboard pages using a postgres connection
 var PostGresHelper = require("./routes/postGresHelper.js");
