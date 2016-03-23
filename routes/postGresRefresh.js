@@ -1,4 +1,3 @@
-var AWS = require('aws-sdk');
 var path = require('path');
 var fs = require('fs');
 var zlib = require('zlib');
@@ -7,6 +6,9 @@ var settings = require('../config.js');
 var exec = require('child_process').exec;
 var flow = require('flow');
 // CronJob = require('cron').CronJob;
+
+var AWS = require('aws-sdk');
+var s3 = new AWS.S3();
 
 var PostGresHelper = require("../routes/postGresHelper.js");
 var pghelper = new PostGresHelper();
