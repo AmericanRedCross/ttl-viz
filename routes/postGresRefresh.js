@@ -30,60 +30,66 @@ PostGresRefresh.prototype.run = function(cb){
 
     },
     function() {
-
+      console.log("step 2")
       // this will prevent connections to the database and
       var sql = "UPDATE pg_database " +
       "SET datallowconn = 'false' " +
-      "WHERE datname = '" + settings.pg.database + "'; " +
+      "WHERE datname = '" + settings.pg.database + "';";
+      pghelper.adminQuery(sql, this)
+
+    },
+    function() {
+
       // this will then kill all existing connections
-      "SELECT pg_terminate_backend (pg_stat_activity.pid) " +
+      var sql = "SELECT pg_terminate_backend (pg_stat_activity.pid) " +
       "FROM pg_stat_activity " +
-      "WHERE pg_stat_activity.datname = '" + settings.pg.database + "';";
-      pghelper.query(sql, this)
+      "WHERE pg_stat_activity.datname = '" + settings.pg.database + "' AND pid <> pg_backend_pid();";
+      pghelper.adminQuery(sql, this);
 
     },
     function() {
 
       var sql = "DROP DATABASE IF EXISTS " + settings.pg.database + ";";
-      pghelper.query(sql, this)
+      pghelper.adminQuery(sql, this)
 
     },
     function() {
 
       // create a new db
       var command = 'sudo -u postgres createdb -O ubuntu '+ settings.pg.database;
-      exec(command, function (error, stdout, stderr) {
-          if (error !== null) {
-            console.log('exec error: ' + error);
-          } else {
-            var sql = "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
-            pghelper.query(sql, this);
-          }
-      });
+      // var command = 'createdb '+ settings.pg.database;
+      self.execute(command, this);
+
+    },
+    function() {
+
+      var sql = "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+      pghelper.query(sql, this);
 
     },
     function() {
 
       // restore the db from the backup
       var command = "psql " + settings.pg.database + " < " + self.filePath;
-      exec(command, function (error, stdout, stderr) {
-          if (error !== null) {
-            console.log('exec error: ' + error);
-          } else {
-            var sql = "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
-            pghelper.query(sql, this);
-          }
-      });
+      self.execute(command, this);
 
     },
     function() {
+
       console.log("refresh complete");
       this.cb();
+
     }
   );
 
   refresh();
 
+}
+
+PostGresRefresh.prototype.execute = function(command, cb){
+  exec(command, function(error, stdout, stderr){
+    cb(error, stdout);
+  });
 }
 
 
@@ -117,10 +123,11 @@ PostGresRefresh.prototype.fetchBackup = function(cb){
         Key: mostRecent.Key
       };
 
-      self.filePath =  path.join(__dirname, 'backups', getParams.Key); // save this value for use between functions in the flow
+      self.filePath =  path.join(appRoot, 'backups', getParams.Key); // save this value for use between functions in the flow
+      console.log("filePath . . .  " + self.filePath);
 
       // get the names of files in the backups folder
-      fs.readdir(path.join(__dirname, 'backups'), function(err, files){
+      fs.readdir(path.join(appRoot, 'backups'), function(err, files){
         if(err) { console.log(err); }
         // check that the file on S3 is different
         if(files.indexOf(getParams.Key) > -1) {
@@ -132,7 +139,7 @@ PostGresRefresh.prototype.fetchBackup = function(cb){
             var elementExt = path.extname(element);
             // delete only files with the valid extensions
             if(valid_extensions.indexOf(elementExt) > -1){
-              var elementPath = path.join(__dirname, 'backups', element);
+              var elementPath = path.join(appRoot, 'backups', element);
               fs.unlink(elementPath, function (err) {
                 if (err) throw err;
                 console.log('successfully deleted :', element);

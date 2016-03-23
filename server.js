@@ -6,6 +6,8 @@ var Asset = require('./routes/app').Asset;
 var moment = require('moment');
 var fs = require('fs');
 
+var path = require('path');
+global.appRoot = path.resolve(__dirname);
 
 var ctrl = new AppCtrl('localhost', 27017);
 
