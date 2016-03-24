@@ -276,13 +276,12 @@ app.get('/admin',function(req,res) {
 })
 
 var PostGresRefresh = require("./routes/postGresRefresh.js");
-var pgRefresh = new PostGresRefresh();
+var postGresRefresh = new PostGresRefresh();
 
 app.post('/refresh', function (req,res){
 	if (req.user && req.user.permissions == "super"){
-		pgRefresh.run(function(err,data){
-			console.log("done db refresh");
-			res.end('Ran db refresh');
+		postGresRefresh.run(function(err,data){
+			res.send(data);
 		});
 	}
 })

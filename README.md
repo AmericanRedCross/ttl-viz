@@ -7,3 +7,4 @@
 - install imagemagick and graphicsmagick on your system
   - `sudo apt-get install imagemagick`
   - `sudo apt-get install graphicsmagick`
+- for image uploads with nginx you'll need to adjust your configuration settings http://craftcms.stackexchange.com/a/2330

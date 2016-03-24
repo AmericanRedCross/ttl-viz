@@ -21,10 +21,12 @@ var PostGresRefresh = function() {
 PostGresRefresh.prototype.run = function(cb){
   var self = this;
 
+  self.filePath = '';
+
   var refresh = flow.define(
     function() {
 
-      this.cb = cb;
+      // this.cb = cb;
 
       self.fetchBackup(this);
 
@@ -81,8 +83,7 @@ PostGresRefresh.prototype.run = function(cb){
     },
     function() {
 
-      console.log("refresh complete");
-      this.cb();
+      cb(null, self.filePath);
 
     }
   );
@@ -127,6 +128,7 @@ PostGresRefresh.prototype.fetchBackup = function(cb){
         Bucket: settings.s3.bucket,
         Key: mostRecent.Key
       };
+
 
       self.filePath =  path.join(appRoot, 'backups', getParams.Key); // save this value for use between functions in the flow
       console.log("filePath . . .  " + self.filePath);
