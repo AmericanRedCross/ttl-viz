@@ -5,3 +5,5 @@
 - create a config.js file from config.js.example and adjust settings for your deployment
 - start mongo and postgres
 - install imagemagick and graphicsmagick on your system
+  - `sudo apt-get install imagemagick`
+  - `sudo apt-get install graphicsmagick`

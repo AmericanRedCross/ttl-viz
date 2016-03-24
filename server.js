@@ -60,6 +60,7 @@ var app = express();
 
 app.use(morgan('dev'));     /* 'default', 'short', 'tiny', 'dev' */
 app.use(bodyParser.urlencoded({
+	limit: '50mb',
   extended: true
 }));
 // app.use(multer());
