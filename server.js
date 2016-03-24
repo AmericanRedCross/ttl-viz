@@ -62,7 +62,7 @@ app.use(morgan('dev'));     /* 'default', 'short', 'tiny', 'dev' */
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-app.use(multer());
+// app.use(multer());
 app.use(cookieParser());
 app.use(session({
   secret: 'thisissecret',
@@ -283,6 +283,65 @@ app.post('/refresh', function (req,res){
 			console.log("done db refresh");
 			res.end('Ran db refresh');
 		});
+	}
+})
+
+var storage = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, './tmp');
+  },
+  filename: function (req, file, callback) {
+    callback(null, file.originalname.substr(0, file.originalname.lastIndexOf('.')) + '_' + Date.now() + path.extname(file.originalname));
+  }
+});
+var upload = multer({ storage : storage }).array('imgFiles');
+
+var GalleryUpload = require("./routes/GalleryUpload.js");
+var galleryUpload = new GalleryUpload();
+
+app.post('/uploadimg',function(req,res){
+    upload(req,res,function(err) {
+        if(err) {
+					console.log(err)
+            return res.end("Error uploading file.");
+        }
+				galleryUpload.process(req.files, function(err,data){
+					res.end('processed!');
+				});
+    });
+})
+
+var S3Helper = require("./routes/S3Helper.js");
+var s3helper = new S3Helper();
+
+app.post('/gallery', function(req,res){
+	if (req.user) {
+		s3helper.listGallery(function(err,data){
+			res.send(data);
+		})
+	} else {
+		res.send('error')
+	}
+})
+
+app.post('/remove-image', function (req,res){
+	if (req.user && req.user.permissions == "super"){
+		s3helper.removeGalleryFile(req.body.keyArray, function(err, data){
+			res.end();
+		})
+	}
+})
+
+app.get('/gallery', function(req,res){
+	if (req.user) {
+			res.render('gallery', {
+				user:req.user,
+				location:localConfig.application.nginxlocation,
+				opts:localConfig.page,
+				error:req.flash("loginMessage")
+			});
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
 	}
 })
 

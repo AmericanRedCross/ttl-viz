@@ -1,0 +1,107 @@
+<link rel="stylesheet" href="css/blueimp-gallery.min.css">
+<style>
+
+.gallery-thumb {
+  cursor: pointer;
+  margin: 12px;
+  padding: 6px;
+  height: 100px;
+  width: 100px;
+  border-radius: 2px;
+  display: inline-block;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+</style>
+
+<div class="container">
+
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Gallery </h1>
+	</div>
+</header>
+
+<hr>
+
+<div id="gallery-links">
+  <div class="text-center"><img src="img/loading.gif" alt="loading..."></div>
+</div>
+
+<!-- The Gallery as lightbox dialog, should be a child element of the document body -->
+<div id="blueimp-gallery" class="blueimp-gallery">
+    <div class="slides"></div>
+    <h3 class="title"></h3>
+    <a class="prev">‹</a>
+    <a class="next">›</a>
+    <a class="close">×</a>
+    <a class="play-pause"></a>
+    <ol class="indicator"></ol>
+</div>
+
+
+
+
+<hr>
+<footer id="site-footer">
+	<div class="row row-logo">
+				{{{logos}}}
+			</div>
+</footer>
+
+</div> <!-- / container -->
+
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="js/blueimp-gallery.min.js"></script>
+<script>
+
+function getGalleryList(){
+  $.ajax({
+    type: 'POST',
+    url: 'gallery'
+  }).done(function(data){
+    buildGallery(data);
+  });
+}
+
+
+function buildGallery(data){
+   var thumbs = [];
+   var fulls = {};
+   data.forEach(function(d){
+    if(d.Key.indexOf("_THUMB") !== -1){
+      thumbs.push(d.Key);
+    } else {
+      fulls[d.Key.slice(0, d.Key.lastIndexOf("."))] = d.Key;
+    }
+  });
+  thumbs = thumbs.filter(function(d){
+    return fulls[d.slice(0,d.indexOf("_THUMB"))] !== undefined;
+  })
+
+  $('#gallery-links').html('');
+
+  var linksContainer = $('#gallery-links');
+  var baseUrl = "http://arcttl.s3.amazonaws.com/";
+  var galleryLinks = thumbs.map(function(d){ return baseUrl + fulls[d.slice(0,d.indexOf("_THUMB"))]; })
+
+  var links = d3.select('#gallery-links').selectAll('div')
+      .data(thumbs).enter()
+      .append('div').attr('class', 'gallery-thumb')
+      .attr('data-href', function(d){ return baseUrl + fulls[d.slice(0,d.indexOf("_THUMB"))]; })
+      .on('click', function(d){
+        blueimp.Gallery(galleryLinks, { index: galleryLinks.indexOf(d3.select(this).attr('data-href')) });
+      })
+
+    links.append('img').attr('src', function(d){
+      return baseUrl + d;
+    }).classed('img-responsive', true)
+
+}
+
+// http://arcttl.s3.amazonaws.com/gallery/CartoDB_NepalLogsRoutes.jpg
+
+
+getGalleryList();
+
+</script>

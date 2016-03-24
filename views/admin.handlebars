@@ -1,5 +1,46 @@
-
 <style>
+
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+.gallery-thumb {
+  cursor: pointer;
+  margin: 4px;
+  height: 100px;
+  width: 100px;
+  position: relative;
+  display: inline-block;
+  border: 1px solid #d7d7d8;
+}
+.gallery-thumb i.fa {
+  position: absolute;
+  color: #000;
+  top: 3px;
+  right: 3px;
+  font-size: 18px;
+}
+.gallery-thumb.active i {
+  font-size: 32px;
+}
+.gallery-thumb.active {
+  border-color: #000;
+}
 
 
 </style>
@@ -25,7 +66,28 @@
   <span id = "refresh-status"></span>
 </form>
 
+<hr>
 
+<form id="uploadForm" enctype="multipart/form-data" action="uploadimg" method="post">
+  <div class="input-group">
+      <span class="input-group-btn">
+          <span id="uploadimgBtn" class="btn btn-dark btn-file">
+              Upload gallery images&nbsp;<i class="fa fa-plus"></i> <input type="file" name="imgFiles" accept=".jpeg,.jpg,.png" multiple />
+					</span>
+      </span>
+  </div>
+	<span class="help-block">
+		Files must be .jpeg, .jpg, or .png files. Images will be resized, maintaining aspect ratio to fit 1000x800 pixels. A square thumbnail will be generated. Both will be uploaded to AWS S3 storage and become visible on the Gallery page. This tool should be used only for gallery management. <b>File storage and mangement of project pictures should occur somewhere else.</b>
+	</span>
+  <span id = "status"></span>
+</form>
+
+<div>
+  <h5>Remove gallery images</h5>
+  <div id="gallery-previews">
+    <div class="text-center"><img src="img/loading.gif" alt="loading..."></div>
+  </div>
+</div>
 
 <hr>
 <footer id="site-footer">
@@ -41,6 +103,25 @@
 <script>
 
 $(document).ready(function() {
+
+	$('#uploadForm').submit(function() {
+    d3.select("#uploadimgBtn").classed("disabled", true);
+    d3.select("#uploadimgBtn i").classed({'fa-plus':false, 'fa-spinner':true, 'fa-pulse':true});
+    $(this).ajaxSubmit({
+      error: function(xhr) {
+        console.log('Error: ' + xhr.status);
+      },
+      success: function(response) {
+        console.log(response)
+        //$("#status").empty().text(response);
+        d3.select("#uploadimgBtn").classed("disabled", false);
+        d3.select("#uploadimgBtn i").classed({'fa-plus':true, 'fa-spinner':false, 'fa-pulse':false});
+        getGalleryList();
+      }
+    });
+    return false;
+  });
+
   $('#refreshdb').submit(function() {
     d3.select("#refreshBtn").classed("disabled", true);
     d3.select("#refreshBtn i").classed({'fa-refresh':false, 'fa-spinner':true, 'fa-pulse':true});
@@ -56,10 +137,85 @@ $(document).ready(function() {
     });
     return false;
   });
+
+});
+
+$(document).on('change', '.btn-file :file', function() {
+    $('#uploadForm').submit();
 });
 
 $('#refreshBtn').on('click', function() {
   $('#refreshdb').submit();
 });
+
+function getGalleryList(){
+  $.ajax({
+    type: 'POST',
+    url: 'gallery'
+  }).done(function(data){
+    buildPreview(data);
+  });
+}
+
+function buildPreview(data){
+  var thumbs = [];
+  var fulls = {};
+  data.forEach(function(d){
+     if(d.Key.indexOf("_THUMB") !== -1){
+       thumbs.push(d.Key);
+     } else {
+       fulls[d.Key.slice(0, d.Key.lastIndexOf("."))] = d.Key;
+     }
+   });
+
+   thumbs = thumbs.filter(function(d){
+     return fulls[d.slice(0,d.indexOf("_THUMB"))] !== undefined;
+   })
+
+   $('#gallery-previews').html('');
+
+   var imgContainer = $('#gallery-previews');
+   var baseUrl = "http://arcttl.s3.amazonaws.com/";
+
+   var links = d3.select('#gallery-previews').selectAll('div')
+       .data(thumbs, function(d) { return d; }).enter()
+       .append('div').attr('class', 'gallery-thumb')
+       .attr('data-fullkey', function(d){ return fulls[d.slice(0,d.indexOf("_THUMB"))]; })
+       .attr('data-thumbkey', function(d){ return d; })
+       .on('mouseover', function(d){
+         d3.select(this).classed('active',true)
+       })
+       .on('mouseout', function(d){
+         d3.select(this).classed('active',false)
+       })
+       .on('click', function(d){
+         var filesArray = [ d3.select(this).attr('data-fullkey'), d3.select(this).attr('data-thumbkey') ];
+         deleteGalleryImg(filesArray, this);
+       })
+     links.append('i').classed({'fa':true,'fa-trash-o':true})
+
+     links.append('img').attr('src', function(d){
+       return baseUrl + d;
+     }).classed('img-responsive', true)
+
+}
+
+function deleteGalleryImg(filesArray, pageElement){
+  var confirmation = confirm('Are you sure you want to delete this image from S3 storage and remove it from the gallery?');
+  if (confirmation === true) {
+    $.ajax({
+      type: 'POST',
+      data: {'keyArray': filesArray},
+      url: 'remove-image'
+    }).done(function(){
+      $(pageElement).remove();
+    });
+  } else {
+    return false;
+  }
+}
+
+getGalleryList();
+
 
 </script>

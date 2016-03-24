@@ -1,0 +1,3 @@
+# temporay staging point for gallery images before
+# processing and upload to S3
+# contents of this folder are gitignored

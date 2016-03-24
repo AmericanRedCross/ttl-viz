@@ -6,6 +6,9 @@ config.js
 notes/*
 backups/*
 !backups/note.txt
+tmp/*
+!tmp/note.txt
+
 
 # Compiled source #
 ###################
