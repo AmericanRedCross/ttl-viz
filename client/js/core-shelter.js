@@ -27,9 +27,7 @@ function adminText(locationId, type){
 
 
 function getLocationData(){
-  queryStr = 'SELECT * FROM "TARGET_LOCATION";';
-  url = "query/" + queryStr ;
-  $.get(url, queryStr, function(response){
+  $.get('query/targetlocations', function(response){
     $.each(response, function(index, location){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
@@ -54,9 +52,7 @@ function getLocationData(){
 }
 
 function fetchData(){
-  queryStr = 'SELECT * FROM "core_shelter_100_percent_completion";';
-  url = "query/" + queryStr ;
-  $.get(url, queryStr, function(response){
+  $.get('query/coreshelter100', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){

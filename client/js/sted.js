@@ -30,9 +30,7 @@ function clearAllCheckboxes(){
 // Participants per training course, Gender Breakdown of participants, Civil Status breakdown of participants, Number of STED participants per barangay
 
 function getLocationData(){
-  queryStr = 'SELECT * FROM "TARGET_LOCATION";';
-  url = "query/" + queryStr ;
-  $.get(url, queryStr, function(response){
+  $.get('query/targetlocations', function(response){
     $.each(response, function(index, location){
       locationLookup[location['location_id']] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
@@ -55,9 +53,7 @@ function ageCheck(input) {
 }
 
 function fetchSTED(){
-  queryStr = 'SELECT * FROM "LIVELIHOOD_STED_PARTICIPANT";';
-  url = "query/" + queryStr ;
-  $.get(url, queryStr, function(response){
+  $.get('query/stedparticipants', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){

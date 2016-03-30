@@ -416,13 +416,60 @@ app.post('/software', function (req,res){
 })
 
 
-app.get('/query/:queryStr',function(req,res) {
-	if (req.user && req.params.queryStr) {
-		pghelper.query(req.params.queryStr, function(err, data){
-			res.send(data);
-		})
+// app.get('/query/:queryStr',function(req,res) {
+// 	if (req.user && req.params.queryStr) {
+// 		pghelper.query(req.params.queryStr, function(err, data){
+// 			res.send(data);
+// 		})
+// 	}
+// })
+
+app.get('/query/targetlocations', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "TARGET_LOCATION";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
 	}
 })
+app.get('/query/coreshelter100', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "core_shelter_100_percent_completion";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
+app.get('/query/stedparticipants', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "LIVELIHOOD_STED_PARTICIPANT";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
+app.get('/query/livelihoodccg', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT household_id, amount_category, livelihood_category, livelihood_proposal FROM "LIVELIHOOD_CCG";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
+app.post('/query/namefromid', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT head_of_hh_fname, head_of_hh_lname FROM "HOUSEHOLD" WHERE household_id=' + "'" + req.body.id  + "';";;
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
+
+
+
+
+
+
 
 app.get('/households',function(req,res) {
 	if (req.user) {

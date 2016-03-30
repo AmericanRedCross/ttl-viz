@@ -32,9 +32,7 @@ function clearAllCheckboxes(){
 // Thematic map - symbolized by proposal category, thematic map - symbolized by livelihood cateogory, thematic map - symobolized by proposal value
 
 function getLocationData(){
-  queryStr = 'SELECT * FROM "TARGET_LOCATION";';
-  url = "query/" + queryStr ;
-  $.get(url, queryStr, function(response){
+  $.get('query/targetlocations', function(response){
     $.each(response, function(index, location){
       locationLookup[location['location_id']] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
@@ -59,9 +57,7 @@ function getLocationData(){
 }
 
 function fetchData(){
-  queryStr = 'SELECT household_id, amount_category, livelihood_category, livelihood_proposal FROM "LIVELIHOOD_CCG";';
-  url = "query/" + queryStr ;
-  $.get(url, queryStr, function(response){
+  $.get('/query/livelihoodccg', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){
@@ -73,9 +69,7 @@ function fetchData(){
       d['location_id'] = [d['household_id'].slice(0,5)];
       d['location'] = [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
       // # get the names
-      queryStr = 'SELECT head_of_hh_fname, head_of_hh_lname FROM "HOUSEHOLD" WHERE household_id=' + "'" + d.household_id  + "';";
-      url = "query/" + queryStr ;
-      $.get(url, queryStr, function(response){
+      $.post('/query/namefromid', {"id": d.household_id}, function(response){
         // # response should be an array containing one object
         for(var key in response[0]){
           d[key] = response[0][key];
