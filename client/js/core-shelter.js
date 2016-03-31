@@ -1,13 +1,7 @@
-var data, filteredData;;
+var data, filteredData, dateData;
 var locationLookup = {};
 
-// ISSUES //
-// ###### //
-
-
 // FOR BUILDING LOCATION FILTERS.... USE HOUSEHOLD ID, ALL TABLES NEED TO HAVE IT...
-// ERROR CHECK FOR JUST THAT MISSING... DEALING WITH DIFFERENT SCENARIOS IS A PAIN...
-
 
 // # Core Shelter:
 // **Table:**
@@ -24,6 +18,27 @@ function adminText(locationId, type){
     return locationLookup[locationId].municipality;
   } else { return "error" }
 }
+
+function clearAllCheckboxes(){
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+  filter();
+}
+
+d3.select(window).on("resize", throttle);
+var throttleTimer;
+function throttle() {
+  window.clearTimeout(throttleTimer);
+    throttleTimer = window.setTimeout(function() {
+      resize();
+    }, 200);
+}
+function resize() {
+  d3.select('#brgyBars').select("svg").remove();
+  d3.select('#progressGraph').select("svg").remove();
+  buildBars();
+}
+
 
 
 function getLocationData(){
@@ -61,8 +76,8 @@ function fetchData(){
       d['hh_type'] = [d['hh_type']];
       d['hh_relocation'] = [d['hh_relocation']];
       d['wash_solution'] = [d['wash_solution']];
-      d['location_id'] = [d['hh_municipality'] + d['hh_barangay']];
-      d['location'] = [d['hh_municipality'], d['location_id']];
+      d['location_id'] = (d['hh_id_qr'] === null) ? 'data missing' : d['hh_id_qr'].slice(0,5);
+      d['location'] = (d['hh_id_qr'] === null) ? ['data missing','data missing'] : [d['hh_id_qr'].slice(0,2), d['hh_id_qr'].slice(0,5)];
       counter++;
       if(counter === data.length){ buildFilters(); }
     });
@@ -85,9 +100,7 @@ function buildFilters(){
     item['wash_solution'].forEach(function(d){
       if($.inArray(d, washArray) === -1){ washArray.push(d) }
     });
-    item['location_id'].forEach(function(d){
-      if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
-    });
+    if($.inArray(item['location_id'], locationArray) === -1){ locationArray.push(item['location_id']) }
 
   });
   // # alphabetize them arrays
@@ -109,15 +122,17 @@ function buildFilters(){
     if(geo === true) {
       var municipArray = [];
       $.each(array, function(i, a){
-        var thisMunicip = a.toString().slice(0,2);
-        if($.inArray(thisMunicip, municipArray) === -1){
+        var thisMunicip = a.slice(0,2);
+        if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
           municipArray.push(thisMunicip);
           thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
           thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
               thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
         }
-        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
-            a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>';
+        if(locationLookup[a] === undefined){ thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + 'data error' + '</label></div>'; }
+        else { thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>'; }
       })
     } else {
       $.each(array, function(i, a){
@@ -136,114 +151,114 @@ function buildFilters(){
 
   filteredData = data;
   $('#loader').hide();
-  // buildBars();
+  buildBars();
 
 }
 
-
-function vizByBrgy(){
-
-  var rollup = d3.nest()
-    .key(function(d) { return d['location_id']; })
-    .rollup(function(values) { return values.length; })
-    .entries(data);
-  // >>> sum of core per barangay
-  // >>> test = [{11102: 45, 11103: 59,...}]
-  $('#coreTotal').html(d3.sum(rollup, function(d) { return d.values; }));
-
-  rollup.sort(function(a, b) { return b.values - a.values; });
-
-  var margin = {top: 20, right: 20, bottom: 30, left: 155};
-  var width = $('#coreByBarangay').width();
-      barHeight = 20;
-
-  var x = d3.scale.linear()
-      .range([0, width - margin.left - margin.right])
-      .domain([0, d3.max(rollup, function(d) { return d.values; })]);
-
-  var coreByBarangay = d3.select('#coreByBarangay').append('svg')
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", barHeight * rollup.length);
-
-  var bar = coreByBarangay.selectAll("g")
-      .data(rollup).enter().append("g")
-      .attr("transform", function(d, i) { return "translate(" + margin.left + "," + i * barHeight + ")"; });
-  bar.append("rect")
-      .attr("width", function(d) { return x(d.values); })
-      .attr("height", barHeight - 1);
-  bar.append("text")
-      .attr("x", -5)
-      .attr("y", barHeight / 2)
-      .attr("dy", ".35em")
-      .classed("brgy-label", true)
-      .text(function(d) {
-        return adminText(d.key, 'brgy') + ", " + adminText(d.key, 'muni') ;
+function filter(){
+  // # look at all the checkboxes and record whats checked
+  activeFilters = []
+  checkboxes = $(".filter-panel.panel input[type=checkbox]");
+    for (i=0; i<checkboxes.length; i++) {
+      if(checkboxes[i].checked === true) {
+        activeFilters.push({
+          filterKey: checkboxes[i].name,
+          filterValue: checkboxes[i].value
+        })
+      }
+    }
+  // # reformat the data on checks to make it easier to work with
+  // ? combine this into what's above
+  filterData = d3.nest().key(function(d){ return d.filterKey })
+    .rollup(function(values){
+      var valuesArray = [];
+      values.forEach(function(d){
+        valuesArray.push(d.filterValue);
       });
-  bar.append("text")
-      .attr("x", function(d) { return x(d.values) + 3; })
-      .attr("y", barHeight / 2)
-      .attr("dy", ".35em")
-      .classed("brgy-total", true)
-      .text(function(d) { return d.values; });
+      return valuesArray;
+    }).entries(activeFilters)
+  // # update the html on the page to let the user know what filters are active
+  var keyGroups = [];
+  $.each(filterData,function(i,filterKey){
+    var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
+    var valueGroups = [];
+    $.each(filterKey.values, function(j,filterValue){
+      valueGroups.push('<b>' + filterValue + '</b>');
+    })
+    keyGroupHtml += valueGroups.join(" <small>OR</small> ") + ")"
+    keyGroups.push(keyGroupHtml);
+  });
+  $('#filter-active-text').html(keyGroups.join(" <small>AND</small> "));
+  // # filter the data
+  var filterKeyCount = filterData.length;
+  filteredData = data.filter(function(d){
+    var passCount = 0;
+    var project = d;
+    $.each(filterData,function(iKey, filterKey){
+      var pass = false;
+      var thisKey = filterKey.key;
+      $.each(filterKey.values, function(iValue, filterValue){
+        // # if any of the filter values for a given key are present, that filter key is passed
+        if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
+      });
+      if(pass === true){ passCount ++; }
+    });
+    // # if all filter keys are passed, the project passes the filtering
+    return passCount === filterKeyCount;
+  })
+
+  drawBars()
+
 }
 
-function vizTime(){
 
-  dateData = d3.nest()
-    .key(function(d) { return d.hh_completed; }).sortKeys(d3.ascending)
-    .rollup(function(values) { return values.length; })
-    .entries(data);
-  var total = 0;
-  $.each(dateData, function(index, date){
-    total += date.values;
-    date['total'] = total;
-  });
+var brgyBarsMeas, brgyBars, brgyBarsX;
+function buildBars(){
+  brgyBarsMeas = {top: 20, right: 50, bottom: 20, left: 170, barHeight: 20, width: $('#brgyBars').innerWidth()};
+  brgyBars = d3.select('#brgyBars').append('svg')
+      .attr("width", brgyBarsMeas.width)
 
-  var margin = {top: 20, right: 40, bottom: 30, left: 50},
-    width = $("#progressGraph").width() - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+  brgyBarsX = d3.scale.linear()
+      .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-  var progressGraph = d3.select("#progressGraph").append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
+  buildTimeline();
+
+}
+
+var timelineMeas, timelineGraph, timelineX, timelineY, timelineAxisX, timelineAxisY, timelineLine;
+function buildTimeline(){
+  timelineMeas = {top: 20, right: 40, bottom: 30, left: 50, height: 350, containerWidth: $('#progressGraph').innerWidth()},
+
+  timelineGraph = d3.select("#progressGraph").append("svg")
+      .attr("width", timelineMeas.containerWidth)
+      .attr("height", timelineMeas.height + timelineMeas.top + timelineMeas.bottom)
     .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      .attr("transform", "translate(" + timelineMeas.left + "," + timelineMeas.top + ")");
 
-  var x = d3.time.scale()
-    .range([0, width]);
-  var y = d3.scale.linear()
-    .range([height, 0]);
+  timelineX = d3.time.scale()
+    .range([0, timelineMeas.containerWidth - timelineMeas.left - timelineMeas.right]);
+  timelineY = d3.scale.linear()
+    .range([timelineMeas.height, 0]);
 
-  var xAxis = d3.svg.axis()
-      .scale(x)
-      .orient("bottom");
-  var yAxis = d3.svg.axis()
-      .scale(y)
-      .orient("left");
+  timelineAxisX = d3.svg.axis()
+        .orient("bottom");
+  timelineAxisY = d3.svg.axis()
+        .orient("left");
 
-  var line = d3.svg.line()
+  timelineLine = d3.svg.line()
       .interpolate("step-after")
-      .x(function(d) { return x(d.key); })
-      .y(function(d) { return y(d.total); });
+      .x(function(d) { return timelineX(d.key); })
+      .y(function(d) { return timelineY(d.total); });
 
   var bisectDate = d3.bisector(function(d) { return d.key; }).left;
-  var readableDate = d3.time.format("%d %b");
+  var readableDate = d3.time.format("%d %b %Y");
 
-  dateData.forEach(function(d) {
-    d.key = new Date(d.key);
-  });
-
-  x.domain(d3.extent(dateData, function(d) { return d.key; }));
-  y.domain(d3.extent(dateData, function(d) { return d.total; }));
-
-  progressGraph.append("g")
+  timelineGraph.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
+      .attr("transform", "translate(0," + timelineMeas.height + ")")
 
-  progressGraph.append("g")
+  timelineGraph.append("g")
       .attr("class", "y axis")
-      .call(yAxis)
     .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 6)
@@ -251,64 +266,135 @@ function vizTime(){
       .style("text-anchor", "end")
       .text("Total constructed");
 
-  progressGraph.append("path")
-    .datum(dateData)
+  timelineGraph.append("path")
     .attr("class", "line")
-    .attr("d", line);
 
-  var focus = progressGraph.append("g")
+  var focus = timelineGraph.append("g")
     .attr("class", "focus")
     .style("display", "none");
 
   focus.append("circle")
     .attr("r", 5);
 
-  progressGraph.append("text")
+  timelineGraph.append("text")
     .attr("class", "detail")
-    .attr("x", 15 + margin.left)
+    .attr("x", 15 + timelineMeas.left)
     .attr("dy", ".35em");
 
-  progressGraph.append("rect")
+  timelineGraph.append("rect")
     .attr("class", "overlay")
-    .attr("width", width)
-    .attr("height", height)
+    .attr("width", timelineMeas.containerWidth - timelineMeas.left - timelineMeas.right)
+    .attr("height", timelineMeas.height)
     .on("mouseover", function() { focus.style("display", null); })
     .on("mouseout", function() { focus.style("display", "none"); })
     .on("mousemove", mousemove);
 
   function mousemove() {
-    var x0 = x.invert(d3.mouse(this)[0]),
+    var x0 = timelineX.invert(d3.mouse(this)[0]),
     i = bisectDate(dateData, x0, 1),
     d0 = dateData[i - 1],
     d1 = dateData[i],
     d = x0 - d0.key > d1.key - x0 ? d1 : d0;
-    focus.attr("transform", "translate(" + x(d.key) + "," + y(d.total) + ")");
-    progressGraph.select(".detail").text(readableDate(d.key) + " - " + d.values + " completed, " + d.total + " total");
+    focus.attr("transform", "translate(" + timelineX(d.key) + "," + timelineY(d.total) + ")");
+    timelineGraph.select(".detail").text(readableDate(d.key) + " - " + d.values + " completed, " + d.total + " total");
   }
+
+
+  drawBars();
 
 }
 
-function vizTable(){
+function drawBars(){
+  // get sume of grants per brgy
+  var brgyBarsData = d3.nest()
+    .key(function(d) { if(d['hh_id_qr'] === null){ return 'data missing'} else { return d['hh_id_qr'].slice(0,5); } })
+    .rollup(function(values) { return values.length; })
+    .entries(filteredData);
 
-  $('#beneficiaryTable').html("<thead><tr>" +
-    "<th>First name</th>" +
-    "<th>Last name</th>" +
-    "<th>Barangay</th>" +
-    "<th>Municipality</th>" +
-    "<th>Details</th>" +
-    "</tr></thead><tbody></tbody>");
+  brgyBarsX.domain([0, d3.max(brgyBarsData, function(d) { return d.values; })]);
 
-  d3.select('#beneficiaryTable tbody').selectAll('tr')
-    .data(data).enter()
-    .append('tr')
-    .html(function(d){
-      return "<td>" + d.hh_respondent_first_name + "</td>" +
-      "<td>" + d.hh_respondent_last_name + "</td>" +
-      "<td>" + adminText(d.location_id, 'brgy') + "</td>" +
-      "<td>" + adminText(d.location_id, 'muni') + "</td>" +
+  brgyBars.attr("height", brgyBarsMeas.barHeight * brgyBarsData.length);
+
+  var g = brgyBars.selectAll("g")
+      .data(brgyBarsData, function(d){ return d['key']; })
+
+  var gEnter = g.enter().append("g")
+  gEnter.append('rect')
+      .attr("height", brgyBarsMeas.barHeight - 1)
+  gEnter.append("text")
+      .attr("class","brgy-label")
+      .attr("x", -5)
+      .attr("y", brgyBarsMeas.barHeight / 2)
+      .attr("dy", ".35em")
+  gEnter.append("text")
+      .attr("class","brgy-total")
+      .attr("y", brgyBarsMeas.barHeight / 2)
+      .attr("dy", ".35em")
+
+  g.sort(function(a, b) { return b.values - a.values; }).transition().duration(1000).ease("sin-in-out")
+      .attr("transform", function(d, i) { return "translate(" + brgyBarsMeas.left + "," + i * brgyBarsMeas.barHeight + ")"; });
+  g.select("rect").transition().duration(1000).ease("sin-in-out")
+    .attr("width", function(d) { return brgyBarsX(d.values); })
+  g.select(".brgy-label")
+      .text(function(d) {
+        if(locationLookup[d.key] === undefined){ return d.key; }
+        else { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; }
+      });
+  g.select(".brgy-total").transition().duration(1000).ease("sin-in-out")
+      .attr("x", function(d) { return brgyBarsX(d.values) + 3; })
+      .text(function(d) { return d.values; });
+
+  g.exit().remove();
+
+  drawTimeline();
+
+}
+
+
+function drawTimeline(){
+
+  dateData = d3.nest()
+    .key(function(d) { return d.hh_completed; }).sortKeys(d3.ascending)
+    .rollup(function(values) { return values.length; })
+    // filter out data that is null or way to early
+    .entries(filteredData.filter(function(d){ if(d['hh_completed'] !== null && new Date(d['hh_completed']) > new Date('2014-01-01')){ return true; } }));
+
+  var total = 0;
+  $.each(dateData, function(index, date){
+    date.key = new Date(date.key);
+    total += date.values;
+    date['total'] = total;
+  });
+
+  timelineX.domain(d3.extent(dateData, function(d) { return d.key; }));
+  timelineY.domain(d3.extent(dateData, function(d) { return d.total; }));
+  timelineAxisX.scale(timelineX);
+  timelineAxisY.scale(timelineY);
+  timelineGraph.select(".x.axis").transition().duration(1500).ease("sin-in-out").call(timelineAxisX);
+  timelineGraph.select(".y.axis").transition().duration(1500).ease("sin-in-out").call(timelineAxisY);
+  timelineGraph.select(".line").datum(dateData).attr("d", timelineLine);
+
+  buildList()
+}
+
+function buildList(){
+
+  $('#listTable').empty();
+  $('#listTable').html('<table data-sortable id="dataTable" class="sortable-theme-minimal"><thead><tr>' +
+        '<th>First name</th><th>Lastname</th><th>Barangay</th><th>Municipality</th><th>Details</th>' +
+        '</tr></thead><tbody></tbody>')
+
+  $.each(filteredData, function(i,d){
+    var rowHtml = '<tr>' +
+      '<td>' + d.hh_respondent_first_name + '</td>' +
+      '<td>' + d.hh_respondent_last_name + '</td>' +
+      '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
+      '<td>' + adminText(d.location_id, 'muni') + '</td>' +
       '<td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#pic-modal" data-filename="' + d.photo_shelter_one +
-      '" data-uuid="' + d['_uuid'] + '"><b class="fa fa-info"></b></button></td>';
-    });
+      '" data-uuid="' + d['_uuid'] + '"><b class="fa fa-info"></b></button></td>' +
+      '</tr>';
+    $('#listTable tbody').append(rowHtml);
+  });
 
   var modalReadableTime = d3.time.format("%d-%b-%Y");
 
@@ -324,7 +410,9 @@ function vizTable(){
         var benDetailsHtml = "<b>Beneficiary respondent:</b> " + data[i].hh_respondent_first_name + " ";
         benDetailsHtml += (data[i].hh_respondent_middle_name.length > 0) ? data[i].hh_respondent_middle_name + " " : "";
         benDetailsHtml += data[i].hh_respondent_last_name + "<br>" +
-          "<b>Location:</b> " + locationLookup[data[i].location_id].barangay + ", " + locationLookup[data[i].location_id].municipality + "<br>" +
+          "<b>Location:</b> "
+        benDetailsHtml += (data[i].location_id === "data missing") ? "data missing" : locationLookup[data[i].location_id].barangay + ", " + locationLookup[data[i].location_id].municipality;
+        benDetailsHtml += "<br>" +
           "<b>Type:</b> " + data[i].hh_type + "<br>" +
           "<b>Date completed:</b> " + modalReadableTime(new Date(data[i].hh_completed)) + "<br>" +
           "<b>Team leader:</b> " + data[i].team_leader_first_name + " ";
@@ -334,11 +422,12 @@ function vizTable(){
         break;
       }
     }
-});
+  });
 
-  $('#beneficiaryTable').DataTable();
+  $('#dataTable').DataTable();
 
 }
+
 
 function vizMap(){
   function sizeMap(){
@@ -400,20 +489,5 @@ function vizMap(){
   map.addLayer(locationsLayer);
 
 }
-
-
-// ON WINDOW RESIZE, REDRAW SOME ELEMENTS TO FIT
-d3.select(window).on("resize", throttle);
-var throttleTimer;
-function throttle() {
-  window.clearTimeout(throttleTimer);
-    throttleTimer = window.setTimeout(function() {
-      $('#progressGraph').empty();
-      vizTime();
-      $('#coreByBarangay').empty();
-      vizByBrgy();
-    }, 200);
-}
-
 
 getLocationData();
