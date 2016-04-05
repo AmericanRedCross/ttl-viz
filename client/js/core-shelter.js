@@ -408,7 +408,7 @@ function buildList(){
     modal.find('.modal-body img.img-after').attr("src", src);
     for(i=0;i<data.length;i++){
       if(button.data('uuid') === data[i]['_uuid']){
-        $.post('/query/enumerationhousephoto', {"id": data[i].hh_id}, function(response){
+        $.post('query/enumerationhousephoto', {"id": data[i].hh_id}, function(response){
           // # response should be an array containing one object
           if(response){
             var beforeSrc = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + response[0]['house_photo'];
