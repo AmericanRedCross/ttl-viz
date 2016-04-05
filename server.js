@@ -455,6 +455,14 @@ app.post('/query/namefromid', function(req,res) {
 			})
 	}
 })
+app.post('/query/enumerationhousephoto', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT house_photo FROM "ENUMERATION" WHERE household_id=' + "'" + req.body.id  + "';";;
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
 
 
 

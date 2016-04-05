@@ -401,10 +401,20 @@ function buildList(){
   $('#pic-modal').on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget); // Button that triggered the modal
     var modal = $(this);
+    modal.find('.modal-body img.img-before').attr("src", "");
+    modal.find('.modal-body img.img-after').attr("src", "");
+
     var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + button.data('filename'); // Extract info from data-* attributes
-    modal.find('.modal-body img').attr("src", src);
+    modal.find('.modal-body img.img-after').attr("src", src);
     for(i=0;i<data.length;i++){
       if(button.data('uuid') === data[i]['_uuid']){
+        $.post('/query/enumerationhousephoto', {"id": data[i].hh_id}, function(response){
+          // # response should be an array containing one object
+          if(response){
+            var beforeSrc = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + response[0]['house_photo'];
+            modal.find('.modal-body img.img-before').attr("src", beforeSrc);
+          }
+        });
         var hhId = (data[i].hh_id !== null) ? data[i].hh_id.toString() : "<i>QR code not scanned</i>";
         modal.find('#modal-hh-id').html(hhId);
         var benDetailsHtml = "<b>Beneficiary respondent:</b> " + data[i].hh_respondent_first_name + " ";
