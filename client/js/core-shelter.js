@@ -380,9 +380,10 @@ function drawTimeline(){
 function buildList(){
 
   $('#listTable').empty();
-  $('#listTable').html('<table data-sortable id="dataTable" class="sortable-theme-minimal"><thead><tr>' +
-        '<th>First name</th><th>Lastname</th><th>Barangay</th><th>Municipality</th><th>Details</th>' +
-        '</tr></thead><tbody></tbody>')
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact sortable-theme-minimal">' +
+        '<thead><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Details</th></tr></thead>' +
+        '<tfoot><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Details</th></tr></tfoot>' +
+        '<tbody></tbody></table>')
 
   $.each(filteredData, function(i,d){
     var rowHtml = '<tr>' +
@@ -390,7 +391,7 @@ function buildList(){
       '<td>' + d.hh_respondent_last_name + '</td>' +
       '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
       '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-      '<td><button type="button" class="btn btn-default" data-toggle="modal" data-target="#pic-modal" data-filename="' + d.photo_shelter_one +
+      '<td><button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#pic-modal" data-filename="' + d.photo_shelter_one +
       '" data-uuid="' + d['_uuid'] + '"><b class="fa fa-info"></b></button></td>' +
       '</tr>';
     $('#listTable tbody').append(rowHtml);
@@ -434,7 +435,25 @@ function buildList(){
     }
   });
 
-  $('#dataTable').DataTable();
+  $('#dataTable tfoot th').each(function(){
+    var title = $(this).text();
+    $(this).html('<input type="text" placeholder="Search '+title+'" />');
+  });
+
+  var table = $('#dataTable').DataTable({"sDom":'lrtip'});
+
+  table.columns().every( function() {
+    var that = this;
+
+    $('input', this.footer() ).on('keyup change', function(){
+      if( that.search() !== this.value ){
+        that
+        .search( this.value )
+        .draw();
+      }
+    });
+  });
+
 
 }
 
