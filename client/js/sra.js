@@ -71,7 +71,7 @@ function fetchData(){
       d['location_id'] = [d['c_u_household_id'].slice(0,5)];
       d['location'] = [d['c_u_household_id'].slice(0,2), d['c_u_household_id'].slice(0,5)];
       // # get the names
-      $.post('/query/namefromid', {"id": d.c_u_household_id}, function(response){
+      $.post('query/namefromid', {"id": d.c_u_household_id}, function(response){
         // # response should be an array containing one object
         for(var key in response[0]){
           d[key] = response[0][key];
