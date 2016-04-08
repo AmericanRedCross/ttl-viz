@@ -62,6 +62,9 @@ function fetchData(){
   $.get('query/sra', function(response){
     data = response;
     var counter = 0;
+
+    var searchArray = [];
+
     data.forEach(function(d){
       // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
       // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
@@ -70,18 +73,9 @@ function fetchData(){
       d['c_u_number_of_CGI'] = [d['c_u_number_of_CGI']];
       d['location_id'] = [d['c_u_household_id'].slice(0,5)];
       d['location'] = [d['c_u_household_id'].slice(0,2), d['c_u_household_id'].slice(0,5)];
-      // # get the names
-      $.post('query/namefromid', {"id": d.c_u_household_id}, function(response){
-        // # response should be an array containing one object
-        for(var key in response[0]){
-          d[key] = response[0][key];
-        }
-        counter++;
-        if(counter === data.length){ buildFilters(); }
-      });
-
     });
 
+    buildFilters();
 
   });
 }
@@ -94,10 +88,10 @@ function buildFilters(){
       locationArray = [];
   $.each(data, function(i,item){
     item['c_u_category'].forEach(function(d){
-      if($.inArray(d, amountArray) === -1){ amountArray.push(d) }
+      if($.inArray(d, categoryArray) === -1){ categoryArray.push(d) }
     });
     item['c_u_amount_assigned'].forEach(function(d){
-      if($.inArray(d, categoryArray) === -1){ categoryArray.push(d) }
+      if($.inArray(d, amountArray) === -1){ amountArray.push(d) }
     });
     item['c_u_number_of_CGI'].forEach(function(d){
       if($.inArray(d, cgiArray) === -1){ cgiArray.push(d) }
@@ -519,8 +513,9 @@ function drawBars(){
 function buildList(){
 
   $('#listTable').empty();
-  $('#listTable').html('<table data-sortable id="dataTable" class="sortable-theme-minimal">' +
-        '<thead><tr><th>Last</th><th>First</th><th>Category</th><th>Amount assigned</th><th>CGI</th><th>Household ID</th></tr></thead><tbody></tbody></table>')
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact sortable-theme-minimal">' +
+        '<thead><tr><th>Last</th><th>First</th><th>Category</th><th>Amount assigned</th><th>CGI</th><th>Household ID</th></tr></thead>' +
+        '<tfoot><tr><th>Last</th><th>First</th><th>Category</th><th>Amount assigned</th><th>CGI</th><th>Household ID</th></tr></tfoot><tbody></tbody></table>')
   $.each(filteredData, function(i,d){
     var rowHtml = '<tr>' +
       '<td>' + d['head_of_hh_lname'] + '</td>' +
@@ -533,7 +528,24 @@ function buildList(){
     $('#listTable tbody').append(rowHtml);
   });
 
-  $('#dataTable').DataTable();
+  $('#dataTable tfoot th').each(function(){
+    var title = $(this).text();
+    $(this).html('<input type="text" placeholder="Search '+title+'" />');
+  });
+
+  var table = $('#dataTable').DataTable({"sDom":'lrtip'});
+
+  table.columns().every( function() {
+    var that = this;
+
+    $('input', this.footer() ).on('keyup change', function(){
+      if( that.search() !== this.value ){
+        that
+        .search( this.value )
+        .draw();
+      }
+    });
+  });
 
 
 }

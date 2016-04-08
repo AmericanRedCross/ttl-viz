@@ -433,7 +433,7 @@ app.get('/query/coreshelter100', function(req,res) {
 })
 app.get('/query/sra', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT * FROM "SHELTER_SRA";';
+			var queryStr = 'SELECT * FROM "SHELTER_SRA" LEFT OUTER JOIN "HOUSEHOLD" ON ("SHELTER_SRA".c_u_household_id = "HOUSEHOLD".household_id);';
 			pghelper.query(queryStr, function(err, data){
 				res.send(data);
 			})
@@ -449,15 +449,8 @@ app.get('/query/stedparticipants', function(req,res) {
 })
 app.get('/query/livelihoodccg', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT household_id, amount_category, livelihood_category, livelihood_proposal FROM "LIVELIHOOD_CCG";';
-			pghelper.query(queryStr, function(err, data){
-				res.send(data);
-			})
-	}
-})
-app.post('/query/namefromid', function(req,res) {
-	if (req.user) {
-			var queryStr = 'SELECT head_of_hh_fname, head_of_hh_lname FROM "HOUSEHOLD" WHERE household_id=' + "'" + req.body.id  + "';";;
+			var queryStr = 'SELECT "LIVELIHOOD_CCG".household_id, amount_category, livelihood_category, livelihood_proposal, head_of_hh_fname, head_of_hh_lname ' +
+					'FROM "LIVELIHOOD_CCG" LEFT OUTER JOIN "HOUSEHOLD" ON ("LIVELIHOOD_CCG".household_id = "HOUSEHOLD".household_id);';
 			pghelper.query(queryStr, function(err, data){
 				res.send(data);
 			})
