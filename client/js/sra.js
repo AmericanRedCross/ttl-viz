@@ -59,7 +59,7 @@ function getLocationData(){
 }
 
 function fetchData(){
-  $.get('/query/sra', function(response){
+  $.get('query/sra', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){
