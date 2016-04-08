@@ -59,7 +59,7 @@ function getLocationData(){
 }
 
 function fetchData(){
-  $.get('/query/livelihoodccg', function(response){
+  $.get('query/livelihoodccg', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){
