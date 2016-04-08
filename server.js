@@ -431,6 +431,14 @@ app.get('/query/coreshelter100', function(req,res) {
 			})
 	}
 })
+app.get('/query/sra', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "SHELTER_SRA";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
 app.get('/query/stedparticipants', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT * FROM "LIVELIHOOD_STED_PARTICIPANT";';
@@ -518,6 +526,19 @@ app.get('/ccg',function(req,res) {
 app.get('/core-shelter',function(req,res) {
 	if (req.user) {
     res.render('core-shelter', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
+app.get('/sra',function(req,res) {
+	if (req.user) {
+    res.render('sra', {
 			user:req.user,
 			location:localConfig.application.nginxlocation,
       opts:localConfig.page,

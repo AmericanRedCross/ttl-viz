@@ -1,0 +1,78 @@
+<script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.2/handlebars.min.js"></script>
+<script src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.js" type="text/javascript" charset="utf8"></script>
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.css">
+<link rel="stylesheet" href="css/dashboard.css" />
+
+<div class="container-fluid">
+
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Shelter Repair Assistance (SRA)</h1>
+	</div>
+</header>
+
+
+<div id="loader" class="text-center">
+	<img src="media/ajax_loader_gray_512.gif" alt="loading..." />
+</div>
+
+<p><u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span></p>
+<a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
+
+<div class="filter-panel panel-group" id="accordion" role="tablist" >
+  <div class="filter-panel panel panel-default">
+    <div class="filter-panel panel-heading" role="tab">
+			<!-- panel titles go here -->
+    </div>
+		<!-- collapse divs go here -->
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+	<div id="brgyBars"></div>
+</div>
+
+<hr>
+
+<div class="row">
+	<div class="col-sm-3">
+		<h4>Category</h4>
+	  <div id="categoryPie"></div>
+	</div>
+	<div class="col-sm-3"><div id="categoryLegend"> </div></div>
+	<div class="col-sm-3">
+		<h4>Amount assigned</h5>
+	  <div id="amountPie"></div>
+	</div>
+	<div class="col-sm-3"> <div id="amountLegend"> </div> </div>
+</div>
+
+<hr>
+
+<div class="row">
+	<div class="col-sm-3">
+		<h4>Number of CGI</h4>
+	  <div id="cgiPie"></div>
+	</div>
+	<div class="col-sm-3"><div id="cgiLegend"> </div></div>
+</div>
+
+<hr>
+
+<div id="listTable"></div>
+
+
+<hr>
+<footer id="site-footer">
+	<div class="row row-logo">
+				{{{logos}}}
+			</div>
+</footer>
+</div>
+
+<script src="js/sra.js"></script>
