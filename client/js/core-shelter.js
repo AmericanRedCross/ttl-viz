@@ -409,14 +409,14 @@ function buildList(){
     modal.find('.modal-body img.img-after').attr("src", src);
     for(i=0;i<data.length;i++){
       if(button.data('uuid') === data[i]['_uuid']){
-        $.post('query/enumerationhousephoto', {"id": data[i].hh_id}, function(response){
+        $.post('query/enumerationhousephoto', {"id": data[i].hh_id_qr}, function(response){
           // # response should be an array containing one object
           if(response){
             var beforeSrc = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + response[0]['house_photo'];
             modal.find('.modal-body img.img-before').attr("src", beforeSrc);
           }
         });
-        var hhId = (data[i].hh_id !== null) ? data[i].hh_id.toString() : "<i>QR code not scanned</i>";
+        var hhId = (data[i].hh_id_qr !== null) ? data[i].hh_id_qr.toString() : "<i>household ID not found</i>";
         modal.find('#modal-hh-id').html(hhId);
         var benDetailsHtml = "<b>Beneficiary respondent:</b> " + data[i].hh_respondent_first_name + " ";
         benDetailsHtml += (data[i].hh_respondent_middle_name.length > 0) ? data[i].hh_respondent_middle_name + " " : "";

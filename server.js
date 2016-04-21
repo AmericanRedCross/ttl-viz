@@ -425,7 +425,7 @@ app.get('/query/targetlocations', function(req,res) {
 })
 app.get('/query/coreshelter100', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT * FROM "core_shelter_100_percent_completion";';
+			var queryStr = 'SELECT * FROM "core_shelter_100_percent_completion" WHERE hh_id_qr != ' + "''" + ';';
 			pghelper.query(queryStr, function(err, data){
 				res.send(data);
 			})
