@@ -419,7 +419,9 @@ function buildList(){
         var hhId = (data[i].hh_id_qr !== null) ? data[i].hh_id_qr.toString() : "<i>household ID not found</i>";
         modal.find('#modal-hh-id').html(hhId);
         var benDetailsHtml = "<b>Beneficiary respondent:</b> " + data[i].hh_respondent_first_name + " ";
-        benDetailsHtml += (data[i].hh_respondent_middle_name.length > 0) ? data[i].hh_respondent_middle_name + " " : "";
+        if(data[i].hh_respondent_middle_name !== null){
+          if(data[i].hh_respondent_middle_name.length > 0){ benDetailsHtml += data[i].hh_respondent_middle_name + " " ; }
+        }
         benDetailsHtml += data[i].hh_respondent_last_name + "<br>" +
           "<b>Location:</b> "
         benDetailsHtml += (data[i].location_id === "data missing") ? "data missing" : locationLookup[data[i].location_id].barangay + ", " + locationLookup[data[i].location_id].municipality;
@@ -427,7 +429,9 @@ function buildList(){
           "<b>Type:</b> " + data[i].hh_type + "<br>" +
           "<b>Date completed:</b> " + modalReadableTime(new Date(data[i].hh_completed)) + "<br>" +
           "<b>Team leader:</b> " + data[i].team_leader_first_name + " ";
-        benDetailsHtml += (data[i].hh_respondent_middle_name.length > 0) ? data[i].team_leader_middle_name + " " : "";
+        if(data[i].team_leader_middle_name !== null){
+          if(data[i].team_leader_middle_name.length > 0){ benDetailsHtml += data[i].team_leader_middle_name + " " ; }
+        }
         benDetailsHtml += data[i].team_leader_last_name;
         modal.find('.modal-body p').html(benDetailsHtml);
         break;
