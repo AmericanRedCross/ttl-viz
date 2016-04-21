@@ -170,6 +170,8 @@ fieldset legend { padding: 0; margin: 0; position: absolute; border: none; font-
   text-indent: 40px;
 }
 .sidebar-nav .second-level li  { text-indent: 40px; }
+.second-level-sector { font-weight: 600; }
+
 
 .row-logo { text-align: center; padding: 2em; }
 .row-logo img { height: 2em; margin: 0 1em .5em; }
