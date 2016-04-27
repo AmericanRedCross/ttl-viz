@@ -60,7 +60,7 @@ function getLocationData(){
 
 
 function fetchData(){
-  $.get('/query/agriculturetraining', function(response){
+  $.get('query/agriculturetraining', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){

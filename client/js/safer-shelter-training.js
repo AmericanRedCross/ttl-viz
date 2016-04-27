@@ -60,7 +60,7 @@ function getLocationData(){
 
 
 function fetchData(){
-  $.get('/query/safersheltertraining', function(response){
+  $.get('query/safersheltertraining', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){
