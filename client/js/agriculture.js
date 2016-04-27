@@ -1,24 +1,14 @@
-var data, filteredData;
+var data, filteredData, dateData;
 var locationLookup = {};
 
-var commaSeperator = d3.format(",");
-
-d3.select(window).on("resize", throttle);
-var throttleTimer;
-function throttle() {
-  window.clearTimeout(throttleTimer);
-    throttleTimer = window.setTimeout(function() {
-      $('.coreByBarangay').empty();
-      resize();
-    }, 200);
-}
-function resize() {
-  d3.select("#categoryPie").select("svg").remove();
-  d3.select('#cgiPie').select("svg").remove();
-  d3.select('#amountPie').select("svg").remove();
-  d3.select('#brgyBars').select("svg").remove();
-
-  buildPies();
+// # HELPERS
+function adminText(locationId, type){
+  if(locationLookup[locationId] === undefined){ return "no data"}
+  else if (type === "muni") {
+    return locationLookup[locationId].barangay;
+  } else if (type === "brgy") {
+    return locationLookup[locationId].municipality;
+  } else { return "error" }
 }
 
 function clearAllCheckboxes(){
@@ -27,16 +17,26 @@ function clearAllCheckboxes(){
   filter();
 }
 
-// Household ID, Household Last Name, Household First Name, Household Livelihood Category, Proposal Category, Proposal Value
-// **Summary Chart/Graphs:**
-// Value of proposals per barangay, Value of proposals per proposal category, Value of proposals per household livelihood category, Number of CCG households per barangay, number of CCG households per proposal category, number of CCG households per livelihood category
-// **Map:**
-// Thematic map - symbolized by proposal category, thematic map - symbolized by livelihood cateogory, thematic map - symobolized by proposal value
+d3.select(window).on("resize", throttle);
+var throttleTimer;
+function throttle() {
+  window.clearTimeout(throttleTimer);
+    throttleTimer = window.setTimeout(function() {
+      resize();
+    }, 200);
+}
+function resize() {
+  d3.select('#brgyBars').select("svg").remove();
+  d3.select('#progressGraph').select("svg").remove();
+  buildBars();
+}
+
+
 
 function getLocationData(){
   $.get('query/targetlocations', function(response){
     $.each(response, function(index, location){
-      locationLookup[location['location_id']] = location;
+      locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
     });
 
@@ -58,53 +58,62 @@ function getLocationData(){
   });
 }
 
+
 function fetchData(){
-  $.get('query/sra', function(response){
+  $.get('/query/agriculturetraining', function(response){
     data = response;
     var counter = 0;
-
-    var searchArray = [];
-
     data.forEach(function(d){
+      // calculate the value of score change
+      if( isNaN(parseFloat(d['score_posttest'])) || isNaN(parseFloat(d['score_pretest'])) ) {
+        d['score_change'] = 'data missing';
+      } else {
+        d['score_change'] = parseFloat(d['score_posttest']) - parseFloat(d['score_pretest']);
+      }
+      // calculate the cateogory of change
+      if (d['score_change'] === 'data missing') {
+        d['knowledge_change'] = ['data missing'];
+      } else if (d['score_change'] > 0 ) {
+        d['knowledge_change'] = ['increase'];
+      } else if (d['score_change'] < 0 ) {
+        d['knowledge_change'] = ['decrease'];
+      } else if (d['score_change'] === 0 ) {
+        d['knowledge_change'] = ['maintain'];
+      }
       // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
       // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
-      d['c_u_category'] = [d['c_u_category']];
-      d['c_u_amount_assigned'] = [d['c_u_amount_assigned']];
-      d['c_u_number_of_CGI'] = [d['c_u_number_of_CGI']];
-      d['location_id'] = [d['c_u_household_id'].slice(0,5)];
-      d['location'] = [d['c_u_household_id'].slice(0,2), d['c_u_household_id'].slice(0,5)];
+      d['training_name'] = [d['training_name']];
+      d['training_id'] = [d['training_id']];
+      d['location'] = (d['location_id'] === null) ? ['data missing','data missing'] : [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
+      counter++;
+      if(counter === data.length){ buildFilters(); }
     });
-
-    buildFilters();
-
   });
 }
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-  var categoryArray = [],
-      amountArray = [],
-      cgiArray = [],
+  var trainingnameArray = [],
+      trainingidArray = [],
+      knowledgechangeArray = [],
       locationArray = [];
   $.each(data, function(i,item){
-    item['c_u_category'].forEach(function(d){
-      if($.inArray(d, categoryArray) === -1){ categoryArray.push(d) }
+    item['training_name'].forEach(function(d){
+      if($.inArray(d, trainingnameArray) === -1){ trainingnameArray.push(d) }
     });
-    item['c_u_amount_assigned'].forEach(function(d){
-      if($.inArray(d, amountArray) === -1){ amountArray.push(d) }
+    item['training_id'].forEach(function(d){
+      if($.inArray(d, trainingidArray) === -1){ trainingidArray.push(d) }
     });
-    item['c_u_number_of_CGI'].forEach(function(d){
-      if($.inArray(d, cgiArray) === -1){ cgiArray.push(d) }
+    item['knowledge_change'].forEach(function(d){
+      if($.inArray(d, knowledgechangeArray) === -1){ knowledgechangeArray.push(d) }
     });
-    item['location_id'].forEach(function(d){
-      if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
-    });
+    if($.inArray(item['location_id'], locationArray) === -1){ locationArray.push(item['location_id']) }
 
   });
   // # alphabetize them arrays
-  categoryArray.sort(d3.ascending);
-  amountArray.sort(function(a, b) { return a - b; });
-  cgiArray.sort(function(a, b) { return a - b; });
+  trainingnameArray.sort(d3.ascending);
+  trainingidArray.sort(d3.ascending);
+  knowledgechangeArray.sort(d3.ascending);
   locationArray.sort(function(a, b) { return a - b; });
   // # build the html and add it to the page
   var panelTitles = [];
@@ -121,14 +130,16 @@ function buildFilters(){
       var municipArray = [];
       $.each(array, function(i, a){
         var thisMunicip = a.slice(0,2);
-        if($.inArray(thisMunicip, municipArray) === -1){
+        if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
           municipArray.push(thisMunicip);
           thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
           thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
               thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
         }
-        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
-            a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>';
+        if(locationLookup[a] === undefined){ thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + 'data error' + '</label></div>'; }
+        else { thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>'; }
       })
     } else {
       $.each(array, function(i, a){
@@ -139,14 +150,15 @@ function buildFilters(){
     thisBodyHtml += '</div>' + '</div>';
     $('.filter-panel.panel').append(thisBodyHtml);
   }
-  panelHtml('Category', 'c_u_category', categoryArray);
-  panelHtml('Amount assigned', 'c_u_amount_assigned', amountArray);
-  panelHtml('Number of CGI', 'c_u_number_of_CGI', cgiArray);
+  panelHtml('Training name', 'training_name', trainingnameArray);
+  panelHtml('Training ID', 'training_id', trainingidArray);
+  panelHtml('Knowledge change', 'knowledge_change', knowledgechangeArray);
   panelHtml('Location', null, locationArray, true);
   $('.filter-panel.panel-heading').html(panelTitles.join('&nbsp; | &nbsp;'));
 
   filteredData = data;
   $('#loader').hide();
+  // buildBars();
   buildPies();
 
 }
@@ -202,44 +214,30 @@ function filter(){
     // # if all filter keys are passed, the project passes the filtering
     return passCount === filterKeyCount;
   })
-  console.log(filteredData.length)
 
   drawPies()
 
 }
 
-
-var pieRadius, categoryPie, categoryPiePath, cgiPie, cgiPiePath, amountPie, amountPiePath;
+var pieRadius, knowledgechangePie, knowledgechangePiePath;
 function buildPies(){
 
-  var widthOnPage = $('#categoryPie').innerWidth();
+  var widthOnPage = $('#knowledgechangePie').innerWidth();
   var width = (widthOnPage < 300) ? widthOnPage : 300;
   var height = width;
   pieRadius = Math.min(width, height) / 2;
 
-  categoryPie = d3.select('#categoryPie').append("svg")
+  knowledgechangePie = d3.select('#knowledgechangePie').append("svg")
       .attr("width", width)
       .attr("height", height)
     .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  categoryPiePath = categoryPie.selectAll("path");
+  knowledgechangePiePath = knowledgechangePie.selectAll("path");
 
-  cgiPie = d3.select('#cgiPie').append("svg")
-      .attr("width", width)
-      .attr("height", height)
-    .append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  cgiPiePath = cgiPie.selectAll("path");
-
-  amountPie = d3.select('#amountPie').append("svg")
-      .attr("width", width)
-      .attr("height", height)
-    .append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  amountPiePath = amountPie.selectAll("path");
 
   buildBars();
 };
+
 
 var brgyBarsMeas, brgyBars, brgyBarsX;
 function buildBars(){
@@ -250,8 +248,63 @@ function buildBars(){
   brgyBarsX = d3.scale.linear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-  drawPies();
+
+  buildKnowledgeLine()
+
 }
+
+var knowLineMeas, knowLineSvg, knowLine, knowLineY, knowLineX, kLine, knowY, knowYaxis;
+function buildKnowledgeLine(){
+
+    var changeExt = d3.extent(data, function(d){ return d.score_change; });
+    var maxChange = (Math.abs(changeExt[0]) > Math.abs(changeExt[1])) ?  Math.abs(changeExt[0]) : Math.abs(changeExt[1]);
+
+    knowLineMeas = {top: 20, right: 60, bottom: 20, left: 60,
+      height: 250 - 40, width: $('#knowLine').innerWidth() - 60 - 60 };
+    knowLineMeas.barWidth = knowLineMeas.width / (maxChange * 2),
+    knowLineSvg = d3.select('#knowLine').append('svg')
+      .attr("width", knowLineMeas.width + knowLineMeas.left + knowLineMeas.right)
+      .attr("height", knowLineMeas.height + knowLineMeas.top + knowLineMeas.bottom)
+      .append('g').attr("transform", "translate(" + knowLineMeas.left + "," + knowLineMeas.top + ")");
+
+
+
+
+    knowLineY = d3.scale.linear()
+      .range([knowLineMeas.height, 0])
+    knowLineX = d3.scale.linear()
+      .range([0,knowLineMeas.width])
+      .domain([-maxChange, maxChange])
+
+    var xAxis = d3.svg.axis()
+      .scale(knowLineX)
+      .orient("bottom");
+    knowLineSvg.append("g")
+      .attr("class", "x kaxis")
+      .attr("transform", "translate(" + (knowLineMeas.barWidth / 2) + "," + knowLineMeas.height + ")")
+      .call(xAxis);
+
+    knowY = d3.svg.axis()
+      .scale(knowLineY).tickFormat(d3.format("d"))
+      .orient("left");
+
+    knowYaxis = knowLineSvg.append("g")
+      .attr("class", "y kaxis")
+
+    knowYaxis.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Participants");
+
+
+  drawPies();
+
+
+}
+
+
 
 function drawPies(){
   /////////////////
@@ -305,176 +358,85 @@ function drawPies(){
   // CATEGORY PIE //
   // ############ //
   //////////////////
-  var categoryColor = d3.scale.category20().domain(data.map(function(d) { return d['c_u_category'][0]; }))
+  var knowledgechangeColor = d3.scale.category20().domain(data.map(function(d) { return d['knowledge_change'][0]; }))
+  var knowledgechangeColor = function(key){
+    switch(key) {
+      case "increase":
+        return "#91cf60";
+        break;
+      case "decrease":
+        return "#fc8d59";
+        break;
+      case "maintain":
+        return "#ffffbf";
+        break;
+      default:
+        return "#e0e0e0";
+    }
 
-  var categoryPieData = d3.nest()
-    .key(function(d) { return d['c_u_category'][0]; })
+
+  }
+
+  var knowledgechangePieData = d3.nest()
+    .key(function(d) { return d['knowledge_change'][0]; })
     .rollup(function(values){
       return values.length
     })
     .entries(filteredData)
 
-  var categoryData0 = categoryPiePath.data(),
-    categoryData1 = pie(categoryPieData);
+  var categoryData0 = knowledgechangePiePath.data(),
+    categoryData1 = pie(knowledgechangePieData);
 
-  categoryPiePath = categoryPiePath.data(categoryData1, key);
+  knowledgechangePiePath = knowledgechangePiePath.data(categoryData1, key);
 
-  categoryPiePath.enter().append("path")
+  knowledgechangePiePath.enter().append("path")
     .each(function(d, i) { this._current = findNeighborArc(i, categoryData0, categoryData1, key) || d; })
-    .attr("fill", function(d) { return categoryColor(d.data.key); })
+    .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
   .append("title")
     .text(function(d) { return d.data.key; });
 
-  categoryPiePath.exit()
+  knowledgechangePiePath.exit()
     .datum(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
   .transition()
     .duration(750)
     .attrTween("d", arcTween)
     .remove();
 
-  categoryPiePath.transition()
+  knowledgechangePiePath.transition()
     .duration(750)
     .attrTween("d", arcTween);
 
   // Legend
-  var categoryLegend = d3.select('#categoryLegend').selectAll('div').data(categoryPieData, function(d) { return d['key']; });
+  var knowledgechangeLegend = d3.select('#knowledgechangeLegend').selectAll('div').data(knowledgechangePieData, function(d) { return d['key']; });
   // UPDATE
-  categoryLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + categoryColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+  knowledgechangeLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
   })
   // ENTER
-  categoryLegend.enter().append('div')
+  knowledgechangeLegend.enter().append('div')
   .attr('class', "legend-item")
   .html(function(d){
-    return '<i class="fa fa-square" style="color:' + categoryColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+    return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
   })
   // REMOVE
-  categoryLegend.exit().remove();
+  knowledgechangeLegend.exit().remove();
   // sort
-  categoryLegend.sort(function(a, b) {
+  knowledgechangeLegend.sort(function(a, b) {
     return b.values - a.values;
   })
 
-  /////////////
-  // CGI PIE //
-  // ####### //
-  /////////////
-  var cgiColor = d3.scale.category20().domain(data.map(function(d) { return d['c_u_number_of_CGI'][0]; }))
-
-  var cgiPieData = d3.nest()
-    .key(function(d) { return d['c_u_number_of_CGI'][0]; })
-    .rollup(function(values){
-      return values.length
-    })
-    .entries(filteredData)
-
-  var cgiData0 = cgiPiePath.data(),
-    cgiData1 = pie(cgiPieData);
-
-  cgiPiePath = cgiPiePath.data(cgiData1, key);
-
-  cgiPiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, cgiData0, cgiData1, key) || d; })
-    .attr("fill", function(d) { return cgiColor(d.data.key); })
-  .append("title")
-    .text(function(d) { return d.data.key; });
-
-  cgiPiePath.exit()
-    .datum(function(d, i) { return findNeighborArc(i, cgiData1, cgiData0, key) || d; })
-  .transition()
-    .duration(750)
-    .attrTween("d", arcTween)
-    .remove();
-
-  cgiPiePath.transition()
-    .duration(750)
-    .attrTween("d", arcTween);
-
-  // Legend
-  var cgiLegend = d3.select('#cgiLegend').selectAll('div').data(cgiPieData, function(d) { return d['key']; });
-  // UPDATE
-  cgiLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + cgiColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // ENTER
-  cgiLegend.enter().append('div')
-  .attr('class', "legend-item")
-  .html(function(d){
-    return '<i class="fa fa-square" style="color:' + cgiColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // REMOVE
-  cgiLegend.exit().remove();
-  // sort
-  cgiLegend.sort(function(a, b) {
-    return b.values - a.values;
-  })
-
-  //////////////////
-  // AMOUNT PIE //
-  // ############ //
-  //////////////////
-  var amountColor = d3.scale.category20().domain(data.map(function(d) { return d['c_u_amount_assigned'][0]; }))
-
-  var amountPieData = d3.nest()
-    .key(function(d) { return d['c_u_amount_assigned'][0]; })
-    .rollup(function(values){
-      return values.length
-    })
-    .entries(filteredData)
-
-  var amountData0 = amountPiePath.data(),
-    amountData1 = pie(amountPieData);
-
-  amountPiePath = amountPiePath.data(amountData1, key);
-
-  amountPiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, amountData0, amountData1, key) || d; })
-    .attr("fill", function(d) { return amountColor(d.data.key); })
-  .append("title")
-    .text(function(d) { return d.data.key; });
-
-  amountPiePath.exit()
-    .datum(function(d, i) { return findNeighborArc(i, amountData1, amountData0, key) || d; })
-  .transition()
-    .duration(750)
-    .attrTween("d", arcTween)
-    .remove();
-
-  amountPiePath.transition()
-    .duration(750)
-    .attrTween("d", arcTween);
-
-  // Legend
-  var amountLegend = d3.select('#amountLegend').selectAll('div').data(amountPieData, function(d) { return d['key']; });
-  // UPDATE
-  amountLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + amountColor(d.key) + '"></i> &nbsp;' + commaSeperator(d.key) + ' <small>(' + d.values + ')</small>';
-  })
-  // ENTER
-  amountLegend.enter().append('div')
-  .attr('class', "legend-item")
-  .html(function(d){
-    return '<i class="fa fa-square" style="color:' + amountColor(d.key) + '"></i> &nbsp;' + commaSeperator(d.key) + ' <small>(' + d.values + ')</small>';
-  })
-  // REMOVE
-  amountLegend.exit().remove();
-  // sort
-  amountLegend.sort(function(a, b) {
-    return b.values - a.values;
-  })
   //
   drawBars();
 }
 
 function drawBars(){
-  // get sume of grants per brgy
+  // get sume of participants per brgy
   var brgyBarsData = d3.nest()
-    .key(function(d) { return d['c_u_household_id'].slice(0,5); })
+    .key(function(d) { if(d['location_id'] === null){ return 'data missing'} else { return d['location_id']; } })
     .rollup(function(values) { return values.length; })
     .entries(filteredData);
 
   brgyBarsX.domain([0, d3.max(brgyBarsData, function(d) { return d.values; })]);
-
 
   brgyBars.attr("height", brgyBarsMeas.barHeight * brgyBarsData.length);
 
@@ -499,12 +461,50 @@ function drawBars(){
   g.select("rect").transition().duration(1000).ease("sin-in-out")
     .attr("width", function(d) { return brgyBarsX(d.values); })
   g.select(".brgy-label")
-      .text(function(d) { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; });
+      .text(function(d) {
+        if(locationLookup[d.key] === undefined){ return d.key; }
+        else { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; }
+      });
   g.select(".brgy-total").transition().duration(1000).ease("sin-in-out")
       .attr("x", function(d) { return brgyBarsX(d.values) + 3; })
       .text(function(d) { return d.values; });
 
   g.exit().remove();
+
+  // drawTimeline();
+  drawKnowLine();
+
+}
+
+function drawKnowLine(){
+
+  var knowLineData = d3.nest()
+      .key(function(d) { return Math.round(parseFloat(d.score_change)); } )
+      .rollup(function(values) { return values.length; })
+      .entries(filteredData.filter(function(d){ return d.score_change !== "data missing"}));
+  knowLineData.forEach(function(d){
+    d.key = parseFloat(d.key);
+  });
+  knowLineData.sort(function(a,b){
+    return a.key - b.key
+  });
+
+  knowLineY.domain(d3.extent(knowLineData, function(d){ return d.values }))
+
+  knowYaxis.call(knowY)
+
+  var g = knowLineSvg.selectAll(".bar")
+        .data(knowLineData, function(d){ return d['key']; })
+
+  g.enter().append("rect").transition().duration(1000).ease("sin-in-out")
+        .attr("class", "bar")
+        .attr("x", function(d) { return knowLineX(d.key) + 1; })
+        .attr("width", knowLineMeas.barWidth - 2)
+        .attr("y", function(d) { return knowLineY(d.values); })
+        .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.values) + 1; });
+
+  g.exit().remove();
+
 
   buildList();
 
@@ -514,26 +514,34 @@ function buildList(){
 
   $('#listTable').empty();
   $('#listTable').html('<table data-sortable id="dataTable" class="compact sortable-theme-minimal">' +
-        '<thead><tr><th>Household ID</th><th>Last</th><th>First</th><th>Category</th><th>Amount assigned</th><th>CGI</th></tr></thead>' +
-        '<tfoot><tr><th>Household ID</th><th>Last</th><th>First</th><th>Category</th><th>Amount assigned</th><th>CGI</th></tr></tfoot><tbody></tbody></table>')
+        '<thead><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training ID</th><th>Pre</th><th>Post</th><th>Change</th></tr></thead>' +
+        '<tfoot><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training ID</th><th>Pre</th><th>Post</th><th>Change</th></tr></tfoot>' +
+        '<tbody></tbody></table>')
+
+  var readableTime = d3.time.format("%d-%b-%Y");
+
   $.each(filteredData, function(i,d){
     var rowHtml = '<tr>' +
-      '<td>' + d['c_u_household_id'] + '</td>' +
-      '<td>' + d['head_of_hh_lname'] + '</td>' +
-      '<td>' + d['head_of_hh_fname'] + '</td>' +
-      '<td>' + d['c_u_category'] + '</td>' +
-      '<td>' + commaSeperator(d['c_u_amount_assigned']) + '</td>' +
-      '<td>' + d['c_u_number_of_CGI'] + '</td>' +
+      '<td>' + d.participant_fname + '</td>' +
+      '<td>' + d.participant_lname + '</td>' +
+      '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
+      '<td>' + adminText(d.location_id, 'muni') + '</td>' +
+      '<td>' + d.training_id + '</td>' +
+      '<td>' + d.score_pretest+ '</td>' +
+      '<td>' + d.score_posttest + '</td>' +
+      '<td>' + d.score_change + '</td>' +
       '</tr>';
     $('#listTable tbody').append(rowHtml);
   });
 
+  var table = $('#dataTable').DataTable({"sDom":'lrtip'});
+
+  var readableTime = d3.time.format("%d-%b-%Y");
+
   $('#dataTable tfoot th').each(function(){
     var title = $(this).text();
-    $(this).html('<input type="text" placeholder="Search '+title+'" />');
+    $(this).html('<input type="text" placeholder="'+title+'" />');
   });
-
-  var table = $('#dataTable').DataTable({"sDom":'lrtip'});
 
   table.columns().every( function() {
     var that = this;
@@ -549,5 +557,6 @@ function buildList(){
 
 
 }
+
 
 getLocationData();

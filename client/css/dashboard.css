@@ -68,3 +68,24 @@ text.brgy-total {
   stroke: #ed1b2e;
   stroke-width: 1.5px;
 }
+
+/* SAFER SHELTER & AGRICULTURE*/
+/* ########################## */
+.kline {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+.kaxis path,
+.kaxis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.kaxis path {
+  display: none;
+}
+rect.bar {
+  fill: #0091cd;
+}

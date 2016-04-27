@@ -458,12 +458,29 @@ app.get('/query/livelihoodccg', function(req,res) {
 })
 app.post('/query/enumerationhousephoto', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT house_photo FROM "ENUMERATION" WHERE household_id=' + "'" + req.body.id  + "';";;
+			var queryStr = 'SELECT house_photo FROM "ENUMERATION" WHERE household_id=' + "'" + req.body.id  + "';";
 			pghelper.query(queryStr, function(err, data){
 				res.send(data);
 			})
 	}
 })
+app.get('/query/safersheltertraining', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "training_name"=' + "'" + 'Safer Shelter Techniques Orientation' + "'" + ';';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
+app.get('/query/agriculturetraining', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'" + 'Livelihood' + "'" + ';';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
+
 
 
 
@@ -542,6 +559,19 @@ app.get('/sra',function(req,res) {
 	}
 })
 
+app.get('/safer-shelter-training',function(req,res) {
+	if (req.user) {
+    res.render('safer-shelter-training', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
 app.get('/sted',function(req,res) {
 	if (req.user) {
     res.render('sted', {
@@ -554,6 +584,33 @@ app.get('/sted',function(req,res) {
 		res.redirect(localConfig.application.nginxlocation);
 	}
 })
+
+app.get('/agriculture',function(req,res) {
+	if (req.user) {
+    res.render('agriculture', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
+app.get('/phast',function(req,res) {
+	if (req.user) {
+    res.render('phast', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
 
 app.get('/spot-maps',function(req,res) {
 	if (req.user) {

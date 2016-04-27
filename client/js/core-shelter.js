@@ -12,9 +12,9 @@ var locationLookup = {};
 // # HELPERS
 function adminText(locationId, type){
   if(locationLookup[locationId] === undefined){ return "no data"}
-  else if (type === "muni") {
+  else if (type === "brgy") {
     return locationLookup[locationId].barangay;
-  } else if (type === "brgy") {
+  } else if (type === "muni") {
     return locationLookup[locationId].municipality;
   } else { return "error" }
 }
