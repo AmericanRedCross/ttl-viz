@@ -5,9 +5,9 @@ var locationLookup = {};
 function adminText(locationId, type){
   if(locationLookup[locationId] === undefined){ return "no data"}
   else if (type === "muni") {
-    return locationLookup[locationId].barangay;
-  } else if (type === "brgy") {
     return locationLookup[locationId].municipality;
+  } else if (type === "brgy") {
+    return locationLookup[locationId].barangay;
   } else { return "error" }
 }
 
@@ -27,8 +27,9 @@ function throttle() {
 }
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
-  d3.select('#progressGraph').select("svg").remove();
-  buildBars();
+  d3.select('#knowledgechangePie').select("svg").remove();
+  d3.select('#knowLine').select("svg").remove();
+  buildPies();
 }
 
 
@@ -537,8 +538,8 @@ function buildList(){
 
   $('#listTable').empty();
   $('#listTable').html('<table data-sortable id="dataTable" class="compact sortable-theme-minimal">' +
-        '<thead><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training ID</th><th>Pre</th><th>Post</th><th>Change</th></tr></thead>' +
-        '<tfoot><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training ID</th><th>Pre</th><th>Post</th><th>Change</th></tr></tfoot>' +
+        '<thead><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Pre</th><th>Post</th><th>Change</th><th>Change</th></tr></thead>' +
+        '<tfoot><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Pre</th><th>Post</th><th>Change</th><th>Change</th></tr></tfoot>' +
         '<tbody></tbody></table>')
 
   var readableTime = d3.time.format("%d-%b-%Y");
@@ -549,10 +550,10 @@ function buildList(){
       '<td>' + d.participant_lname + '</td>' +
       '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
       '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-      '<td>' + d.training_id + '</td>' +
       '<td>' + d.score_pretest+ '</td>' +
       '<td>' + d.score_posttest + '</td>' +
       '<td>' + d.score_change + '</td>' +
+      '<td>' + d.knowledge_change[0] + '</td>' +
       '</tr>';
     $('#listTable tbody').append(rowHtml);
   });

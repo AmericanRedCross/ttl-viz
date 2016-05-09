@@ -480,6 +480,14 @@ app.get('/query/agriculturetraining', function(req,res) {
 			})
 	}
 })
+app.get('/query/phast', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
 
 
 
@@ -624,6 +632,33 @@ app.get('/spot-maps',function(req,res) {
 		res.redirect(localConfig.application.nginxlocation);
 	}
 })
+
+app.get('/households-overview',function(req,res) {
+	if (req.user) {
+    res.render('households-overview', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
+app.get('/analytics',function(req,res) {
+	if (req.user) {
+    res.render('analytics', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
 
 
 

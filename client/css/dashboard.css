@@ -89,3 +89,25 @@ text.brgy-total {
 rect.bar {
   fill: #0091cd;
 }
+
+.graph-line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+.graph-axis path,
+.graph-axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.graph-axis path {
+  display: none;
+}
+rect.graph-bar {
+  fill: #0091cd;
+}
+rect.graph-bar-2 {
+  fill: #537b35;
+}

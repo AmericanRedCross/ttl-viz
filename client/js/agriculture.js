@@ -5,9 +5,9 @@ var locationLookup = {};
 function adminText(locationId, type){
   if(locationLookup[locationId] === undefined){ return "no data"}
   else if (type === "muni") {
-    return locationLookup[locationId].barangay;
-  } else if (type === "brgy") {
     return locationLookup[locationId].municipality;
+  } else if (type === "brgy") {
+    return locationLookup[locationId].barangay;
   } else { return "error" }
 }
 
@@ -27,8 +27,10 @@ function throttle() {
 }
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
-  d3.select('#progressGraph').select("svg").remove();
-  buildBars();
+  d3.select('#knowledgechangePie').select("svg").remove();
+  d3.select('#perTrainingPie').select("svg").remove();
+  d3.select('#knowLine').select("svg").remove();
+  buildPies();
 }
 
 
@@ -219,7 +221,7 @@ function filter(){
 
 }
 
-var pieRadius, knowledgechangePie, knowledgechangePiePath;
+var pieRadius, knowledgechangePie, knowledgechangePiePath, perTrainingPie, perTrainingPiePath;
 function buildPies(){
 
   var widthOnPage = $('#knowledgechangePie').innerWidth();
@@ -234,6 +236,12 @@ function buildPies(){
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
   knowledgechangePiePath = knowledgechangePie.selectAll("path");
 
+  perTrainingPie = d3.select('#perTrainingPie').append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  perTrainingPiePath = perTrainingPie.selectAll("path");
 
   buildBars();
 };
@@ -253,7 +261,7 @@ function buildBars(){
 
 }
 
-var knowLineMeas, knowLineSvg, knowLine, knowLineY, knowLineX, kLine, knowY, knowYaxis;
+var knowLineMeas, knowLineSvg, knowLineY, knowLineX, knowY, knowYaxis;
 function buildKnowledgeLine(){
 
     var changeExt = d3.extent(data, function(d){ return d.score_change; });
@@ -425,6 +433,60 @@ function drawPies(){
     return b.values - a.values;
   })
 
+  //////////////////////
+  // PER TRAINING PIE //
+  // ################ //
+  //////////////////////
+  var perTrainingColor = d3.scale.category20().domain(data.map(function(d) { return d['training_name'][0]; }))
+
+  var perTrainingData = d3.nest()
+    .key(function(d) { return d['training_name'][0]; })
+    .rollup(function(values){
+      return values.length
+    })
+    .entries(filteredData)
+
+  var perTrainingData0 = perTrainingPiePath.data(),
+    perTrainingData1 = pie(perTrainingData);
+
+  perTrainingPiePath = perTrainingPiePath.data(perTrainingData1, key);
+
+  perTrainingPiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, perTrainingData0, perTrainingData1, key) || d; })
+    .attr("fill", function(d) { return perTrainingColor(d.data.key); })
+  .append("title")
+    .text(function(d) { return d.data.key; });
+
+  perTrainingPiePath.exit()
+    .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
+  .transition()
+    .duration(750)
+    .attrTween("d", arcTween)
+    .remove();
+
+  perTrainingPiePath.transition()
+    .duration(750)
+    .attrTween("d", arcTween);
+
+  // Legend
+  var perTrainingLegend = d3.select('#perTrainingLegend').selectAll('div').data(perTrainingData, function(d) { return d['key']; });
+  // UPDATE
+  perTrainingLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+  })
+  // ENTER
+  perTrainingLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+  })
+  // REMOVE
+  perTrainingLegend.exit().remove();
+  // sort
+  perTrainingLegend.sort(function(a, b) {
+    return b.values - a.values;
+  })
+
   //
   drawBars();
 }
@@ -514,8 +576,8 @@ function buildList(){
 
   $('#listTable').empty();
   $('#listTable').html('<table data-sortable id="dataTable" class="compact sortable-theme-minimal">' +
-        '<thead><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training ID</th><th>Pre</th><th>Post</th><th>Change</th></tr></thead>' +
-        '<tfoot><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training ID</th><th>Pre</th><th>Post</th><th>Change</th></tr></tfoot>' +
+        '<thead><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training</th><th>Pre</th><th>Post</th><th>Change</th><th>Change</th></tr></thead>' +
+        '<tfoot><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training</th><th>Pre</th><th>Post</th><th>Change</th><th>Change</th></tr></tfoot>' +
         '<tbody></tbody></table>')
 
   var readableTime = d3.time.format("%d-%b-%Y");
@@ -526,10 +588,11 @@ function buildList(){
       '<td>' + d.participant_lname + '</td>' +
       '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
       '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-      '<td>' + d.training_id + '</td>' +
+      '<td>' + d.training_name[0] + '</td>' +
       '<td>' + d.score_pretest+ '</td>' +
       '<td>' + d.score_posttest + '</td>' +
       '<td>' + d.score_change + '</td>' +
+      '<td>' + d.knowledge_change[0] + '</td>' +
       '</tr>';
     $('#listTable tbody').append(rowHtml);
   });

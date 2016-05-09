@@ -1,0 +1,40 @@
+<style>
+
+</style>
+
+<div class="container">
+
+<header class="row header">
+	<div class="col-md-12">
+		<h1>Analytics</h1>
+	</div>
+</header>
+
+<hr>
+
+<h4>Sorry, nothing here yet. We're working on it.</h4>
+
+
+<hr>
+<footer id="site-footer">
+	<div class="row row-logo">
+				{{{logos}}}
+			</div>
+</footer>
+
+</div> <!-- / container -->
+
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script>
+
+function getProgress(){
+  $.ajax({
+    type: 'POST',
+    url: 'progress',
+    dataType: 'JSON'
+  }).done(function(response){
+    buildPage(response);
+  });
+}
+
+</script>
