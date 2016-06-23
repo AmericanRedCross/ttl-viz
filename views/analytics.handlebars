@@ -1,5 +1,29 @@
 <style>
 
+.card {
+  margin-top: 20px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  background-clip: padding-box;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+.card img {
+  max-width: 100%;
+  max-height: 100px;
+}
+.card-logo {
+  padding: 12px 12px 6px 12px;
+}
+.resources-card img {
+  max-height: none;
+}
+.card-text {
+  padding: 6px 12px 12px 12px;
+}
+
+
+
 </style>
 
 <div class="container">
@@ -12,8 +36,7 @@
 
 <hr>
 
-<h4>Sorry, nothing here yet. We're working on it.</h4>
-
+<div id="documents-wrapper"></div>
 
 <hr>
 <footer id="site-footer">
@@ -27,14 +50,41 @@
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script>
 
-function getProgress(){
-  $.ajax({
+var documents;
+function getData(){
+	$.ajax({
     type: 'POST',
-    url: 'progress',
+    url: 'analytics',
     dataType: 'JSON'
   }).done(function(response){
-    buildPage(response);
+		documents = d3.nest().key(function(d){return d.sector; }).sortKeys(d3.ascending).entries(response);
+		buildPage();
   });
 }
+
+function buildPage(){
+	$.each(documents, function(iA, sector){
+		$('#documents-wrapper').append('<div class="row"><h3>' + sector.key + '</h3></div>');
+		var docHtml = '<div class="row">';
+		$.each(sector.values, function(iB, doc){
+			if(iB !== 0 && iB%3 === 0){
+				docHtml += '</div><div class="row">'
+			}
+			docHtml += 	'<div class="col-xs-offset-2 col-xs-6 col-sm-offset-0 col-sm-4">' +
+					'<div class="card">'+
+						'<div class="resources-card">'+
+							'<img class="img-responsive" src="img/analytics/' + doc.image + '" />'+
+						'</div>'+
+						'<div class="card-text">'+
+							'<h4 class="no-margin"><strong>' + doc.title + '</strong>&nbsp; <small>' + doc.description + ' &nbsp;<a href="http://arcttl.s3.amazonaws.com/pdf/' + doc.path + '" download><i class="fa fa-fw fa-download"></i></a></small></h4>'+
+						'</div>'+
+					'</div>'+
+			'	</div>';
+		});
+		$('#documents-wrapper').append(docHtml);
+	});
+}
+
+getData();
 
 </script>
