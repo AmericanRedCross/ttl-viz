@@ -73,10 +73,16 @@ function buildPage(){
 			docHtml += 	'<div class="col-xs-offset-2 col-xs-6 col-sm-offset-0 col-sm-4">' +
 					'<div class="card">'+
 						'<div class="resources-card">'+
-							'<img class="img-responsive" src="img/analytics/' + doc.image + '" />'+
+							'<img class="img-responsive" src="img/analytics/' +
+              // doc.image +
+              'img-bar.png' +
+              '" />'+
 						'</div>'+
 						'<div class="card-text">'+
-							'<h4 class="no-margin"><strong>' + doc.title + '</strong>&nbsp; <small>' + doc.description + ' &nbsp;<a href="http://arcttl.s3.amazonaws.com/pdf/' + doc.path + '" download><i class="fa fa-fw fa-download"></i></a></small></h4>'+
+							'<h4 class="no-margin"><strong>' + doc.title + '</strong>&nbsp; <small>' +
+              //  doc.description + 
+               ' &nbsp;</small> <a href="http://arcttl.s3.amazonaws.com/pdf/' + doc.path +
+               '" download><i class="fa fa-fw fa-download"></i></a></h4>'+
 						'</div>'+
 					'</div>'+
 			'	</div>';
