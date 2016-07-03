@@ -24,6 +24,20 @@
 
 <hr>
 
+<div class="row">
+<div class="col-md-8 col-md-offset-2 col-sm-12 col-sm-offset-0">
+<div id="blueimp-video-carousel" class="blueimp-gallery blueimp-gallery-controls blueimp-gallery-carousel">
+    <div class="slides"></div>
+    <h3 class="title"></h3>
+    <a class="prev">‹</a>
+    <a class="next">›</a>
+    <a class="play-pause"></a>
+</div>
+</div>
+</div>
+
+<hr>
+
 <div id="gallery-links">
   <div class="text-center"><img src="img/loading.gif" alt="loading..."></div>
 </div>
@@ -98,6 +112,58 @@ function buildGallery(data){
     }).classed('img-responsive', true)
 
 }
+
+// https://www.youtube.com/watch?v=78hevWNhRm8
+var videos = [
+    {
+        title: '',
+        href: 'https://www.youtube.com/watch?v=GfeX45lMM3A',
+        type: 'text/html',
+        youtube: 'GfeX45lMM3A',
+        poster: 'https://img.youtube.com/vi/GfeX45lMM3A/maxresdefault.jpg'
+    },{
+        title: '',
+        href: 'https://www.youtube.com/watch?v=78hevWNhRm8',
+        type: 'text/html',
+        youtube: '78hevWNhRm8',
+        poster: 'https://img.youtube.com/vi/78hevWNhRm8/maxresdefault.jpg'
+    },{
+        title: '',
+        href: 'https://www.youtube.com/watch?v=7rpeZv0_t_k',
+        type: 'text/html',
+        youtube: '7rpeZv0_t_k',
+        poster: 'https://img.youtube.com/vi/7rpeZv0_t_k/maxresdefault.jpg'
+    },{
+        title: '',
+        href: 'https://www.youtube.com/watch?v=0Uk_OPBHtoU',
+        type: 'text/html',
+        youtube: '0Uk_OPBHtoU',
+        poster: 'https://img.youtube.com/vi/0Uk_OPBHtoU/maxresdefault.jpg'
+    },{
+        title: '',
+        href: 'https://www.youtube.com/watch?v=S6SaMu-FUkA',
+        type: 'text/html',
+        youtube: 'S6SaMu-FUkA',
+        poster: 'https://img.youtube.com/vi/S6SaMu-FUkA/maxresdefault.jpg'
+    },{
+        title: '',
+        href: 'https://www.youtube.com/watch?v=hM_z3xWvR58',
+        type: 'text/html',
+        youtube: 'hM_z3xWvR58',
+        poster: 'https://img.youtube.com/vi/hM_z3xWvR58/maxresdefault.jpg'
+    },{
+        title: '',
+        href: 'https://www.youtube.com/watch?v=G8J-1ll8fXA',
+        type: 'text/html',
+        youtube: 'G8J-1ll8fXA',
+        poster: 'https://img.youtube.com/vi/G8J-1ll8fXA/maxresdefault.jpg'
+    }
+]
+
+blueimp.Gallery(videos, {
+  container: '#blueimp-video-carousel',
+  carousel: true
+});
 
 // http://arcttl.s3.amazonaws.com/gallery/CartoDB_NepalLogsRoutes.jpg
 
