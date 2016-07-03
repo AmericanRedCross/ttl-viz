@@ -415,6 +415,15 @@ app.post('/software', function (req,res){
 	}
 })
 
+app.post('/analytics', function (req,res){
+	if (req.user){
+		var queryStr = 'SELECT * FROM "PROGRAM_DOCUMENTS";';
+		pghelper.query(queryStr, function(err, data){
+			res.send(data);
+		})
+	}
+})
+
 app.get('/query/targetlocations', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT * FROM "TARGET_LOCATION";';
