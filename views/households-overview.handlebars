@@ -1,4 +1,30 @@
 <style>
+#map{
+  height: 450px;
+}
+.point {
+  r: 3;
+  fill: #081d58;
+  fill-opacity: 0.8;
+  cursor: pointer;
+}
+
+.leaflet-control-attribution a {
+  color: #6d6e70 !important;
+  cursor: pointer;
+}
+.clickable{
+  cursor: pointer;
+}
+.leaflet-control-attribution {
+  font-size: x-small;
+  color: #78787d;
+}
+.leaflet-control-attribution a {
+  text-decoration: none;
+  cursor: pointer;
+  color: #6d6e70;
+}
 
 </style>
 
@@ -12,7 +38,7 @@
 
 <hr>
 
-<h4>Sorry, nothing here yet. We're working on it.</h4>
+<div id="map"></div>
 
 
 <hr>
@@ -24,17 +50,76 @@
 
 </div> <!-- / container -->
 
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script>
 
-function getProgress(){
-  $.ajax({
-    type: 'POST',
-    url: 'progress',
-    dataType: 'JSON'
-  }).done(function(response){
-    buildPage(response);
-  });
+var data, points;
+
+// create basic leaflet map
+// ========================
+// tile layer for base map
+var hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  hotAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles from <a href="http://hot.openstreetmap.org/" target="_blank">H.O.T.</a>',
+  hotLayer = L.tileLayer(hotUrl, {attribution: hotAttribution});
+// initialize map w options
+var map = L.map('map', {
+  layers: [hotLayer],
+  center: new L.LatLng(0,0),
+  zoom: 2,
+  minZoom: 2
+});
+
+var mapBounds = L.latLngBounds([10.714586690981509,124.71954345703126],[11.321173722096153,126.28509521484375])
+map.fitBounds(mapBounds);
+
+// initialize the SVG layer for D3 drawn survey points
+map._initPathRoot()
+
+// pick up the SVG from the map object
+var svg = d3.select("#map").select("svg");
+var pointsGroup = svg.append('g').attr("id", "markers");
+
+function projectPoint(x, y) {
+  var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+  this.stream.point(point.x, point.y);
 }
+
+var transform = d3.geo.transform({point: projectPoint}),
+    path = d3.geo.path().projection(transform);
+
+
+
+function getHouseholds(){
+	$.get('query/hhlocations', function(response){
+		data = response;
+		drawPoints();
+	});
+}
+
+function drawPoints(){
+	points = pointsGroup.selectAll("circle")
+    .data(data).enter().append("circle")
+    .classed('point', true)
+    .on('click', function(d){ clickedHousehold(d, this); })
+  // when map view changes adjust the locations of the svg circles
+	function updatePoint(){
+		points.attr("cx",function(d) {
+			return map.latLngToLayerPoint([d.lat,d.lng]).x
+		});
+		points.attr("cy",function(d) {
+			return map.latLngToLayerPoint([d.lat,d.lng]).y
+		});
+	}
+	map.on("viewreset", updatePoint);
+	updatePoint();
+}
+
+function clickedHousehold(data, target){
+
+}
+
+getHouseholds()
 
 </script>

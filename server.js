@@ -497,6 +497,14 @@ app.get('/query/phast', function(req,res) {
 			})
 	}
 })
+app.get('/query/hhlocations', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT household_id AS id, gps_long AS lng, gps_lat AS lat FROM "HOUSEHOLD";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
 
 
 
