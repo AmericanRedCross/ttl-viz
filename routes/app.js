@@ -156,8 +156,8 @@ Ctrl.prototype.createAsset = function(req,res) {
 			        if (err) {
 			        	req.flash('createMessage','Error saving asset.');
 			        }
-							console.log('ERRRORRRRRR: ' + err)
-			        res.redirect(localConfig.application.nginxlocation + "assets");
+							console.log('ERROR: ' + err)
+			        res.redirect(localConfig.application.nginxlocation + "list-assets");
 			    })
 		    });
        	}
