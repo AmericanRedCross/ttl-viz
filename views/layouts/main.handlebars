@@ -32,6 +32,9 @@
 								<a href="{{location}}" >Home</a>
 						</li>
 						<li>
+								<a href="assets"><i class="fa fa-fw fa-files-o"></i> &nbsp; Program documents</a>
+						</li>
+						<li>
 								<a href="#">Summary <i class="fa nav-arrow nav-float-right"></i></a>
 								<ul class="second-level">
 										<li>
@@ -106,6 +109,9 @@
 							</a>
 						</li>
 						{{#eq user.permissions "super"}}
+							<li>
+								<a href="list-assets"><i class="fa fa-files-o"></i> &nbsp; Manage assets</a>
+							</li>
 							<li>
 								<a href="admin"><i class="fa fa-database"></i> &nbsp; Manage database</a>
 							</li>

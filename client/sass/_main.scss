@@ -17,7 +17,7 @@ textarea {
 }
 
 table {
-  background:$grayLight; 
+  background:$grayLight;
   width:100%;
   &.six-col {
     td,th {
@@ -83,7 +83,7 @@ fieldset {
     line-height:1em;
     top:.5em;
     color:$grayMedium;
-    
+
   }
 }
 
@@ -137,12 +137,6 @@ form {
   .error {
     color:#f00;
   }
-  #form-file,#form-url {
-    display:none;
-    &.active {
-      display:block;
-    }
-  }
 }
 
 #centroid-map {
@@ -152,7 +146,7 @@ form {
   border:1px solid #aaa;
 }
 
-.btn {  
+.btn {
   &.sharp {
     border-radius:0;
   }
@@ -350,11 +344,11 @@ body > .container-fluid {
 }
 
 @media screen and (max-width:1024px) {
-  
+
   body,html {
       position:fixed;
   }
-  
+
   #nav-toggle {
     display:block;
     .navopen & {
@@ -374,7 +368,7 @@ body > .container-fluid {
       right:20%;
     }
   }
-  
+
   #site-content,#site-footer {
     width:100%;
     margin-left:0;

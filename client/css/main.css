@@ -25,8 +25,6 @@ body { color: #555; }
 input, select, textarea, .form-control { border-radius: 0; }
 
 form .error { color: #f00; }
-form #form-file, form #form-url { display: none; }
-form #form-file.active, form #form-url.active { display: block; }
 
 textarea { max-width: 100%; }
 
