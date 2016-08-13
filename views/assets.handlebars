@@ -20,6 +20,12 @@
 .card-text {
   padding: 6px 12px 12px 12px;
 }
+.nav li {
+  cursor: pointer;
+}
+.row-category.hidden {
+  display:none;
+}
 </style>
 
 <div class="container">
@@ -31,6 +37,23 @@
 </header>
 
 <hr>
+
+<!-- "Home": ["General", "Programs", "Operations", "Finance"],
+"Programs": ["Cross-sector","Shelter", "WASH", "Livelihoods", "Health", "DRR"],
+"Finance": [""],
+"Operations": ["HR/Admin/IT", "Procurement", "Logistics"],
+"M&E": [""],
+"Other": [""],
+"Analytics": ["Cross-cutting", "Livelihoods", "WASH"] -->
+
+<ul class="nav nav-tabs">
+  <li role="presentation" class="active"><a id="hometab" onClick="changeCat('Home', this);">Home</a></li>
+  <li role="presentation"><a onClick="changeCat('Programs', this);">Programs</a></li>
+  <li role="presentation"><a onClick="changeCat('Finance', this);">Finance</a></li>
+  <li role="presentation"><a onClick="changeCat('Operations', this);">Operations</a></li>
+  <li role="presentation"><a onClick="changeCat('M&amp;E', this);">M&amp;E</a></li>
+  <li role="presentation"><a onClick="changeCat('Other', this);">Other</a></li>
+</ul>
 
 <div id="documents-wrapper"></div>
 
@@ -47,38 +70,103 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
+var typeIcon = function(extension){
+  switch(extension) {
+    case ".doc":
+    case ".docx":
+      return '<i class="fa fa-fw fa-file-word-o"></i> '
+      break;
+    case ".jpeg":
+    case ".jpg":
+    case ".png":
+      return '<i class="fa fa-fw fa-file-image-o"></i> '
+      break;
+    case ".pdf":
+      return '<i class="fa fa-fw fa-file-pdf-o"></i> '
+      break;
+    case ".ppt":
+    case ".pptx":
+      return '<i class="fa fa-fw fa-file-powerpoint-o"></i> '
+      break;
+    case ".xls":
+    case ".xlsm":
+    case ".xlsx":
+      return '<i class="fa fa-fw fa-file-excel-o"></i> '
+      break;
+    case ".zip":
+      return '<i class="fa fa-fw fa-file-archive-o"></i> '
+      break;
+    default:
+      return '<i class="fa fa-fw fa-file-o"></i> '
+  }
+};
+
+
 var documents;
 function getData(){
   $.ajax({
     type: 'GET',
     url: 'api/assets'
   }).done(function(data){
-    documents = data.response;
+    documents = data.response.filter(function(d){ return d.published; }).filter(function(d){ return d.category !== "Analytics"; });
     buildPage();
   });
 }
 
+function changeCat(cat, navli){
+  d3.select('.nav').selectAll('li').classed('active',false)
+  $(navli).parent().addClass('active');
+  var rows = d3.selectAll('.row-category');
+  rows.classed('hidden',true);
+  rows.filter(function(d){ return d3.select(this).attr('data-category') === cat }).classed('hidden', false);
+
+}
+
 function buildPage(){
-  var docHtml = '<div class="row">';
-	$.each(documents, function(i, doc){
-    if(i !== 0 && i%3 === 0){
-      docHtml += '</div><div class="row">'
-    }
-    docHtml += 	'<div class="col-xs-offset-2 col-xs-6 col-sm-offset-0 col-sm-4">' +
-        '<div class="card">'+
-          '<div class="resources-card">'+
-            '<img class="img-responsive" src="img/analytics/img-bar.png" />' +
-          '</div>'+
-          '<div class="card-text">'+
-            '<h4 class="no-margin"><strong>' + doc.title + '</strong>&nbsp; <small>' +
-              doc.description +
-             ' &nbsp;</small> <a href="api/asset/' + doc.file + '/file' +
-             '" download><i class="fa fa-fw fa-download"></i></a></h4>'+
-          '</div>'+
-        '</div>'+
-    '	</div>';
+
+  var nested = d3.nest()
+      .key(function(d) { return d.category; })
+      .key(function(d) { return d.group; })
+      .entries(documents);
+
+  var docHtml = "";
+  $.each(nested, function(a, category){
+    docHtml += '<div class="row row-category" data-category="' + category.key + '">';
+    $.each(category.values, function(b, group){
+      docHtml += '<div class="row"><h3>';
+      docHtml += (group.key !== "undefined") ? group.key : "";
+      docHtml += '</h3></div>';
+      docHtml += '<div class="row">';
+      $.each(group.values, function(c, file){
+        if(c !== 0 && c%3 === 0){
+          docHtml += '</div><div class="row">'
+        }
+        docHtml += 	'<div class="col-xs-offset-2 col-xs-6 col-sm-offset-0 col-sm-4">' +
+            '<div class="card">'+
+              '<div class="resources-card">'+
+                '<img class="img-responsive" src="img/analytics/img-bar.png" />' +
+              '</div>'+
+              '<div class="card-text">'+
+                '<h4 class="no-margin"><strong>' + file.title + '</strong>&nbsp; <small>' +
+                  file.description +
+                 ' &nbsp; ';
+          if(file["file"] !== undefined){
+            var downloadIcon = (file.filename !== undefined) ? typeIcon(file.filename.slice(file.filename.lastIndexOf('.'))) : typeIcon("");
+            docHtml += '<a href="api/asset/' + file["_id"] + '/file' +
+              '" download> ' + file.type + ' ' + downloadIcon + '</a>';
+          }
+          docHtml += '</small></h4></div>'+
+            '</div>'+
+        '	</div>';
+      });
+      docHtml += "</div>";
+    });
+    docHtml += "</div>";
   });
   $('#documents-wrapper').append(docHtml);
+
+  $("#hometab").click();
+
 }
 
 getData();

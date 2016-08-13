@@ -20,12 +20,12 @@
 		<li>
 			<a href="#" id="add-toggle" data-toggle="modal" data-target="#add-asset-modal"><b class="glyphicon glyphicon-plus"></b> Create Asset</a>
 		</li>
-		<li>
+		<!-- <li>
 			<a href="#" id="import-toggle" data-toggle="modal" data-target="#import-asset-modal"><b class="glyphicon glyphicon-open"></b> Import Assets</a>
 		</li>
 		<li>
 			<a href="assets/export" target="_blank" id="export-toggle"><b class="glyphicon glyphicon-save"></b> Export Assets</a>
-		</li>
+		</li> -->
 	</ul>
 </nav>
 <div class="row">
@@ -48,9 +48,8 @@
 					<th>Date</th>
 					<th>Title</th>
 					<th>Creator</th>
-					{{#each opts.asset_opts.tags}}
-						<th>{{@key}}</th>
-					{{/each}}
+					<th>Category</th>
+					<th>Published</th>
 					<th class="btn-col"></th>
 				</tr>
 			</thead>
@@ -60,9 +59,8 @@
 					<td>{{formatDate date 'MM/DD/YYYY'}}</td>
 					<td>{{title}}</td>
 					<td>{{user}}</td>
-					{{#each ../opts.asset_opts.tags}}
-						<td>{{#eachAtIndex ../tags @key}}{{value}}{{#if $last}}{{else}}, {{/if}}{{/eachAtIndex}}</td>
-					{{/each}}
+					<td>{{category}}</td>
+					<td>{{published}}</td>
 					<td>
 						<div class="btn-group">
 							<button class="btn btn-warning sharp edit-toggle" title="Edit Asset" data-toggle="modal" data-target="#edit-asset-modal" rel="{{_id}}"><b class="glyphicon glyphicon-edit"></b></button></a>

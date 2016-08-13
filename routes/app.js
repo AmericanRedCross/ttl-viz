@@ -51,6 +51,7 @@ var assetSchema = new Schema({
   createDate: { type: Date, default: Date.now },
   description: {type: String, required:true},
 	category: {type: String, required:true},
+	group: {type: String},
 	type: {type: String, required:true},
   file: Schema.Types.ObjectId,
   filename: String,
@@ -142,7 +143,7 @@ Ctrl.prototype.createAsset = function(req,res) {
 		if (err) { req.flash('createMessage', 'Unable to create a new asset at this time.'); };
 		if (asset) {
 		    req.flash('createMessage', 'There is already an asset with that name.');
-		    res.redirect(localConfig.application.nginxlocation + "assets");
+		    res.redirect(localConfig.application.nginxlocation + "list-assets");
 		} else {
 			var newAsset = new Asset();
 			for (key in req.body) {
@@ -154,9 +155,9 @@ Ctrl.prototype.createAsset = function(req,res) {
 		    	newAsset.save(function(err) {
 		    		console.log("Created Asset",newAsset);
 			        if (err) {
+								console.log('ERROR: ' + err)
 			        	req.flash('createMessage','Error saving asset.');
 			        }
-							console.log('ERROR: ' + err)
 			        res.redirect(localConfig.application.nginxlocation + "list-assets");
 			    })
 		    });
@@ -182,18 +183,21 @@ Ctrl.prototype.updateAsset = function(req,res,opts) {
 			if (!req.body.public) {
 				asset.public = false;
 			}
+			if (!req.body.published) {
+				asset.published = false;
+			}
 		    ctrl.handleAssetFiles(req,res,asset,'editMessage','Unable to edit that asset at this time.',function() {
 		    	asset.save(function(err) {
 		    		console.log("Updated Asset",asset);
 			        if (err) {
 			        	req.flash('editMessage','Unable to edit that asset at this time.');
 			        }
-			        res.redirect(localConfig.application.nginxlocation + "assets");
+			        res.redirect(localConfig.application.nginxlocation + "list-assets");
 			    })
 		    });
 		} else {
 			req.flash('editMessage', 'There is no asset with that ID or you do not have permission to edit it.');
-		    res.redirect(localConfig.application.nginxlocation + "assets");
+		    res.redirect(localConfig.application.nginxlocation + "list-assets");
        	}
    	})
 }
@@ -206,11 +210,11 @@ Ctrl.prototype.deleteAsset = function(req,res,opts) {
                 if (err) {
                 	req.flash('deleteMessage', 'Unable to delete that asset at this time.');
                 }
-                res.redirect(localConfig.application.nginxlocation + "assets");
+                res.redirect(localConfig.application.nginxlocation + "list-assets");
             })
 		} else {
 			req.flash('deleteMessage', 'There is no asset with that ID or you do not have permission to delete it.');
-		    res.redirect(localConfig.application.nginxlocation + "assets");
+		    res.redirect(localConfig.application.nginxlocation + "list-assets");
        	}
    	})
 }
@@ -255,7 +259,7 @@ Ctrl.prototype.handleFile = function(asset,file,callback) {
 	var read_stream = fs.createReadStream(file.path);
 	asset.file_mime = file.mimetype;
 	asset.size = file.size;
-	asset.filename = asset.type.replace(/[^a-zA-Z\d\.]/g,"-").toLowerCase()+"-"+(new Date().getTime())+"-"+file.originalname.replace(/[^a-zA-Z\d\.]/g,"-").toLowerCase();
+	asset.filename = file.originalname;
 	var ws = ctrl.gfs.createWriteStream({
         filename: asset.filename
     });
