@@ -149,7 +149,7 @@ function buildPage(){
               '<div class="card-text">'+
                 '<h4 class="no-margin"><strong>' + file.title + '</strong>&nbsp; <small>' +
                   file.description +
-                 ' &nbsp; ';
+                 ' &nbsp; (' + file.date.slice(0,10) + ") ";
           if(file["file"] !== undefined){
             var downloadIcon = (file.filename !== undefined) ? typeIcon(file.filename.slice(file.filename.lastIndexOf('.'))) : typeIcon("");
             docHtml += '<a href="api/asset/' + file["_id"] + '/file' +
