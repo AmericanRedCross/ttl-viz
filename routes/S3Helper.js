@@ -29,17 +29,25 @@ S3Helper.prototype.listGallery = function(cb) {
 
 }
 
-S3Helper.prototype.uploadGalleryImage = function(filePath, cb) {
+S3Helper.prototype.uploadGalleryImage = function(upload, size, cb) {
 
-  var body = fs.createReadStream(filePath);
-  var key = "gallery/" + path.basename(filePath);
+  var body = fs.createReadStream(upload.path);
+  var key = "";
+  if(size === "full"){
+    key = "gallery/" + upload.time +"_"+ upload.originalname;
+  }
+  if(size === "thumb"){
+    key = "gallery/" + upload.time +"_"+ upload.originalname.slice(0, upload.originalname.lastIndexOf(".")) + "_THUMB" + upload.originalname.slice(upload.originalname.lastIndexOf("."));
+  }
 
   s3.upload({Body: body, Bucket: settings.application.mediabucket, Key: key}).
     on('httpUploadProgress', function(evt) {
       //console.log(evt);
     }).
     send(function(err, data) {
-      fs.unlinkSync(filePath);
+      if(size === "thumb"){
+        fs.unlinkSync(upload.path);
+      }
       cb(err, data)
     });
 

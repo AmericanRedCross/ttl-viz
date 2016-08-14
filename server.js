@@ -431,30 +431,17 @@ app.post('/refresh', function (req,res){
 	}
 })
 
-// var storage = multer.diskStorage({
-//   destination: function (req, file, callback) {
-//     callback(null, './tmp');
-//   },
-//   filename: function (req, file, callback) {
-//     callback(null, file.originalname.substr(0, file.originalname.lastIndexOf('.')) + '_' + Date.now() + path.extname(file.originalname));
-//   }
-// });
-// var upload = multer({ storage : storage }).array('imgFiles');
-//
-// var GalleryUpload = require("./routes/GalleryUpload.js");
-// var galleryUpload = new GalleryUpload();
-//
-// app.post('/uploadimg',function(req,res){
-//     upload(req,res,function(err) {
-//         if(err) {
-// 					console.log(err)
-//             return res.end("Error uploading file.");
-//         }
-// 				galleryUpload.process(req.files, function(err,data){
-// 					res.end('processed!');
-// 				});
-//     });
-// })
+var GalleryUpload = require("./routes/GalleryUpload.js");
+var galleryUpload = new GalleryUpload();
+
+app.post('/uploadimg',function(req,res){
+
+	console.log(req.files.file.path)
+	galleryUpload.process(req.files.file, function(err,data){
+		res.end('processed!');
+	});
+
+})
 
 var S3Helper = require("./routes/S3Helper.js");
 var s3helper = new S3Helper();
