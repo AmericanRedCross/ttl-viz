@@ -47,27 +47,32 @@
 
 </div> <!-- / container -->
 
-<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
 var documents;
 function getData(){
 	$.ajax({
-    type: 'POST',
-    url: 'analytics',
-    dataType: 'JSON'
-  }).done(function(response){
-		documents = d3.nest().key(function(d){return d.sector; }).sortKeys(d3.ascending).entries(response);
+    type: 'GET',
+    url: 'api/assets?category=Analytics'
+  }).done(function(data){
+		documents = data.response.filter(function(d){ return d.published; });
 		buildPage();
   });
 }
 
 function buildPage(){
-	$.each(documents, function(iA, sector){
-		$('#documents-wrapper').append('<div class="row"><h3>' + sector.key + '</h3></div>');
+
+  var nested = d3.nest()
+      .key(function(d) { return d.group; })
+      .sortKeys(d3.ascending)
+      .entries(documents);
+
+	$.each(nested, function(a, group){
+		$('#documents-wrapper').append('<div class="row"><h3>' + group.key + '</h3></div>');
 		var docHtml = '<div class="row">';
-		$.each(sector.values, function(iB, doc){
-			if(iB !== 0 && iB%3 === 0){
+		$.each(group.values, function(b, doc){
+			if(b !== 0 && b%3 === 0){
 				docHtml += '</div><div class="row">'
 			}
 			docHtml += 	'<div class="col-xs-offset-2 col-xs-6 col-sm-offset-0 col-sm-4">' +
@@ -80,9 +85,13 @@ function buildPage(){
 						'</div>'+
 						'<div class="card-text">'+
 							'<h4 class="no-margin"><strong>' + doc.title + '</strong>&nbsp; <small>' +
-                doc.description + 
-               ' &nbsp;</small> <a href="http://arcttl.s3.amazonaws.com/pdf/' + doc.path +
-               '" download><i class="fa fa-fw fa-download"></i></a></h4>'+
+                doc.description +
+               ' &nbsp;</small>';
+           if(doc["file"] !== undefined){
+             docHtml += '<a href="api/asset/' + doc["_id"] + '/file' +
+               '" download><i class="fa fa-fw fa-download"></i></a>';
+           }
+            docHtml += '</h4>'+
 						'</div>'+
 					'</div>'+
 			'	</div>';
