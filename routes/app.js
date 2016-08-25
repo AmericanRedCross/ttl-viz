@@ -318,9 +318,10 @@ Ctrl.prototype.getAssets = function(user,query,callback) {
 			var opts = queryLen ? query : {};
 			if (!user) {
 				opts.public = true;
-			} else if (user.permissions != "super") {
-				opts.$or = [{public:true},{user:user.username}];
 			}
+			// else if (user.permissions != "super") {
+			// 	opts.$or = [{public:true},{user:user.username}];
+			// }
 			collection.find(opts).toArray(function(err,result) {
 				if (!err) {
 					callback(result);
