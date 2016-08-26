@@ -339,9 +339,10 @@ Ctrl.prototype.getAsset = function(user,id,callback) {
 	var query = {_id:id};
 	if (!user) {
 		query.public = true;
-	} else if (user.permissions != "super") {
-		query.user = user.username;
 	}
+	// else if (user.permissions != "super") {
+	// 	query.user = user.username;
+	// }
 	Asset.findOne(query, function(err, asset) {
 		if (!err && asset) {
 			callback(asset);
