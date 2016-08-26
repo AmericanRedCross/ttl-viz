@@ -357,9 +357,10 @@ Ctrl.prototype.getAssetFile = function(user,id,callback,req,res) {
 	var query = {_id:id};
 	if (!user) {
 		query.public = true;
-	} else if (user.permissions != "super") {
-		query.user = user.username;
 	}
+	// else if (user.permissions != "super") {
+	// 	query.user = user.username;
+	// }
 	Asset.findOne(query, function(err, asset) {
 		if (!err && asset) {
 			ctrl.gfs.files.findOne({_id:asset.file},function(err,file) {
@@ -383,9 +384,10 @@ Ctrl.prototype.getAssetThumb = function(user,id,callback,req,res) {
 	var query = {_id:id};
 	if (!user) {
 		query.public = true;
-	} else if (user.permissions != "super") {
-		query.user = user.username;
 	}
+	// else if (user.permissions != "super") {
+	// 	query.user = user.username;
+	// }
 	var size = req.params.size;
 	size = !isNaN(parseInt(size)) ? parseInt(size) : 500;
 	Asset.findOne(query, function(err, asset) {
