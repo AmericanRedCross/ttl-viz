@@ -113,6 +113,20 @@ function buildGallery(data){
 
 }
 
+// var videos = [];
+
+// function loadVideoReel(){
+// var youtubeNames = ['GfeX45lMM3A','78hevWNhRm8];
+//   var tempObject, videoLink, videoPoster;
+
+// for(var i=0;i<youtubeNames.length;i++){
+//    videoLink ='https://www.youtube.com/watch?v='.append(youtubeNames[i]);
+//    videoPoster = 'https://img.youtube.com/vi/'.append(youtubeNames[i]).append('/maxresdefault.jpg');
+//    load videLink, videoPoster, youtubeNames[i] (add type) to tempObject
+//    add tempObject into videos
+//}
+//}
+
 // https://www.youtube.com/watch?v=78hevWNhRm8
 var videos = [
     {
@@ -181,8 +195,15 @@ var videos = [
         type: 'text/html',
         youtube: 'BDn1-MNb9mc',
         poster: 'https://img.youtube.com/vi/BDn1-MNb9mc/maxresdefault.jpg'
+    },{
+        title: '',
+        href: 'https://www.youtube.com/watch?v=S8ZUmpqT9pE',
+        type: 'text/html',
+        youtube: 'S8ZUmpqT9pE',
+        poster: 'https://img.youtube.com/vi/S8ZUmpqT9pE/maxresdefault.jpg'
     }
   ]
+
 
 blueimp.Gallery(videos, {
   container: '#blueimp-video-carousel',
