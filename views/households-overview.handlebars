@@ -1,13 +1,21 @@
 <style>
 #map{
-  height: 450px;
+  width: 100%;
 }
 .point {
   r: 3;
-  fill: #081d58;
-  fill-opacity: 0.8;
+  /*fill: #081d58;*/
+  fill-opacity: 0.9;
   cursor: pointer;
 }
+
+.btn-map-filter {
+  position: absolute;
+  left: 47px;
+  top: 10px;
+  z-index: 1;
+}
+
 
 .leaflet-control-attribution a {
   color: #6d6e70 !important;
@@ -28,25 +36,51 @@
 
 </style>
 
-<div class="container">
+<div class="container-fluid" style="margin:0;padding:0;">
 
-<header class="row header">
+  <div id="info-modal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">Household Id: <small><span id="modal-hh-id"></span></small></h4>
+        </div>
+        <div class="modal-body">
+          <p>Head of household: <span id="modal-hh-head"></span></p>
+          <p># of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)</p>
+          <p># of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+          <p># of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+<!-- <header class="row header">
 	<div class="col-md-12">
 		<h1>Households overview</h1>
 	</div>
 </header>
 
-<hr>
+<hr> -->
+<div class="btn-group btn-map-filter" role="button">
+  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('all');"></span>Show all</button>
+  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('core');"></span>Core only <i class="fa fa-circle" style="color:#7570b3;" aria-hidden="true"></i></button>
+  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('sra');"></span>SRA only <i class="fa fa-circle" style="color:#1b9e77;" aria-hidden="true"></i></button>
+</div>
 
 <div id="map"></div>
 
 
-<hr>
+<!-- <hr>
 <footer id="site-footer">
 	<div class="row row-logo">
 				{{{logos}}}
 			</div>
-</footer>
+</footer> -->
 
 </div> <!-- / container -->
 
@@ -54,6 +88,13 @@
 <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script>
+
+var height = $(window).height();
+$('#map').height(height);
+$(window).resize(function(){
+  height = $(window).height();
+  $('#map').height(height);
+})
 
 var data, points;
 
@@ -94,7 +135,7 @@ var transform = d3.geo.transform({point: projectPoint}),
 function getHouseholds(){
 	$.get('query/hhlocations', function(response){
 		data = response;
-		drawPoints();
+		drawPoints(); 
 	});
 }
 
@@ -102,6 +143,15 @@ function drawPoints(){
 	points = pointsGroup.selectAll("circle")
     .data(data).enter().append("circle")
     .classed('point', true)
+    .attr('fill', function(d){
+      if(d.core !== null){
+        return "#7570b3";
+      } else if (d.sra !== null) {
+        return "#1b9e77";
+      } else {
+        return "#d95f02";
+      }
+    })
     .on('click', function(d){ clickedHousehold(d, this); })
   // when map view changes adjust the locations of the svg circles
 	function updatePoint(){
@@ -117,6 +167,48 @@ function drawPoints(){
 }
 
 function clickedHousehold(data, target){
+  console.log(data)
+  $.post('query/hhoverview', {"id": data.id}, function(response){
+    // # response should be an array containing one object
+    if(response[0]){
+      var head = response[0].head_of_hh_fname;
+      head += (response[0].head_of_hh_mname === null) ? " " : " " + response[0].head_of_hh_mname + " ";
+      head += response[0].head_of_hh_lname;
+      $("#modal-hh-id").empty().text(response[0].household_id);
+      $("#modal-hh-head").empty().text(head);
+      $("#modal-hh-total").empty().text(response[0].num_of_members);
+      $("#modal-hh-f").empty().text(response[0].num_of_females);
+      $("#modal-hh-m").empty().text(response[0].num_of_males);
+      $("#modal-hh-elderly-f").empty().text(response[0].vul_female_elderly);
+      $("#modal-hh-elderly-m").empty().text(response[0].vul_male_elderly);
+      $("#modal-hh-minor-f").empty().text(response[0].vul_female_minor);
+      $("#modal-hh-minor-m").empty().text(response[0].vul_male_minor);
+      $("#info-modal").modal();
+    } else {
+      $("#modal-hh-id").empty().html("<i>Sorry, an error occurred.</i>");
+      $("#modal-hh-head").empty();
+      $("#modal-hh-total").empty();
+      $("#modal-hh-f").empty();
+      $("#modal-hh-m").empty();
+      $("#modal-hh-elderly-f").empty();
+      $("#modal-hh-elderly-m").empty();
+      $("#modal-hh-minor-f").empty();
+      $("#modal-hh-minor-m").empty();
+      $("#info-modal").modal();
+    }
+  });
+}
+
+function filtermap(wat){
+  if(wat === "core"){
+    points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
+  }
+  else if(wat === "sra"){
+    points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
+  }
+  else{
+    points.classed("hide", false);
+  }
 
 }
 
