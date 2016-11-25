@@ -650,7 +650,14 @@ app.post('/query/hhoverview', function(req,res) {
 			})
 	}
 })
-
+app.get('/query/water1', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat FROM community_works_tool_v2 WHERE sector_intervention=' + "'hand pump' AND ws_shed='y';";
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
 
 
 
@@ -798,6 +805,19 @@ app.get('/spot-maps',function(req,res) {
 app.get('/households-overview',function(req,res) {
 	if (req.user) {
     res.render('households-overview', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
+app.get('/community-infrastructure',function(req,res) {
+	if (req.user) {
+    res.render('community-infrastructure', {
 			user:req.user,
 			location:localConfig.application.nginxlocation,
       opts:localConfig.page,
