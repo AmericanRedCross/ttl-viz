@@ -652,18 +652,12 @@ app.post('/query/hhoverview', function(req,res) {
 })
 app.get('/query/water1', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat FROM community_works_tool_v2 WHERE sector_intervention=' + "'hand pump' AND ws_shed='y';";
+			var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat  FROM community_works_tool_v2 WHERE sector_intervention=' + "'hand pump' AND ws_shed='y' OR sector_intervention="+"'water system';";
 			pghelper.query(queryStr, function(err, data){
 				res.send(data);
 			})
 	}
 })
-
-
-
-
-
-
 
 app.get('/households',function(req,res) {
 	if (req.user) {

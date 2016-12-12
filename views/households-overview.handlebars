@@ -153,6 +153,7 @@ function drawPoints(){
       }
     })
     .on('click', function(d){ clickedHousehold(d, this); })
+
   // when map view changes adjust the locations of the svg circles
 	function updatePoint(){
 		points.attr("cx",function(d) {

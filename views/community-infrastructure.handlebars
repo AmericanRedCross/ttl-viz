@@ -26,9 +26,16 @@
   color: #6d6e70;
 }
 
+.btn-map-filter {
+  position: absolute;
+  left: 47px;
+  top: 10px;
+  z-index: 1;
+}
+
 </style>
 
-<div class="container-fluid" style="margin:0;padding:0;">
+<div class="container-fluid" style=" margin:0; padding:0;">
 
   <div id="info-modal" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg">
@@ -38,6 +45,11 @@
           <h4 class="modal-title"></h4>
         </div>
         <div class="modal-body">
+          <p>Municipality:<span id="modal-municipality"></span></p>
+          <p>Barangay:<span id="modal-barangay"></span></p>
+          <p>Date Completed:<span id="date-completed"></span></p>
+          <div style="width:49%;display:inline-block;"><img src="" class="img-responsive" id="img-photo-one" ></div>
+          <div style="width:49%;display:inline-block;"><img src="" class="img-responsive" id="img-photo-two" ></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -46,17 +58,13 @@
     </div><!-- /.modal-dialog -->
   </div><!-- /.modal -->
 
-<!-- <header class="row header">
-	<div class="col-md-12">
-		<h1>Households overview</h1>
-	</div>
-</header>
-
-<hr> -->
-
+<div class="btn-group btn-map-filter" role="button">
+  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('all');"></span>Show all</button>
+  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('l1');"></span>Level 1 Water System<i class="fa fa-circle" style="color:#7570b3;" aria-hidden="true"></i></button>
+  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('l2');"></span>Level 2 Water System<i class="fa fa-circle" style="color:#1b9e77;" aria-hidden="true"></i></button>
+</div>
 
 <div id="map"></div>
-
 
 <!-- <hr>
 <footer id="site-footer">
@@ -124,8 +132,17 @@ function drawPoints(){
 	points = pointsGroup.selectAll("circle")
     .data(data).enter().append("circle")
     .classed('point', true)
-    .attr('fill', "#ed1b2e")
+    .attr('fill', function(d){
+      if(d.sector_intervention == "hand pump"){
+        return "#7570b3";
+      } else if (d.sector_intervention == "water system") {
+        return "#1b9e77";
+      } else {
+        return "#d95f02";
+      }
+    })
     .on('click', function(d){ clickedMarker(d, this); })
+
   // when map view changes adjust the locations of the svg circles
 	function updatePoint(){
 		points.attr("cx",function(d) {
@@ -139,11 +156,59 @@ function drawPoints(){
 	updatePoint();
 }
 
-function clickedMarker(data, target){
-  console.log(data)
-  console.log(target)
+var locationLookup = {};
+
+function getLocationData(){
+  $.get('query/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+  });
 }
 
+function clickedMarker(data, target){
+  var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/";
+  var date_comp = data.completion_date;
+  var p_one = data.photo_one;
+  var p_two = data.photo_two;
+
+  var title = "";
+
+  if(data.sector_intervention=="hand pump"){
+    title = "Level 1 Water System";
+  }else if(data.sector_intervention=="water system"){
+    title = "Level 2 Water System";
+  }else{
+    title = "";
+  }
+
+  var loc_m = locationLookup[data.hh_municipality+data.hh_barangay].municipality;
+  var loc_b = locationLookup[data.hh_municipality+data.hh_barangay].barangay;
+
+  $('#info-modal .modal-title').html(title);
+  $('#modal-barangay').html(loc_b);
+  $('#modal-municipality').html(loc_m);
+  $('#date-completed').html(date_comp);
+  $('#img-photo-one').attr("src", src+p_one);
+  $('#img-photo-two').attr("src", src+p_two);
+  $("#info-modal").modal('show');
+}
+
+function filtermap(wat){
+  if(wat === "l1"){
+    points.classed("hide", true).filter(function(d){ return d.sector_intervention == "hand pump" }).classed("hide", false);
+  }
+  else if(wat === "l2"){
+    points.classed("hide", true).filter(function(d){ return d.sector_intervention == "water system" }).classed("hide", false);
+  }
+  else{
+    points.classed("hide", false);
+  }
+
+}
+
+getLocationData();
 getData()
 
 </script>
