@@ -112,95 +112,85 @@ function buildGallery(data){
     }).classed('img-responsive', true)
 
 }
-
-// var videos = [];
-
-// function loadVideoReel(){
-// var youtubeNames = ['GfeX45lMM3A','78hevWNhRm8];
-//   var tempObject, videoLink, videoPoster;
-
-// for(var i=0;i<youtubeNames.length;i++){
-//    videoLink ='https://www.youtube.com/watch?v='.append(youtubeNames[i]);
-//    videoPoster = 'https://img.youtube.com/vi/'.append(youtubeNames[i]).append('/maxresdefault.jpg');
-//    load videLink, videoPoster, youtubeNames[i] (add type) to tempObject
-//    add tempObject into videos
-//}
-//}
-
-// https://www.youtube.com/watch?v=78hevWNhRm8
 var videos = [
-    {
+  {
+      title: '',
+      href: 'https://www.youtube.com/watch?v=ktn5xafEbis',
+      type: 'text/html',
+      youtube: 'ktn5xafEbis',
+      poster: 'https://img.youtube.com/vi/ktn5xafEbis/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=S8ZUmpqT9pE',
+      type: 'text/html',
+      youtube: 'S8ZUmpqT9pE',
+      poster: 'https://img.youtube.com/vi/S8ZUmpqT9pE/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=BDn1-MNb9mc',
+      type: 'text/html',
+      youtube: 'BDn1-MNb9mc',
+      poster: 'https://img.youtube.com/vi/BDn1-MNb9mc/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=tAZulxGrbDs',
+      type: 'text/html',
+      youtube: 'tAZulxGrbDs',
+      poster: 'https://img.youtube.com/vi/tAZulxGrbDs/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=5n2fZisRbqc',
+      type: 'text/html',
+      youtube: '5n2fZisRbqc',
+      poster: 'https://img.youtube.com/vi/5n2fZisRbqc/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=FpyqAir5LEU',
+      type: 'text/html',
+      youtube: 'FpyqAir5LEU',
+      poster: 'https://img.youtube.com/vi/FpyqAir5LEU/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=G8J-1ll8fXA',
+      type: 'text/html',
+      youtube: 'G8J-1ll8fXA',
+      poster: 'https://img.youtube.com/vi/G8J-1ll8fXA/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=hM_z3xWvR58',
+      type: 'text/html',
+      youtube: 'hM_z3xWvR58',
+      poster: 'https://img.youtube.com/vi/hM_z3xWvR58/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=S6SaMu-FUkA',
+      type: 'text/html',
+      youtube: 'S6SaMu-FUkA',
+      poster: 'https://img.youtube.com/vi/S6SaMu-FUkA/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=0Uk_OPBHtoU',
+      type: 'text/html',
+      youtube: '0Uk_OPBHtoU',
+      poster: 'https://img.youtube.com/vi/0Uk_OPBHtoU/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=7rpeZv0_t_k',
+      type: 'text/html',
+      youtube: '7rpeZv0_t_k',
+      poster: 'https://img.youtube.com/vi/7rpeZv0_t_k/maxresdefault.jpg'
+  },{
+      title: '',
+      href: 'https://www.youtube.com/watch?v=78hevWNhRm8',
+      type: 'text/html',
+      youtube: '78hevWNhRm8',
+      poster: 'https://img.youtube.com/vi/78hevWNhRm8/maxresdefault.jpg'
+  },{
         title: '',
         href: 'https://www.youtube.com/watch?v=GfeX45lMM3A',
         type: 'text/html',
         youtube: 'GfeX45lMM3A',
         poster: 'https://img.youtube.com/vi/GfeX45lMM3A/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=78hevWNhRm8',
-        type: 'text/html',
-        youtube: '78hevWNhRm8',
-        poster: 'https://img.youtube.com/vi/78hevWNhRm8/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=7rpeZv0_t_k',
-        type: 'text/html',
-        youtube: '7rpeZv0_t_k',
-        poster: 'https://img.youtube.com/vi/7rpeZv0_t_k/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=0Uk_OPBHtoU',
-        type: 'text/html',
-        youtube: '0Uk_OPBHtoU',
-        poster: 'https://img.youtube.com/vi/0Uk_OPBHtoU/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=S6SaMu-FUkA',
-        type: 'text/html',
-        youtube: 'S6SaMu-FUkA',
-        poster: 'https://img.youtube.com/vi/S6SaMu-FUkA/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=hM_z3xWvR58',
-        type: 'text/html',
-        youtube: 'hM_z3xWvR58',
-        poster: 'https://img.youtube.com/vi/hM_z3xWvR58/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=G8J-1ll8fXA',
-        type: 'text/html',
-        youtube: 'G8J-1ll8fXA',
-        poster: 'https://img.youtube.com/vi/G8J-1ll8fXA/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=FpyqAir5LEU',
-        type: 'text/html',
-        youtube: 'FpyqAir5LEU',
-        poster: 'https://img.youtube.com/vi/FpyqAir5LEU/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=5n2fZisRbqc',
-        type: 'text/html',
-        youtube: '5n2fZisRbqc',
-        poster: 'https://img.youtube.com/vi/5n2fZisRbqc/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=tAZulxGrbDs',
-        type: 'text/html',
-        youtube: 'tAZulxGrbDs',
-        poster: 'https://img.youtube.com/vi/tAZulxGrbDs/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=BDn1-MNb9mc',
-        type: 'text/html',
-        youtube: 'BDn1-MNb9mc',
-        poster: 'https://img.youtube.com/vi/BDn1-MNb9mc/maxresdefault.jpg'
-    },{
-        title: '',
-        href: 'https://www.youtube.com/watch?v=S8ZUmpqT9pE',
-        type: 'text/html',
-        youtube: 'S8ZUmpqT9pE',
-        poster: 'https://img.youtube.com/vi/S8ZUmpqT9pE/maxresdefault.jpg'
     }
   ]
 
