@@ -27,7 +27,7 @@
     "passport-local": "^1.0.0",
     "pdf-image": "^0.0.1",
     "pg": "^4.4.3",
-    "sharp": "^0.10.1"
+    "sharp": "*"
   },
   "devDependencies": {},
   "scripts": {
