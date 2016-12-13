@@ -659,6 +659,7 @@ app.get('/query/water1', function(req,res) {
 	}
 })
 
+
 app.get('/households',function(req,res) {
 	if (req.user) {
 		pghelper.query('SELECT * FROM "HOUSEHOLD";', function(err, data){
