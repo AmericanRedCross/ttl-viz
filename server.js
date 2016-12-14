@@ -496,7 +496,7 @@ app.get('/progress',function(req,res) {
 
 app.post('/progress', function (req,res){
 	if (req.user){
-		var queryStr = 'SELECT * FROM "INDICATOR_TRACKING_TABLE";';
+		var queryStr = 'SELECT * FROM "INDICATOR_TRACKING_TABLE" where remarks='+"'visible';";
 		pghelper.query(queryStr, function(err, data){
 			res.send(data);
 		})
