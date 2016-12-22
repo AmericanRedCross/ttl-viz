@@ -16,6 +16,12 @@
   z-index: 1;
 }
 
+.panel-group{
+  position: absolute;
+  left: 47px;
+  top: 40px;
+  z-index: 1;
+}
 
 .leaflet-control-attribution a {
   color: #6d6e70 !important;
@@ -68,8 +74,16 @@
 <hr> -->
 <div class="btn-group btn-map-filter" role="button">
   <button class="btn btn-default btn-sm" type="button" onclick="filtermap('all');"></span>Show all</button>
-  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('core');"></span>Core only <i class="fa fa-circle" style="color:#7570b3;" aria-hidden="true"></i></button>
-  <button class="btn btn-default btn-sm" type="button" onclick="filtermap('sra');"></span>SRA only <i class="fa fa-circle" style="color:#1b9e77;" aria-hidden="true"></i></button>
+<button class="btn btn-default btn-sm" type="button" onclick="filtermap('addfilters');"></span>Filters</button>
+</div>
+
+<div class="filter-panel panel-group" id="accordion" role="tablist" >
+  <div class="filter-panel panel panel-default">
+    <div class="filter-panel panel-heading" role="tab">
+			<!-- panel titles go here -->
+    </div>
+		<!-- collapse divs go here -->
+  </div>
 </div>
 
 <div id="map"></div>
@@ -168,7 +182,6 @@ function drawPoints(){
 }
 
 function clickedHousehold(data, target){
-  console.log(data)
   $.post('query/hhoverview', {"id": data.id}, function(response){
     // # response should be an array containing one object
     if(response[0]){
@@ -200,19 +213,131 @@ function clickedHousehold(data, target){
   });
 }
 
+var locationLookup = {};
+
+function getLocationData(){
+  $.get('query/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+  });
+}
+
+var filterTitles = [];
+var filterOptions = [];
+
+function buildFilterHTML(title,titleName,options,isLocation){
+
+  var titleHTML = '';
+  var thisBodyHtml = '';
+
+  // add filter title to Filter Title panel
+  titleHTML = '<span class="panel-title">' + '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-' + titleName + '" aria-expanded="false"            aria-controls="collapse' + titleName + '">' + title + '</a></span>';
+
+  filterTitles.push(titleHTML);
+
+// add add collapsible panel to filter title
+  thisBodyHtml = '<div id="collapse-' + titleName + '" class="collapse" role="tabpanel">' + '<div class="panel-body">';
+
+// revise THIS and instead use only locationLookup
+  if(isLocation === true) {
+    var municipArray = [];
+    $.each(options, function(i, a){
+      var thisMunicip = a.slice(0,2);
+      if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
+        municipArray.push(thisMunicip);
+        thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
+        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' + thisMunicip + '" onchange="buildFilters();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div>';
+      }
+      if(locationLookup[a] === undefined){
+        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' + a + '" onchange="buildFilters();">' + 'data error' + '</label></div>';
+      }
+      else {
+        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' + a + '" onchange="buildFilters();">' + locationLookup[a].barangay + '</label></div>';
+      }
+    })
+  } else{
+    $.each(options, function(i, a){
+      // add checkbox for each option
+      thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+ titleName + '" value="' + a + '" onchange="buildFilters();">' + a + '</label></div>';
+    })
+  }
+  // close collapsible options panel
+  thisBodyHtml += '</div>' + '</div>';
+
+    //add options to filter panel
+  $('.filter-panel.panel').append(thisBodyHtml);
+}
+
 function filtermap(wat){
-  if(wat === "core"){
-    points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
-  }
-  else if(wat === "sra"){
-    points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
-  }
-  else{
+
+  if(wat=="all"){
     points.classed("hide", false);
+    closeFilterBox();
+    }
+
+  else if (wat=="addfilters"){
+
+    if($('#accordion').is(':visible')){
+      closeFilterBox();
+    }
+    else{
+
+      filterTitles = [];
+      filterOptions = [];
+
+      buildFilterHTML('Shelter','shelter',['Core','SRA'],false);
+      buildFilterHTML('Livelihood','livelihood',['CCG','STED','Agriculture Extension'],false);
+
+      $('.filter-panel.panel-heading').html(filterTitles.join('&nbsp; | &nbsp;'));
+
+      // only one checkbox can be selected
+      $('.checkbox input:checkbox').click(function() {
+        $('.checkbox input:checkbox').not(this).prop('checked', false);
+      });
+      $('#accordion').show();
+    }
   }
+}
+
+function closeFilterBox(){
+      clearAllFilters();
+      $('#accordion').hide();
+}
+
+function clearAllFilters(){
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
 
 }
 
+function buildFilters(){
+
+  //check which checkboxes are selected
+  var activeFilters = []
+  checkboxes = $(".filter-panel.panel input[type=checkbox]");
+    for (i=0; i<checkboxes.length; i++) {
+      if(checkboxes[i].checked === true) {
+        activeFilters.push({
+          filterKey: checkboxes[i].name,
+          filterValue: checkboxes[i].value
+        })
+      }
+    }
+
+  // show filter panel
+  if(activeFilters[0].filterValue == "Core"){
+    points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
+  }
+  else if(activeFilters[0].filterValue === "SRA"){
+    points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
+  }
+}
+
+$('#accordion').hide();
+
+getLocationData();
 getHouseholds()
 
 </script>
