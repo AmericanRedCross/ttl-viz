@@ -103,6 +103,8 @@
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script>
 
+$('#accordion').hide();
+
 var height = $(window).height();
 $('#map').height(height);
 $(window).resize(function(){
@@ -157,15 +159,7 @@ function drawPoints(){
 	points = pointsGroup.selectAll("circle")
     .data(data).enter().append("circle")
     .classed('point', true)
-    .attr('fill', function(d){
-      if(d.core !== null){
-        return "#7570b3";
-      } else if (d.sra !== null) {
-        return "#1b9e77";
-      } else {
-        return "#d95f02";
-      }
-    })
+    .attr('fill', "#ed1b2e")
     .on('click', function(d){ clickedHousehold(d, this); })
 
   // when map view changes adjust the locations of the svg circles
@@ -232,15 +226,12 @@ function buildFilterHTML(title,titleName,options,isLocation){
   var titleHTML = '';
   var thisBodyHtml = '';
 
-  // add filter title to Filter Title panel
   titleHTML = '<span class="panel-title">' + '<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-' + titleName + '" aria-expanded="false"            aria-controls="collapse' + titleName + '">' + title + '</a></span>';
 
   filterTitles.push(titleHTML);
 
-// add add collapsible panel to filter title
   thisBodyHtml = '<div id="collapse-' + titleName + '" class="collapse" role="tabpanel">' + '<div class="panel-body">';
 
-// revise THIS and instead use only locationLookup
   if(isLocation === true) {
     var municipArray = [];
     $.each(options, function(i, a){
@@ -259,14 +250,10 @@ function buildFilterHTML(title,titleName,options,isLocation){
     })
   } else{
     $.each(options, function(i, a){
-      // add checkbox for each option
       thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+ titleName + '" value="' + a + '" onchange="buildFilters();">' + a + '</label></div>';
     })
   }
-  // close collapsible options panel
   thisBodyHtml += '</div>' + '</div>';
-
-    //add options to filter panel
   $('.filter-panel.panel').append(thisBodyHtml);
 }
 
@@ -278,21 +265,17 @@ function filtermap(wat){
     }
 
   else if (wat=="addfilters"){
-
     if($('#accordion').is(':visible')){
       closeFilterBox();
     }
     else{
-
       filterTitles = [];
       filterOptions = [];
 
       buildFilterHTML('Shelter','shelter',['Core','SRA'],false);
-      buildFilterHTML('Livelihood','livelihood',['CCG','STED','Agriculture Extension'],false);
-
+      buildFilterHTML('Livelihood','livelihood',['CCG','STED'],false);
       $('.filter-panel.panel-heading').html(filterTitles.join('&nbsp; | &nbsp;'));
 
-      // only one checkbox can be selected
       $('.checkbox input:checkbox').click(function() {
         $('.checkbox input:checkbox').not(this).prop('checked', false);
       });
@@ -314,8 +297,8 @@ function clearAllFilters(){
 
 function buildFilters(){
 
-  //check which checkboxes are selected
   var activeFilters = []
+
   checkboxes = $(".filter-panel.panel input[type=checkbox]");
     for (i=0; i<checkboxes.length; i++) {
       if(checkboxes[i].checked === true) {
@@ -326,16 +309,22 @@ function buildFilters(){
       }
     }
 
-  // show filter panel
-  if(activeFilters[0].filterValue == "Core"){
+  if(activeFilters.length > 0 && activeFilters[0].filterValue == "Core"){
     points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
   }
-  else if(activeFilters[0].filterValue === "SRA"){
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "SRA"){
     points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
   }
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "STED"){
+    points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
+  }
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "CCG"){
+    points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
+  }
+  else{
+    points.classed("hide", false);
+  }
 }
-
-$('#accordion').hide();
 
 getLocationData();
 getHouseholds()

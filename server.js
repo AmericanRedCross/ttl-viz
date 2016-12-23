@@ -632,9 +632,13 @@ app.get('/query/phast', function(req,res) {
 app.get('/query/hhlocations', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT "HOUSEHOLD".household_id AS id, "HOUSEHOLD".gps_long AS lng, "HOUSEHOLD".gps_lat AS lat,' +
-			' core_shelter_100_percent_completion.hh_type AS core, "SHELTER_SRA".c_u_category AS sra FROM "HOUSEHOLD"' +
+			' core_shelter_100_percent_completion.hh_type AS core, "SHELTER_SRA".c_u_category AS sra,' +
+			'"LIVELIHOOD_CCG".beneficiary_code as ccg,' +
+			'"LIVELIHOOD_STED_PARTICIPANT".training_applied_for as sted FROM "HOUSEHOLD"'+
 			' LEFT JOIN core_shelter_100_percent_completion ON CAST("HOUSEHOLD".household_id AS TEXT) = core_shelter_100_percent_completion.hh_id_qr' +
-			' LEFT JOIN "SHELTER_SRA" ON "HOUSEHOLD".household_id = "SHELTER_SRA".c_u_household_id;';
+			' LEFT JOIN "SHELTER_SRA" ON "HOUSEHOLD".household_id = "SHELTER_SRA".c_u_household_id'+
+			' LEFT JOIN "LIVELIHOOD_STED_PARTICIPANT" ON "HOUSEHOLD".household_id = "LIVELIHOOD_STED_PARTICIPANT".household_id'+
+			' LEFT JOIN "LIVELIHOOD_CCG" ON "HOUSEHOLD".household_id = "LIVELIHOOD_CCG".household_id;';
 			pghelper.query(queryStr, function(err, data){
 				res.send(data);
 			})
