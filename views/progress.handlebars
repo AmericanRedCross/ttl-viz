@@ -10,6 +10,17 @@
 	margin: 2px 8px;
 }
 
+.btn-map-filter{
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.panel-group{
+  position:absolute;
+	padding-left: 15px;
+	padding-right: 15px;
+  z-index: 1;
+}
 
 </style>
 
@@ -17,16 +28,28 @@
 
 <header class="row header">
 	<div class="col-md-12">
-		<h1>Overall program progess </h1>
+		<h1>Overall Program Progess </h1>
+	</div>
+	<div>
+		<div class="col-md-9" style="margin-top:10px;"> <p>as of December 2016</p> </div>
+		<div class="col-md-3">
+			<div class="btn-group btn-map-filter">
+			  <!-- <button class="btn btn-default btn-sm" type="button" onclick="indicatorFilter('all')"></span>Show all</button> -->
+			<button class="btn btn-default btn-sm" type="button" onclick="indicatorFilter('showfilters')"></span>Filters</button>
+			</div>
+
+			<div class="filter-panel panel-group" id="accordion" role="tablist" >
+			  <div class="filter-panel panel panel-default">
+					<!-- collapse divs go here -->
+			  </div>
+			</div>
+		</div>
 	</div>
 </header>
 
 <hr>
 
 <table id="progress-indicators"></table>
-
-
-
 
 <hr>
 <footer id="site-footer">
@@ -40,10 +63,13 @@
 <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script>
 
+$('#accordion').hide();
+
 function getNumber(str){
   return (isNaN(parseFloat(str))) ? 0 : parseFloat(str);
 }
 var commas = d3.format(",");
+var data, filteredData;
 
 function getProgress(){
   $.ajax({
@@ -51,6 +77,8 @@ function getProgress(){
     url: 'progress',
     dataType: 'JSON'
   }).done(function(response){
+		data = response;
+		console.log(data);
     buildPage(response);
   });
 }
@@ -70,10 +98,6 @@ function buildPage(response){
 	var indicators = d3.select("#progress-indicators").selectAll('tr')
 		.data(response).enter().append('tr')
 
-	indicators.sort(function(a,b){
-		return d3.ascending(a.indicator_reference, b.indicator_reference);
-	})
-
 	var width = 30,
 			height = 30,
 			radius = Math.min(width, height) / 2,
@@ -89,16 +113,85 @@ function buildPage(response){
 		.attr('d', arc)
 		.style("fill", function(d) { return (d.data.label === "actual") ? "#8ec06c" : "#d7d7d8"; });
 
-	var reference = indicators.append('td').text(function(d){ return d.indicator_reference; });
-
 	var description = indicators.append('td');
 	description.append('div').text(function(d){ return d.indicator; });
 	description.append('div').html(function(d){
 		var unitText = (d.unit_of_measure === "Percent") ? "&#37;" : d.unit_of_measure;
 		return '<small>' + d.indicator_level + ': &nbsp;&nbsp;<b>' + commas(d.actual) + '</b> ' + unitText + ' of <b>' + commas(d.target) + '</b></small>'
 	});
+}
 
+function buildFilterHTML(title,options,isLocation){
+  var thisBodyHtml = '';
 
+	thisBodyHtml += '<div class="panel-body">';
+	$.each(options, function(i, a){
+		thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+ title + '" value="' + a + '" onchange="buildFilters();">' + a + '</label></div>';
+		}
+	)
+	thisBodyHtml += '</div>';
+	$('.filter-panel.panel').append(thisBodyHtml);
+}
+
+function indicatorFilter(filter){
+	if(filter=="all"){
+		clearAllFilters();
+		$('#accordion').hide();
+	}
+	else if(filter=="showfilters"){
+		if($('#accordion').is(':visible')){
+			clearAllFilters();
+			$('#accordion').hide();
+		}
+		else{
+			// Filter by sector
+			buildFilterHTML('sectors',['All','Shelter','Livelihood','Water and Sanitation','Health','DRR','M&E','Infrastructure'],false);
+
+			$('.checkbox input:checkbox').click(function() {
+				$('.checkbox input:checkbox').not(this).prop('checked', false);
+			});
+
+			$('#accordion').show();
+		}
+	}
+}
+
+function clearAllFilters(){
+	$('.filter-panel.panel').empty();
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+}
+
+function buildFilters(){
+	var activeFilters = [];
+	var filter;
+
+  checkboxes = $(".filter-panel.panel input[type=checkbox]");
+    for (i=0; i<checkboxes.length; i++) {
+      if(checkboxes[i].checked === true) {
+        activeFilters.push({
+          filterKey: checkboxes[i].name,
+          filterValue: checkboxes[i].value
+        })
+      }
+    }
+
+		filter = activeFilters[0];
+		// Filter according to sector
+		console.log(data);
+
+		if(filter.filterValue=="All"){
+			// buildPage(data);
+		}else if(filter.filterValue=="Shelter"){
+			// Show only Shelter indicators
+			data.forEach(function (d){
+				if(d.sector_responsible=="Shelter"){
+					filteredData.push(d);
+				}
+			})
+		}
+
+		console.log(filteredData);
 }
 
 getProgress();
