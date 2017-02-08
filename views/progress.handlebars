@@ -69,7 +69,7 @@ function getNumber(str){
   return (isNaN(parseFloat(str))) ? 0 : parseFloat(str);
 }
 var commas = d3.format(",");
-var data, filteredData;
+var data, filteredData={}, newData=[];
 
 function getProgress(){
   $.ajax({
@@ -78,7 +78,6 @@ function getProgress(){
     dataType: 'JSON'
   }).done(function(response){
 		data = response;
-		console.log(data);
     buildPage(response);
   });
 }
@@ -166,6 +165,8 @@ function buildFilters(){
 	var activeFilters = [];
 	var filter;
 
+	newData =[];
+
   checkboxes = $(".filter-panel.panel input[type=checkbox]");
     for (i=0; i<checkboxes.length; i++) {
       if(checkboxes[i].checked === true) {
@@ -177,21 +178,19 @@ function buildFilters(){
     }
 
 		filter = activeFilters[0];
-		// Filter according to sector
-		console.log(data);
 
 		if(filter.filterValue=="All"){
-			// buildPage(data);
-		}else if(filter.filterValue=="Shelter"){
-			// Show only Shelter indicators
+			newData = data;
+		}else{
 			data.forEach(function (d){
-				if(d.sector_responsible=="Shelter"){
-					filteredData.push(d);
-				}
+				if(d.sector_responsible==filter.filterValue){
+					filteredData[d.indicator_id] =  d;
+					newData.push(filteredData[d.indicator_id]);
+					}
 			})
 		}
-
-		console.log(filteredData);
+		$('#progress-indicators').empty();
+		buildPage(newData);
 }
 
 getProgress();
