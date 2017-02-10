@@ -34,7 +34,6 @@
 		<div class="col-md-9" style="margin-top:10px;"> <p>as of December 2016</p> </div>
 		<div class="col-md-3">
 			<div class="btn-group btn-map-filter">
-			  <!-- <button class="btn btn-default btn-sm" type="button" onclick="indicatorFilter('all')"></span>Show all</button> -->
 			<button class="btn btn-default btn-sm" type="button" onclick="indicatorFilter('showfilters')"></span>Filters</button>
 			</div>
 
@@ -183,7 +182,7 @@ function buildFilters(){
 			newData = data;
 		}else{
 			data.forEach(function (d){
-				if(d.sector_responsible==filter.filterValue){
+				if(filter.filterValue === d.sector_responsible){
 					filteredData[d.indicator_id] =  d;
 					newData.push(filteredData[d.indicator_id]);
 					}
