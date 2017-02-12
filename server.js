@@ -853,5 +853,18 @@ app.get('/assets',function(req,res) {
 	}
 })
 
+app.get('/mapillary',function(req,res) {
+	if (req.user) {
+    res.render('mapillary', {
+			user:req.user,
+			location:localConfig.application.nginxlocation,
+      opts:localConfig.page,
+			error:req.flash("loginMessage")
+    });
+	} else {
+		res.redirect(localConfig.application.nginxlocation);
+	}
+})
+
 app.listen(localConfig.application.port);
 console.log('Listening on port '+localConfig.application.port);

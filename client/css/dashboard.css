@@ -4,6 +4,21 @@ tfoot input {
   box-sizing: border-box;
 }
 
+
+/* mapillary */
+/* ######### */
+
+#mly {
+  display: inline-block;
+  height: 200px;
+  width: 66%;
+}
+#mly_map {
+  display: inline-block;
+  height: 200px;
+  width: 33%;
+}
+
 /* CCG */
 /* ### */
 .panel-body .checkbox {
