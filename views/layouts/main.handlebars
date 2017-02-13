@@ -1,154 +1,52 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>{{opts.siteName}}</title>
+<!doctype html>
+<html class="no-js" lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+  <title></title>
 
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/css/gulp.css">
 
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-		<script src="js/metisMenu.min.js"></script>
-		<!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script> -->
-		<!-- <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" /> -->
-
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-		<link rel="stylesheet" href="css/ocha-style.css">
-		<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
 
 
-		<link rel="shortcut icon" href="media/favicon.ico" type="image/x-icon">
-		<link rel="icon" href="media/favicon.ico" type="image/x-icon">
-	</head>
-	<body>
+<div data-sticky-container>
+  <div class="title-bar" data-responsive-toggle="navigation-menu" data-hide-for="medium">
+    <button class="menu-icon" type="button" data-toggle></button>
+    <div class="title-bar-title">Menu</div>
+  </div>
+  <div class="top-bar custom-navigation__top-bar" id="navigation-menu" data-sticky data-options="marginTop:0;" style="width:100%">
+    <div class="top-left-bar">
+      <ul class="menu">
+      </ul>
+    </div>
+    <div class="top-bar-right">
+      <ul class="menu">
+        {{#if user}}
+        <li><a class="custom-navigation__link" href="/">Home</a></li>
+        <li><a class="custom-navigation__link" href="#">Nav</a></li>
+        {{#eq user.permissions "admin"}}
+          <li><a class="custom-navigation__link" href="/admin/users">Users</a></li>
+        {{/eq}}
+        {{/if}}
+      </ul>
+    </div>
+  </div>
+</div>
 
-		{{#if user}}
-		<!-- Navigation -->
-		<a id="menu-toggle" href="#" class="btn btn-dark btn-lg toggle"><i class="fa fa-bars"></i></a>
-		<nav id="sidebar-wrapper">
-				<ul id="side-menu" class="sidebar-nav metismenu">
-						<a id="menu-close" href="#" class="btn btn-light btn-lg pull-right toggle"><i class="fa fa-times"></i></a>
-						<li class="sidebar-brand">
-								<a href="{{location}}" >Home</a>
-						</li>
-						<li>
-								<a href="assets"><i class="fa fa-fw fa-files-o"></i> &nbsp; Program documents</a>
-						</li>
-						<li>
-								<a href="#">Summary <i class="fa nav-arrow nav-float-right"></i></a>
-								<ul class="second-level">
-										<li>
-												<a href="progress" class="">Overall progress</a>
-										</li>
-										<li>
-												<a href="hardware" class="">Hardware intervention</a>
-										</li>
-										<li>
-												<a href="software" class="">Software intervention</a>
-										</li>
-								</ul>
-						</li>
-						<li>
-								<a href="gallery"><i class="fa fa-fw fa-picture-o"></i> &nbsp; Gallery</a>
-						</li>
-						<li>
-								<a href="#">Interventions<i class="fa nav-arrow nav-float-right"></i></a>
-								<ul class="second-level">
-										<li class="second-level-sector">
-												<span>Shelter</span>
-										</li>
-										<li>
-												<a href="core-shelter"><i class="fa fa-fw fa-home"></i> &nbsp; Core shelter</a>
-										</li>
-										<li>
-												<a href="sra"><i class="fa fa-fw fa-home"></i> &nbsp; Shelter repair (SRA)</a>
-										</li>
-										<li>
-												<a href="safer-shelter-training"><i class="fa fa-fw fa-briefcase"></i> &nbsp; Safer shelter training</a>
-										</li>
-										<li class="second-level-sector">
-												<span>Livelihood</span>
-										</li>
-										<li>
-												<a href="ccg"><i class="fa fa-fw fa-money"></i> &nbsp; Conditional cash grants</a>
-										</li>
-										<li>
-												<a href="sted"><i class="fa fa-fw fa-briefcase"></i> &nbsp; STED</a>
-										</li>
-										<li>
-												<a href="agriculture"><i class="fa fa-fw fa-leaf"></i> &nbsp; Agriculture</a>
-										</li>
-										<li class="second-level-sector">
-												<span>WASH</span>
-										</li>
-										<li>
-												<a href="phast"><i class="fa fa-fw fa-tint"></i> &nbsp; PHAST</a>
-										</li>
-								</ul>
-						</li>
-						<li>
-								<a href="analytics"><i class="fa fa-fw fa-file-text"></i> &nbsp; Analytics</a>
-						</li>
-						<li>
-								<a href="households-overview"><i class="fa fa-fw fa-home"></i> &nbsp; Households overview</a>
-						</li>
-						<li>
-								<a href="#">Community Overview<i class="fa nav-arrow nav-float-right"></i></a>
-								<ul class="second-level">
-									<li>
-											<a href="spot-maps"><i class="fa fa-fw fa-map-o"></i> &nbsp; Community Profiles</a>
-									</li>
-									<li>
-											<a href="community-infrastructure"><i class="fa fa-fw fa-map-o"></i> &nbsp; Community Infrastructure</a>
-									</li>
-								</ul>
-						</li>
+<div class="hide-for-medium custom-navigation_spacer"></div>
+
+  {{{body}}}
 
 
-						<li style="border-top:1px solid #6d6e70;">
-							<form id="form-logout" style="display:none;" class="navbar-form" role="form" action="user/logout" method="POST"></form>
-							<a href="#top"  onclick = document.getElementById('form-logout').submit(); >{{user.username}}
-								<span class="logout nav-float-right">Logout &nbsp;<i class="fa fa-sign-out"></i></span>
-							</a>
-						</li>
-						{{#eq user.permissions "super"}}
-							<li>
-								<a href="list-assets"><i class="fa fa-files-o"></i> &nbsp; Manage assets</a>
-							</li>
-							<li>
-								<a href="admin"><i class="fa fa-database"></i> &nbsp; Manage database</a>
-							</li>
-							<li>
-								<a href="users"><i class="fa fa-user"></i> &nbsp; Manage users</a>
-							</li>
-						{{/eq}}
-
-				</ul>
-		</nav>
-		{{/if}}
-
-
-			<div id="site-content">
-				{{{body}}}
-			</div>
-
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="/js/what-input.js" ></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.0/js/foundation.min.js"></script>
 <script>
-// # closes the sidebar menu
-$("#menu-close").click(function(e) {
-		e.preventDefault();
-		$("#sidebar-wrapper").toggleClass("active");
-});
-// # opens the sidebar menu
-$("#menu-toggle").click(function(e) {
-		e.preventDefault();
-		$("#sidebar-wrapper").toggleClass("active");
-});
-// # creates the dropdowns in the sidebar menu
-$(function() {
-    $('#side-menu').metisMenu();
-});
+  $(document).foundation()
 </script>
-
 </body>
 </html>
