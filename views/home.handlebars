@@ -1,26 +1,121 @@
-<div class="row">
-<div class="small-6 small-offset-3 medium-4 medium-offset-4 columns">
+<div class="expanded row jumbotron">
+	<div class="row">
+    <div class="medium-offset-1 medium-10 columns">
+			<div class="jumbotron-logos">
+				<img src="media/logos/01-prc.png">
+				<img src="media/logos/02-arc.png">
+			</div>
+			<h2>Tindog Tabang Leyteno<br>
+			<h3 class="subheader">Stand Up, Help Leytenos</h3>
+    </div>
+	</div>
+</div>
+
+<br>
+
+
 {{#if user}}
-  <h5>Welcome <b>{{user.user}}</b>.</h5>
-  <p>You are logged in.</p>
-  <p>
-    <form class="navbar-form" action="/logout" method="POST" >
-      <button type="submit" value="submit" class="button">Log Out</button>
-    </form>
-  </p>
+
+<div class="row">
+  <div class="medium-offset-1 medium-5 columns">
+		<p>November 8, 2013 – the day that Typhoon Haiyan (Yolanda), the strongest typhoon ever to make landfall, hit the Philippines and impacted the lives of 14 million people. The typhoon had a widespread effect, covering 14 provinces and 171 municipalities, where scores of homes were damaged or destroyed, various livelihoods disrupted, numerous crops were lost, and sanitation systems were affected.</p>
+		<p>In response to this disaster, the Philippine Red Cross (PRC) in partnership with American Red Cross (ARC) implemented a 3-year recovery project, which spans from July 2014 to June 2017. The project covers 4 municipalities and 23 barangays, and comprises activities in the core sectors of Shelter and Settlement, Livelihoods, Sanitation, Health, and Disaster Risk Reduction.</p>
+		<p>The main goal of the project is to contribute to building safe and resilient communities by identifying and addressing various factors that will help people sustainably rebuild their lives, livelihoods, and assets while ensuring that future climate, environmental and disaster related risks are addressed and/or minimized.</p>
+	</div>
+	<div class="medium-5 columns end">
+		<img class="img-expanded img-rounded" src="media/pics/cgi-distribution-reduced.jpg" />
+	</div>
+
+</div>
+<br>
+
+<div class="row">
+	<div class="medium-offset-1 medium-10 columns" >
+			<h3 class="under-thick">Our Aim</h3>
+	</div>
+</div>
+
+<div class="row">
+  <div class="medium-offset-1 medium-10 column" >
+    <div class="row small-up-1 medium-up-3" data-equalizer data-equalize-by-row="true">
+      <div class="column" data-equalizer-watch>
+    		<p>1.	Philippine Red Cross (PRC) increases their capacity in community-based recovery and preparedness to enhance community resilience.</p>
+    	</div>
+    	<div class="column" data-equalizer-watch>
+    		<p>2.	Communities increase their capacity in adopting resilient practices.</p>
+    	</div>
+    	<div class="column" data-equalizer-watch>
+    		<p>3.	Household and community has increased access to safer and sustainable infrastructure and resources. </p>
+    	</div>
+    </div>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+	<div class="medium-offset-1 medium-10 columns" >
+			<h3 class="under-thick">Our Intervention</h3>
+	</div>
+</div>
+
+<div class="row">
+	<div class="medium-offset-1 medium-10 column" >
+		<div class="row small-up-1 medium-up-2" data-equalizer data-equalize-by-row="true">
+			<div class="column" data-equalizer-watch>
+				<h4 class="under-thin">Shelter</h4>
+				<span class="ocha-icon icon-cluster_shelter icon-intervention rcred2"></span>
+				<p>Builds Core Shelters, and provides Shelter Retrofitting through cash disbursement, material transfers, and technical support. The Shelter Sector also supports knowledge transfer and capacity building activities regarding shelter and settlement solutions to Red Cross staff, volunteers, beneficiaries, and skilled workers.</p>
+			</div>
+			<div class="column" data-equalizer-watch>
+				<h4 class="under-thin">Livelihood</h4>
+				<span class="ocha-icon icon-socioeconomic_livelihood icon-intervention rcred2"></span>
+				<p></p>
+				<p>Provides Conditional Cash Grants (CCG) to beneficiaries, supports youth and young adults to obtain skills and employment through a Skills Training and Development and Enterprise Development (STED), supprts farmers through the Agricultural Extension Program, and supports community associations through Community Managed Livelihood Projects. </p>
+			</div>
+			<div class="column" data-equalizer-watch>
+				<h4 class="under-thin">Water and Sanitation</h4>
+				<span class="ocha-icon icon-cluster_WASH icon-intervention rcred2"></span>
+				<p>Implements CHAST to promote sanitation and hygiene practices in schools, and improving access to private and communal sanitation alongside all shelter solutions. Improve access to water in the communities through the installation of Water Systems, Level 1 and 2.</p>
+			</div>
+			<div class="column" data-equalizer-watch>
+				<h4 class="under-thin">Health</h4>
+				<span class="ocha-icon icon-cluster_health icon-intervention rcred2"></span>
+				<p>Implements CBHFA, Health Promotion and capacity building activities, as well as provides small equipment to health posts in covered communities.</p>
+			</div>
+			<div class="column" data-equalizer-watch>
+				<h4 class="under-thin">Disaster Risk Reduction</h4>
+				<span class="ocha-icon icon-activity_preparedness icon-intervention rcred2"></span>
+				<p>Promotes and builds capacity of communities in household preparedness; which includes early warning systems, structural, and non-structural disaster mitigation.</p>
+			</div>
+			<div class="column" data-equalizer-watch>
+				<h4 class="under-thin">Infrastructure</h4>
+				<span class="ocha-icon icon-activity_advocacy icon-intervention rcred2"></span>
+				<p>Implements construction or repair of facilities and infrastructure that will contribute to community emergency preparedness, response, and safety in the covered communities of the program.</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+<hr>
+<footer id="site-footer">
+	<div class="row row-logo">
+				{{{logos}}}
+			</div>
+</footer>
+
 {{else}}
-
-  	<form action="/login" method="POST">
-      <label> User
-        <input type="text" name="user" id="login-user" placeholder="...">
-      </label>
-      <label> Password
-        <input type="password" name="password" id="login-password" placeholder="...">
-      </label>
-      <button type="submit" value="submit" class="button">Log In</button>
-
-  	</form>
-
+<div class="row">
+  <div class="small-8 medium-offset-2 medium-4 columns">
+    	<form action="/login" method="POST">
+        <input type="text" name="user" id="login-user" placeholder="Username" >
+        <input type="password" name="password" id="login-password" placeholder="Password" >
+        <button type="submit" value="submit" class="button secondary">Log In</button>
+    	</form>
+  </div>
+</div>
 {{/if}}
-</div>
-</div>
