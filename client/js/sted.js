@@ -529,14 +529,15 @@ function buildList(){
           modal.find('.modal-title').html(name);
           var location = (locationLookup[filteredData[i].location_id] === undefined) ? "not known" : locationLookup[filteredData[i].location_id].barangay + ", " +
             locationLookup[filteredData[i].location_id].municipality;
-          var detailsHtml = "<b>Training applied for:</b> " + filteredData[i].training_applied_for + "<br>" +
-            "<b>Contact number:</b> " + filteredData[i].contact_no + "<br>" +
-            "<b>Start date:</b> " + filteredData[i].start_date + "<br>" +
+          var detailsHtml = "<b>Household location:</b> " + location + "<br>"+
             "<b>Gender:</b> " + filteredData[i].sex + "<br>" +
             "<b>Civil status:</b> " + filteredData[i].civil_status + "<br>" +
             "<b>Birth date:</b> " + filteredData[i].birthdate + "<br>" +
-            "<b>Age:</b> " + ageCheck(filteredData[i].birthdate) + "<br>" +
-            "<b>Household location:</b> " + location + "<br>";
+            "<b>Age:</b> " + ageCheck(filteredData[i].birthdate) + "<br>"+
+            "<b>Training applied for:</b> " + filteredData[i].training_applied_for + "<br>" +
+            "<b>Start date:</b> " + filteredData[i].start_date + "<br>" +
+            "<b>National Certification II:</b> " + filteredData[i].certification_result + "<br>"+
+            "<b>Job Status:</b> " + filteredData[i].employment_status + "<br>";
           modal.find('.modal-body p').html(detailsHtml);
           break;
         }
