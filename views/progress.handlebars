@@ -49,6 +49,9 @@
 <hr>
 
 <table id="progress-indicators"></table>
+<!-- <table id="objective-one-indicators"></table>
+<table id="objective-two-indicators"></table>
+<table id="objective-three-indicators"></table> -->
 
 <hr>
 <footer id="site-footer">
@@ -81,8 +84,15 @@ function getProgress(){
   });
 }
 
-function buildPage(response){
+var objectives = [
+	"Philppine Red Cross (PRC) increases their capacity in community-based recovery and preapredness to enhance comunity resilience.",
+	"Communities increase their capacity in adopting resilient practices.",
+	"Household and community has increased access to safer and sustainable infrastructure and resources."
+]
 
+function buildPage(response){
+// each objective has its own table
+//
 	response.forEach(function(d){
 		var actual = getNumber(d.actual);
 		var target = getNumber(d.target);
@@ -93,26 +103,30 @@ function buildPage(response){
 		]
 	})
 
-	var indicators = d3.select("#progress-indicators").selectAll('tr')
-		.data(response).enter().append('tr')
+	var indicators = d3.select("#progress-indicators").selectAll('tr').data(response).enter().append('tr');
 
 	var width = 30,
 			height = 30,
 			radius = Math.min(width, height) / 2,
 			arc = d3.svg.arc().outerRadius(radius),
-			pie = d3.layout.pie().value(function(d){ return d.count })
+			pie = d3.layout.pie().value(function(d){
+				return d.count
+			})
 
 	var svg = indicators.append('td').append('svg')
 		.attr('class', 'progress-pie')
 		.attr('width', width).attr('height', height)
 		.append('g').attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')')
 
-	var g = svg.selectAll('g').data(function(d) { return pie(d.pie); }).enter().append('path')
+	var g = svg.selectAll('g').data(function(d) {
+		return pie(d.pie); }).enter().append('path')
 		.attr('d', arc)
 		.style("fill", function(d) { return (d.data.label === "actual") ? "#8ec06c" : "#d7d7d8"; });
 
 	var description = indicators.append('td');
+
 	description.append('div').text(function(d){ return d.indicator; });
+
 	description.append('div').html(function(d){
 		var unitText = (d.unit_of_measure === "Percent") ? "&#37;" : d.unit_of_measure;
 		return '<small>' + d.indicator_level + ': &nbsp;&nbsp;<b>' + commas(d.actual) + '</b> ' + unitText + ' of <b>' + commas(d.target) + '</b></small>'
