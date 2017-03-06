@@ -1,7 +1,7 @@
 
 <style>
 
-#progress-indicators {
+.progress-indicators {
 	background: #fff;
 	table-layout: auto !important;
 }
@@ -34,7 +34,6 @@
 		<div class="col-md-9" style="margin-top:10px;"> <p>as of December 2016</p> </div>
 		<div class="col-md-3">
 			<div class="btn-group btn-map-filter">
-			  <!-- <button class="btn btn-default btn-sm" type="button" onclick="indicatorFilter('all')"></span>Show all</button> -->
 			<button class="btn btn-default btn-sm" type="button" onclick="indicatorFilter('showfilters')"></span>Filters</button>
 			</div>
 
@@ -49,7 +48,24 @@
 
 <hr>
 
-<table id="progress-indicators"></table>
+<div class="table-group">
+	<div class="objective-one-group">
+		<h4>Philppine Red Cross (PRC) increases their capacity in community-based recovery and preparedness to enhance comunity resilience</h4>
+		<table id="objective-one-indicators" class="progress-indicators"></table>
+	</div>
+	<div>
+		<h4>Communities increase their capacity in adopting resilient practices</h4>
+		<table id="objective-two-indicators" class="progress-indicators"></table>
+	</div>
+	<div>
+		<h4>Household and community has increased access to safer and sustainable infrastructure and resources</h4>
+		<table id="objective-three-indicators" class="progress-indicators"></table>
+	</div>
+	<div>
+		<h4>Crosscutting</h4>
+		<table id="crosscutting-indicators" class="progress-indicators"></table>
+	</div>
+<div>
 
 <hr>
 <footer id="site-footer">
@@ -78,12 +94,14 @@ function getProgress(){
     dataType: 'JSON'
   }).done(function(response){
 		data = response;
-    buildPage(response);
+    buildPage(response,1,"#objective-one-indicators");
+		buildPage(response,2,"#objective-two-indicators");
+		buildPage(response,3,"#objective-three-indicators");
+		buildPage(response,4,"#crosscutting-indicators");
   });
 }
 
-function buildPage(response){
-
+function buildPage(response,objectiveNumber,indicatorTable){
 	response.forEach(function(d){
 		var actual = getNumber(d.actual);
 		var target = getNumber(d.target);
@@ -94,26 +112,25 @@ function buildPage(response){
 		]
 	})
 
-	var indicators = d3.select("#progress-indicators").selectAll('tr')
-		.data(response).enter().append('tr')
+
+	var indicators = d3.select(indicatorTable).selectAll('tr').data(response.filter(function(d){ if(objectiveNumber == null){return d;} else{ return d.objective === objectiveNumber;}})).enter().append('tr');
 
 	var width = 30,
 			height = 30,
 			radius = Math.min(width, height) / 2,
 			arc = d3.svg.arc().outerRadius(radius),
-			pie = d3.layout.pie().value(function(d){ return d.count })
+			pie = d3.layout.pie().value(function(d){
+				return d.count
+			})
 
-	var svg = indicators.append('td').append('svg')
-		.attr('class', 'progress-pie')
-		.attr('width', width).attr('height', height)
-		.append('g').attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')')
+	var svg = indicators.append('td').append('svg').attr('class', 'progress-pie').attr('width', width).attr('height', height).append('g').attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')')
 
-	var g = svg.selectAll('g').data(function(d) { return pie(d.pie); }).enter().append('path')
-		.attr('d', arc)
-		.style("fill", function(d) { return (d.data.label === "actual") ? "#8ec06c" : "#d7d7d8"; });
+  var	g = svg.selectAll('g').data(function(d) { return pie(d.pie); }).enter().append('path').attr('d', arc).style("fill", function(d) { return (d.data.label === "actual") ? "#8ec06c" : "#d7d7d8"; });
 
 	var description = indicators.append('td');
+
 	description.append('div').text(function(d){ return d.indicator; });
+
 	description.append('div').html(function(d){
 		var unitText = (d.unit_of_measure === "Percent") ? "&#37;" : d.unit_of_measure;
 		return '<small>' + d.indicator_level + ': &nbsp;&nbsp;<b>' + commas(d.actual) + '</b> ' + unitText + ' of <b>' + commas(d.target) + '</b></small>'
@@ -183,14 +200,21 @@ function buildFilters(){
 			newData = data;
 		}else{
 			data.forEach(function (d){
-				if(d.sector_responsible==filter.filterValue){
+				if(filter.filterValue === d.sector_responsible){
 					filteredData[d.indicator_id] =  d;
 					newData.push(filteredData[d.indicator_id]);
 					}
 			})
 		}
-		$('#progress-indicators').empty();
-		buildPage(newData);
+		$('#objective-one-indicators').empty();
+		$('#objective-two-indicators').empty();
+		$('#objective-three-indicators').empty();
+		$('#crosscutting-indicators').empty();
+
+	 	buildPage(newData,1,"#objective-one-indicators");
+		buildPage(newData,2,"#objective-two-indicators");
+		buildPage(newData,3,"#objective-three-indicators");
+		buildPage(newData,4,"#crosscutting-indicators");
 }
 
 getProgress();
