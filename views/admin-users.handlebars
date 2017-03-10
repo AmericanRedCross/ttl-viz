@@ -85,11 +85,13 @@
         <h5 class="subheader">
           <!-- <i class="fa fa-user" aria-hidden="true"></i> -->
           <div class="button-group small float-right">
-            <a class="button secondary hollow" onClick="editUser(this);" data-id="{{id}}" data-user="{{user}}" data-permissions="{{permissions}}"><i class="fa fa-fw fa-pencil"></i></a>
+            <a class="button secondary hollow" onClick="editUser(this);" data-id="{{id}}" data-user="{{user}}" data-permissions="{{permissions}}">
+              <i class="fa fa-fw fa-pencil"></i>
+            </a>
             <form action="/admin/user" method="POST" style="display:inline-block;">
               <input type="hidden" name="_method" value="DELETE" />
               <input type="hidden" name="id" value="{{id}}" />
-              <button type="submit" value="submit" class="button alert hollow"><i class="fa fa-fw fa-trash"></i></a>
+              <button type="submit" value="submit" class="button alert hollow"><i class="fa fa-fw fa-trash"></i></button>
             </form>
           </div>
         </h5>

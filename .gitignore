@@ -1,5 +1,10 @@
+settings.js
 node_modules
 notes/*
+backups/*
+!backups/note.txt
+tmp/*
+!tmp/note.txt
 site.db
 sessions.db
 public/fonts/*

@@ -9,6 +9,11 @@
 
   <title>{{opts.siteName}}</title>
 
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="{{opts.nginxlocation}}js/what-input.js" ></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/metisMenu/2.6.2/metisMenu.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.0/js/foundation.min.js"></script>
+
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/metisMenu/2.6.2/metisMenu.min.css">
   <link rel="stylesheet" href="{{opts.nginxlocation}}css/ocha-style.css">
   <link rel="stylesheet" href="{{opts.nginxlocation}}css/gulp.css">
@@ -120,7 +125,7 @@
               <a href="list-assets"><i class="fa fa-files-o"></i> &nbsp; Manage assets</a>
             </li>
             <li>
-              <a href="admin"><i class="fa fa-database"></i> &nbsp; Manage database</a>
+              <a href="{{opts.nginxlocation}}admin/site"><i class="fa fa-database"></i> &nbsp; Manage database</a>
             </li>
             <li>
               <a href="{{opts.nginxlocation}}admin/users"><i class="fa fa-user"></i> &nbsp; Manage users</a>
@@ -134,10 +139,6 @@
   {{{body}}}
 
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="/js/what-input.js" ></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/metisMenu/2.6.2/metisMenu.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.3.0/js/foundation.min.js"></script>
 <script>
   $(document).foundation();
 

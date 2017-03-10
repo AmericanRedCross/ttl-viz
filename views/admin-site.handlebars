@@ -1,0 +1,43 @@
+<div class="row">
+	<div class="medium-offset-1 medium-10 columns">
+		<h2>Site admin </h2>
+	</div>
+</div>
+
+<div class="row">
+	<div class="small-offset-1 small-10 column">
+		<form id="refreshdb" action="{{opts.nginxlocation}}admin/dbrefresh" method="POST">
+			<button type="submit" value="submit" class="button secondary">
+				Refresh database &nbsp;<i class="fa fa-refresh"></i>
+			</button>
+		  <span id="refresh-status"></span>
+		</form>
+	</div>
+</div>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
+<script>
+
+$(document).ready(function() {
+
+
+  $('#refreshdb').submit(function() {
+    d3.select("#refreshdb button").classed("disabled", true);
+    d3.select("#refreshdb button i").classed('fa-pulse', true);
+    $(this).ajaxSubmit({
+      error: function(xhr) {
+        $('#refresh-status').empty().text('error');
+      },
+      success: function(response) {
+        d3.select("#refreshdb button").classed("disabled", false);
+        d3.select("#refreshdb button i").classed('fa-pulse',false);
+        $('#refresh-status').empty().html('<small>refresh run with: <b>' + response.slice(response.indexOf("/")) + "</b></small>");
+      }
+    });
+    return false;
+  });
+
+});
+
+</script>

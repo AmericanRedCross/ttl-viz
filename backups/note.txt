@@ -1,0 +1,2 @@
+# backup file pulled by pgRefresh.js goes here
+# contents of this folder are gitignored

@@ -2,6 +2,7 @@ var settings = require('./settings.js');
 var fs = require('fs');
 var flow = require('flow');
 var path = require('path');
+global.appRoot = path.resolve(__dirname);
 var crypto = require('crypto');
 var sqlite3 = require('sqlite3');
 var passport = require('passport');
@@ -207,13 +208,13 @@ app.use(express.static('public'));
 app.post('/login', passport.authenticate('local', {
     failureRedirect: '/'
   }), function(req, res) {
-    res.redirect('/');
+    res.redirect(settings.page.nginxlocation);
   }
 );
 
 app.post('/logout', function(req, res) {
 	req.session.destroy(function(err) {
-		res.redirect('/');
+		res.redirect(settings.page.nginxlocation);
 	})
 });
 
@@ -224,10 +225,21 @@ app.get('/', function(req, res) {
 		});
 });
 
+app.get('/admin/site', function(req, res) {
+	if (req.user && req.user.permissions == "admin") {
+		res.render('admin-site',{
+			user:req.user,
+			opts:settings.page
+		});
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
 app.get('/admin/users', function(req, res) {
   if(req.user && req.user.permissions == "admin") {
     listUsers(function(result) {
-      res.render('users',{
+      res.render('admin-users',{
         user:req.user,
         users: result,
         opts:settings.page,
@@ -236,7 +248,7 @@ app.get('/admin/users', function(req, res) {
       });
     });
   } else {
-    res.redirect('/');
+    res.redirect(settings.page.nginxlocation);
   }
 });
 
@@ -255,6 +267,17 @@ app.post('/admin/user', function(req, res) {
     }
   } else { res.redirect('/admin/users'); }
 });
+
+var PostGresRefresh = require("./routes/postGresRefresh.js");
+var postGresRefresh = new PostGresRefresh();
+
+app.post('/admin/dbrefresh', function (req,res){
+	if (req.user && req.user.permissions == "admin"){
+		postGresRefresh.run(function(err,data){
+			res.send(data);
+		});
+	}
+})
 
 app.listen(settings.app.port, function() {
   console.log('app listening on port ' + settings.app.port);
