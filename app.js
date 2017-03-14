@@ -30,6 +30,13 @@ db.run("CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY AUTOINCREMENT,
     });
 });
 
+// initialize db table for gallery
+db.run('CREATE TABLE IF NOT EXISTS gallery ( ' +
+  'rowid INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+  'published INTEGER DEFAULT 0, ' +
+  'caption TEXT, ' +
+  'filename TEXT' + ' )', function(err) { if(err) { console.log(err); } });
+
 // db functions
 var createUser = function(req, res) {
   var user = req.body.user;
@@ -198,7 +205,11 @@ app.engine('handlebars', exphbs({
 				return options.fn(this);
 			}
 			return options.inverse(this);
-		}
+		},
+    returnThumb: function(filePath) {
+      return filePath.slice(0, filePath.lastIndexOf(".")) +
+        "_THUMB" + filePath.slice(filePath.lastIndexOf("."));
+    }
   }
 }));
 app.set('view engine', 'handlebars');
@@ -265,19 +276,160 @@ app.post('/admin/user', function(req, res) {
         createUser(req, res);
       break;
     }
-  } else { res.redirect('/admin/users'); }
+  } else { res.redirect(settings.page.nginxlocation); }
 });
 
 var PostGresRefresh = require("./routes/postGresRefresh.js");
 var postGresRefresh = new PostGresRefresh();
 
-app.post('/admin/dbrefresh', function (req,res){
+app.post('/admin/dbrefresh', function (req, res){
 	if (req.user && req.user.permissions == "admin"){
 		postGresRefresh.run(function(err,data){
 			res.send(data);
 		});
 	}
 })
+
+// gallery stuff
+var multer  = require('multer');
+var AWS = require('aws-sdk');
+var s3 = new AWS.S3();
+var gm = require('gm');
+var moment = require('moment');
+
+app.get('/api/gallery/:rowid', function(req, res) {
+  if(req.user) {
+    var query = "SELECT * FROM gallery WHERE rowid = " + req.params.rowid;
+    db.get(query, function(err, row) {
+      if(err) { console.log(err); }
+      res.json(row);
+    });
+  }
+});
+
+app.get('/edit/gallery', function(req, res) {
+  if (req.user && (req.user.permissions == "admin" || req.user.permissions == "editor")) {
+    db.all('SELECT * FROM gallery', function(err, result) {
+      res.render('admin-gallery',{
+        user:req.user,
+        images: result,
+        opts:settings.page,
+        error:req.flash("errorMessage"),
+        success:req.flash("successMessage")
+      });
+    });
+  } else {
+    res.redirect(settings.page.nginxlocation);
+  }
+})
+
+var galleryImage = multer({ dest: path.join(appRoot, 'tmp') })
+
+var deleteImage = function(req, res) { }
+var editImage = function(req, res) {
+  var query = "UPDATE gallery SET ";
+  var updates = [];
+  for (key in req.body) {
+    if(key !== "_method") {
+      updates.push(key + " = '" + req.body[key].replace("'","''") + "'" ) // single quotes in a string screw up the sql query
+    }
+  }
+  query += updates.join(", ");
+  query += " WHERE rowid = " + req.body.rowid;
+  db.run(query, function(err) {
+    // if(err)
+    if(this.changes) {
+      req.flash('successMessage', 'Image updated!');
+      res.redirect('/edit/gallery');
+    } else {
+      req.flash('errorMessage', 'Apologies, it seems something went wrong.');
+      res.redirect('/edit/gallery');
+    }
+  });
+
+}
+
+var uploadImage = function(req, res){
+  var timestamp = moment().format("YYYY-MM-DD_HH-mm-ss");
+  var tmpImg = req.file.path;
+
+  var processImage = flow.define(
+    function() {
+      // upload the original image
+      var body = fs.createReadStream(tmpImg);
+      var key = "gallery_testing/" + timestamp + "_" +
+        req.file.originalname.slice(0, req.file.originalname.lastIndexOf(".")) +
+        "_ORIGINAL" + req.file.originalname.slice(req.file.originalname.lastIndexOf("."));
+      s3.upload({ Body: body, Bucket: settings.s3.mediabucket, Key: key }, this);
+    }
+    ,function(err, data) {
+      // shrink some if it's big
+      gm(tmpImg)
+        .resize('1000', '800', '>')
+        // Use > to change the dimensions of the image only if its width or height exceeds the geometry specification.
+        .write(tmpImg, this)
+    }
+    ,function() {
+      // upload the resized image for use on the website
+      var body = fs.createReadStream(tmpImg);
+      var key = "gallery_testing/" + timestamp + "_" + req.file.originalname;
+      s3.upload({ Body: body, Bucket: settings.s3.mediabucket, Key: key }, this);
+    }
+    ,function(err, data) {
+      // save the filename for our db insert query later
+      this.key = data.key;
+      // resize to a thumbnail
+      gm(tmpImg)
+        .resize('200', '200', '^')
+        // Append a ^ to the geometry so that the image is resized while maintaining the aspect ratio of the image,
+        // but the resulting width or height are treated as minimum values rather than maximum values.
+        .gravity('Center')
+        .crop('200', '200')
+        .write(tmpImg, this)
+    }
+    ,function() {
+      // upload the thumbnail
+      var body = fs.createReadStream(tmpImg);
+      var key = settings.s3.galleryfolder + "/" + timestamp + "_" +
+        req.file.originalname.slice(0, req.file.originalname.lastIndexOf(".")) +
+        "_THUMB" + req.file.originalname.slice(req.file.originalname.lastIndexOf("."));
+      s3.upload({ Body: body, Bucket: settings.s3.mediabucket, Key: key }, this);
+    }
+    ,function() {
+      // unlink (delete) the file from tmp
+      fs.unlink(tmpImg, this);
+    }
+    ,function() {
+      // save the metadata to our db table
+      var query = "INSERT INTO gallery (published, caption, filename) VALUES (" +
+        "'" + req.body.published + "', " +
+        "'" + req.body.caption + "', " +
+        "'" + this.key + "') ";
+        console.log(query);
+      db.run(query, function(err) {
+        res.redirect('/edit/gallery');
+      });
+    }
+  );
+  processImage();
+}
+
+app.post('/edit/gallery', galleryImage.single('imageFile'), function(req, res) {
+  if (req.user && (req.user.permissions == "admin" || req.user.permissions == "editor")) {
+    switch(req.body["_method"]) {
+      case "DELETE":
+        deleteImage(req, res);
+      break;
+      case "PUT":
+        editImage(req, res);
+      break;
+      default:
+        uploadImage(req, res);
+      break;
+    }
+  } else { res.redirect('/edit/gallery'); }
+});
+
 
 app.listen(settings.app.port, function() {
   console.log('app listening on port ' + settings.app.port);

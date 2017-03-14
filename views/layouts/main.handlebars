@@ -119,16 +119,22 @@
             <li>
               <a href="list-assets"><i class="fa fa-files-o"></i> &nbsp; Manage assets</a>
             </li>
+            <li>
+              <a href="{{opts.nginxlocation}}edit/gallery"><i class="fa fa-fw fa-file-image-o"></i> &nbsp; Manage gallery</a>
+            </li>
           {{/eq}}
           {{#eq user.permissions "admin"}}
             <li>
               <a href="list-assets"><i class="fa fa-files-o"></i> &nbsp; Manage assets</a>
             </li>
             <li>
-              <a href="{{opts.nginxlocation}}admin/site"><i class="fa fa-database"></i> &nbsp; Manage database</a>
+              <a href="{{opts.nginxlocation}}edit/gallery"><i class="fa fa-fw fa-file-image-o"></i> &nbsp; Manage gallery</a>
             </li>
             <li>
-              <a href="{{opts.nginxlocation}}admin/users"><i class="fa fa-user"></i> &nbsp; Manage users</a>
+              <a href="{{opts.nginxlocation}}admin/site"><i class="fa fa-fw fa-database"></i> &nbsp; Manage database</a>
+            </li>
+            <li>
+              <a href="{{opts.nginxlocation}}admin/users"><i class="fa fa-fw fa-user"></i> &nbsp; Manage users</a>
             </li>
           {{/eq}}
       </ul>

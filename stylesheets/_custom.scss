@@ -141,3 +141,24 @@
 /* Footer */
 .row-logo { text-align: center; padding: rem-calc(32); }
 .row-logo img { height: rem-calc(32); margin: rem-calc(0 16 8); }
+
+
+/* edit gallery */
+.edit-gallery-card {
+  margin-bottom: 0;
+  position: relative;
+  display: inline-block;
+  width: 150px;
+  height: 150px;
+  cursor: pointer;
+}
+.edit-gallery-card-item:hover {
+  border:2px solid $secondary-color;
+}
+.edit-gallery-card i.published {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background-color: #fff;
+  padding: 2px;
+}

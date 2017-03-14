@@ -1,0 +1,137 @@
+<div id="modal" class="reveal" data-reveal>
+  <form action="{{opts.nginxlocation}}edit/gallery" enctype="multipart/form-data" method="POST" >
+    <h4 id="modal_title">...</h4>
+
+      <input type="hidden" name="_method" value="" />
+      <input type="hidden" type="text" name="rowid" value="" />
+      <div id="imageFileSection">
+        <label for="imageFile" class="button">Select file</label> <span id="selectedFile"></span>
+        <input type="file" id="imageFile" name="imageFile" class="show-for-sr" accept=".jpeg,.jpg,.png" size="50" aria-describedby="fileUploadHelpText" required>
+        <p class="help-text" id="fileUploadHelpText"> (accepted file types are .jpeg,.jpg,.png)</p>
+      </div>
+      <fieldset>
+        <legend>Published:</legend>
+        <input id="published-false" type="radio" class="mdl-radio__button" name="published" value="0">
+        <label for="published-false">False</label>
+        <input id="published-true" type="radio" class="mdl-radio__button" name="published" value="1">
+        <label for="published-true">True</label>
+      </fieldset>
+      <label>Caption
+        <input id="caption" type="text" name="caption"  placeholder="..." value="" required>
+      </label>
+
+      <div id="thisImage"><img style="width:100%;" src="" /></div><br>
+
+
+      <button type="submit" value="submit" class="button">
+        <i class="fa fa-check" aria-hidden="true"></i> Submit
+      </button>
+      <button id="modal_close" class="button secondary" data-close>
+        <i class="fa fa-ban" aria-hidden="true"></i> Cancel
+      </button>
+  </form>
+</div>
+
+<div class="row">
+	<div class="medium-offset-1 medium-10 columns">
+		<h2>Gallery admin </h2>
+	</div>
+</div>
+
+<div class="row">
+  <div class="small-8 small-offset-2 medium-6 medium-offset-3 columns">
+    {{#if error}}
+      <div class="callout warning" data-closable>
+        <span><strong>Error: </strong> {{ error }}</span>
+        <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {{/if}}
+    {{#if success}}
+      <div class="callout success" data-closable>
+        <span><strong>Success: </strong> {{ success }}</span>
+        <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {{/if}}
+  </div>
+</div>
+
+
+
+<div class="row">
+<div class="small-offset-1 small-10 column">
+
+  <div class="card edit-gallery-card" style="text-align:center;" >
+    <button type="button" class="button hollow success" style="width:100%;height:100%;" onClick="addImage();">
+      <h4><i class="fa fa-plus" aria-hidden="true"></i></h4>Add image
+    </button>
+  </div>
+
+  {{#each images}}
+  <div class="card edit-gallery-card edit-gallery-card-item" onClick="editImage('{{this.rowid}}');">
+    {{#if this.published}}
+    <i class="fa fa-fw fa-eye published" aria-hidden="true"></i>
+    {{else}}
+    <i class="fa fa-fw fa-eye-slash published" aria-hidden="true"></i>
+    {{/if}}
+    <img src="http://arcttl.s3.amazonaws.com/{{{returnThumb this.filename}}}">
+  </div>
+  {{/each}}
+
+</div>
+</div>
+
+
+<script>
+
+var modal;
+
+window.onload = function() {
+  modal = $("#modal");
+  $("#modal_close").click(function(e) {
+    modal.find('form')[0].reset();
+    e.preventDefault(); // keeps form validation from showing all errors on next open
+  });
+}
+
+$("#imageFile").on('change', function() {
+  $("#selectedFile").text(this.files[0].name);
+})
+
+var addImage = function() {
+  modal.find('form')[0].reset();
+  $("#imageFileSection").show();
+  $("#imageFile").prop("disabled", false);
+  $("#modal_title").text("Add image");
+  $("#published-true").click();
+  modal.find("input[name='_method']").val("");
+  modal.find("input[name='rowid']").prop("disabled", true);
+  $("#thisImage").hide();
+  modal.foundation('open');
+}
+
+var editImage = function(rowid) {
+  $.get('/api/gallery/' + rowid, function(response) {
+    $("#modal_title").text("Edit image");
+    $("#imageFileSection").hide();
+    $("#imageFile").prop("disabled", true);
+    if(response.published === 1) {
+      $("#published-true").click();
+    } else {
+      $("#published-false").click();
+    }
+    modal.find("input[name='_method']").val("PUT");
+    modal.find("input[name='rowid']").prop("disabled", false);
+    modal.find("input[name='rowid']").val(response.rowid);
+    $("#caption").val(response.caption);
+    $("#thisImage img").prop("src", "")
+    $("#thisImage").show();
+    $("#thisImage img").prop("src", "http://arcttl.s3.amazonaws.com/" + response.filename)
+    modal.foundation('open');
+  });
+}
+
+</script>

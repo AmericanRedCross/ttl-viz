@@ -5,6 +5,7 @@ express, handlebars, sqlite, passport, foundation
 ### permission levels
 - user
 - editor
+  - add/edit images in gallery
 - admin
   - all lower permissions, add/edit users
 
