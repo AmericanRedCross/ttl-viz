@@ -1,0 +1,363 @@
+<div id="modal-add-edit" class="reveal" data-reveal>
+  <form id="documentform" action="{{opts.nginxlocation}}api/documents" enctype="multipart/form-data" method="POST">
+
+      <input type="hidden" name="_method" value="" />
+      <input type="hidden" type="text" name="rowid" value="" />
+
+      <div class="row columns">
+        <h4 id="add-edit-title">...</h4>
+      </div>
+
+      <div class="row">
+        <div class="small-6 columns">
+          <label><legend>Date:</legend>
+            <input id="date" type="date" name="date"  value="{{formatDate date 'YYYY-MM-DD'}}" required>
+          </label>
+        </div>
+        <div id="input-document" class="small-6 columns">
+          <label><legend>Select a file:</legend></label>
+          <label for="docFile" class="button secondary">Browse...</label>
+          <input type="file" id="docFile" class="show-for-sr" name="docFile" required>
+          <p id="selectedFile" class="help-text">...</p>
+        </div>
+      </div>
+      <div class="row columns">
+        <label>Title:
+          <input id="title" type="text" name="title" placeholder="..." required>
+        </label>
+        <label>Description:
+          <textarea id="description" type="text" name="description" placeholder="..." rows= "3" required></textarea>
+        </label>
+      </div>
+      <div class="row">
+        <fieldset class="small-4 columns">
+          <legend>Category:</legend>
+          {{#each settings.categories}}
+  					<div class="category-radio">
+              <input style="margin:0;" id="category_{{@index}}" type="radio" name="category" value="{{@key}}" {{#if @first}} checked{{/if}} required>
+              <label for="category_{{@index}}">{{@key}}</label>
+  				  </div>
+    			{{/each}}
+        </fieldset>
+        <fieldset class="small-4 columns">
+          <legend>Subcategory:</legend>
+          {{#each settings.categories}}
+          {{#each this}}
+  					<div class="subcategory-radio" data-category="{{@../key}}" >
+              <input style="margin:0;" id="subcategory_{{@../index}}{{@index}}" type="radio" name="subcategory" value="{{this}}" required>
+              <label for="subcategory_{{@../index}}{{@index}}">{{this}}</label>
+  				  </div>
+          {{/each}}
+    			{{/each}}
+        </fieldset>
+        <fieldset class="small-4 columns">
+          <legend>Type:</legend>
+          {{#each settings.types}}
+            <div class="category-radio">
+              <input style="margin:0;" id="type_{{this}}" type="radio" name="type" value="{{this}}" {{#if @first}} checked{{/if}} required>
+              <label for="type_{{this}}">{{this}}</label>
+            </div>
+          {{/each}}
+        </fieldset>
+      </div>
+      <br>
+      <div class="row columns">
+        <fieldset>
+          <legend>Published:</legend>
+          <input id="published-false" type="radio" class="mdl-radio__button" name="published" value="0" checked required>
+          <label for="published-false">False</label>
+          <input id="published-true" type="radio" class="mdl-radio__button" name="published" value="1">
+          <label for="published-true">True</label>
+        </fieldset>
+      </div>
+      <br>
+      <div class="row columns">
+        <button type="submit" value="submit" class="button primary form-actions__submit">
+          <i class="fa fa-check" aria-hidden="true"></i> Submit
+        </button>
+        <button id="modal-add-edit__close" class="button secondary" data-close>
+          <i class="fa fa-ban" aria-hidden="true"></i> Cancel
+        </button>
+        <br>
+        <div id="size">File size: <span class="subheader"></span></div>
+        <div id="creator">Creator: <span class="subheader"></span></div>
+      </div>
+  </form>
+</div>
+
+<div class="row">
+	<div class="columns">
+		<h2>Documents admin </h2>
+	</div>
+</div>
+
+<div class="row columns">
+  <button id="addDocument" type="button" class="secondary button"> <i class="fa fa-plus" aria-hidden="true"></i> Add document</button>
+</div>
+
+<div class="row">
+  <div class="small-8 small-offset-2 medium-6 medium-offset-3 columns">
+    {{#if error}}
+      <div class="callout warning" data-closable>
+        <span><strong>Error: </strong> {{ error }}</span>
+        <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {{/if}}
+    {{#if success}}
+      <div class="callout success" data-closable>
+        <span><strong>Success: </strong> {{ success }}</span>
+        <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {{/if}}
+  </div>
+</div>
+
+<div class="row ">
+  <div id="table-column" class="column">
+  <div id="table-div">
+    <table data-sortable id="dataTable" class="compact nowrap stripe cell-border" cellspacing="0">
+      <thead>
+        <th></th>
+        <th></th>
+        <th>date<br><input class="column-search" type="search" placeholder="search..." /></th>
+        <th>title<br><input class="column-search" type="search" placeholder="search..." /></th>
+        <th>category<br><input class="column-search" type="search" placeholder="search..." /></th>
+        <th>subcategory<br><input class="column-search" type="search" placeholder="search..." /></th>
+        <th>published<br><input class="column-search" type="search" placeholder="search..." /></th>
+        <th>creator<br><input class="column-search" type="search" placeholder="search..." /></th>
+      </thead>
+      <tbody>
+        {{#each documents}}
+        <tr>
+          <td>{{rowid}}</td>
+          <td><i onClick="editRow('{{rowid}}');" class="fa fa-pencil-square-o table-row__edit-btn" aria-label="edit document metadata"></i></td>
+          <td >{{date}}</td>
+          <td >{{title}}</td>
+          <td >{{category}}</td>
+          <td >{{subcategory}}</td>
+          <td >{{#if published}}yes{{else}}no{{/if}}</td>
+          <td >{{creator}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  </div>
+</div>
+
+
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+<style>
+  /* because we want dark grey not blue sort arrows */
+  table.dataTable thead .sorting_asc { background-image: url("{{opts.nginxlocation}}media/sort_asc.png"); }
+  table.dataTable thead .sorting_desc { background-image: url("{{opts.nginxlocation}}media/sort_desc.png"); }
+</style>
+<script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+<script src="{{opts.nginxlocation}}js/nouislider.min.js"></script>
+<script>
+
+// helper function
+var formatBytes = function(bytes, decimals) {
+   if(bytes == 0) return '0 Bytes';
+   var k = 1000,
+       dm = decimals + 1 || 3,
+       sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+       i = Math.floor(Math.log(bytes) / Math.log(k));
+   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+$('input[name=category]').change(function() {
+	subcats();
+});
+
+$('#addDocument').click(function() {
+  $("#add-edit-title").text("Add a document");
+  $('#modal-add-edit').find('form')[0].reset();
+  $("#modal-add-edit input[name='_method']").val('POST');
+  $("#input-document").show();
+  $("#docFile").prop("disabled", false);
+  $("#modal-add-edit input[name='rowid']").prop("disabled", true).val('');
+  $('#selectedFile').html('(no file selected)');
+  subcats();
+  $("#size").hide().empty();
+  $("#creator").hide().empty();
+  $('#modal-add-edit').foundation('open');
+});
+
+$("#docFile").on('change', function() {
+  $("#selectedFile").html('<small>' + this.files[0].name + '</small>');
+});
+
+function editRow(rowid) {
+  $.get('/api/documents/doc/' + rowid, function(response) {
+    console.log(response)
+    $("#add-edit-title").html('Edit: <span class="subheader">' + response.key.slice(response.key.indexOf('/') + 1) + '</span>');
+    $('#modal-add-edit').find('form')[0].reset();
+    $("#modal-add-edit input[name='_method']").val('PUT');
+    $("#input-document").hide();
+    $("#docFile").prop("disabled", true);;
+    $("#modal-add-edit input[name='rowid']").prop("disabled", false).val(rowid);
+    $("#date").val(response.date);
+    $("#title").val(response.title);
+    $("#description").val(response.description);
+    $("[name='category'][value='" + response.category + "']").prop('checked',true);
+    $("[name='subcategory'][value='" + response.subcategory + "']").prop('checked',true);
+    subcats(); // toggle the visibility to show the right group of subcategories
+    $("[name='type'][value='" + response.type + "']").prop('checked',true);
+    $("[name='published'][value='" + response.published + "']").prop('checked',true);
+    $("#size").show().find('span').text(formatBytes(response.bytes, 1));
+    $("#creator").show().find('span').text(response.creator);
+    $('#modal-add-edit').foundation('open');
+  });
+}
+
+function subcats(){
+	var currentCat = $('input[name=category]:checked').val();
+	$(".subcategory-radio").each(function(i,a) {
+		if($(a).data('category') === currentCat) {
+			$(a).show();
+			$(a).addClass('option');
+      $(a).find('input').prop('disabled', false);
+		} else {
+			$(a).hide();
+			$(a).removeClass('option');
+			$(a).find('input').prop('checked',false);
+      $(a).find('input').prop('disabled', true);
+		}
+	});
+	if($('input[name=subcategory]:checked').val() === undefined){
+		$($(".subcategory-radio.option")[0]).find('input').prop('checked',true);
+	}
+}
+
+
+$("#modal-add-edit__close").click(function(e) {
+  e.preventDefault();
+});
+
+function sizeSlider(){
+  var view = $("#table-column").width(); // screen window width
+  var full = $("#dataTable").width(); // full width
+  // hide slider if there is no overflow
+  if(view >= full){ $(slider).hide(); } else { $(slider).show(); }
+  var viewMin = $(".dataTables_scrollBody").scrollLeft();
+  var viewMax = viewMin + view;
+  slider.noUiSlider.updateOptions({
+    start: [viewMin, viewMax],
+    range: {
+      'min': 0,
+      'max': full
+    }
+  });
+}
+
+window.onload = function() {
+
+  // jquery resize gets called multiple time when window is being resized
+  // so wait a moment to resize the slider
+  var rtime;
+  var timeout = false;
+  var delta = 400;
+  $(window).resize(function() {
+      rtime = new Date();
+      if (timeout === false) {
+          timeout = true;
+          setTimeout(resizeend, delta);
+      }
+  });
+  function resizeend() {
+      if (new Date() - rtime < delta) {
+          setTimeout(resizeend, delta);
+      } else {
+          timeout = false;
+          sizeSlider();
+          console.log('Done resizing');
+      }
+  }
+
+  // initialize dataTable
+  table = $('#dataTable').DataTable({
+    "scrollX": true,
+    "sDom":'lrtip',
+    "lengthChange": false,
+    "pageLength": 10,
+    // "lengthMenu": [ 10, 50, 100 ],
+    "language": {
+      "lengthMenu": "Display _MENU_ records",
+      "info": "Showing _START_ to _END_ of _TOTAL_ records",
+    },
+    "order": [[0,'desc']],
+    // first column is the edit button, so disable sort
+    "columnDefs": [
+      { "orderable": false, "targets": 1 }
+    ]
+  });
+
+  // stop a click in the search input box from triggering a sort on the column
+  $('.column-search').on('click', function(e){
+    e.stopPropagation();
+  });
+
+  // initialize column search functionality
+table.columns().every( function() {
+  var that = this;
+  $('input', this.header() ).on('keyup change', function(){
+    if( that.search() !== this.value ){
+      that
+      .search( this.value )
+      .draw();
+    }
+  });
+});
+
+// if too few columns the body columns center while the header rows stay left
+// if that's the case, shrink the table wrapper
+if($('#table-div thead').width() < $("#table-div").width()){
+  $("#table-div").width($('#table-div thead').width())
+}
+
+// need a custom scroll bar that is always visible
+// so user can x-scroll the table even if they only have a mouse (i.e. no touchpad)
+$("<div id='myslider'></div>").insertAfter(".dataTables_scroll")
+slider = document.getElementById('myslider');
+noUiSlider.create(slider, {
+  start: [null, null],
+  connect: true,
+  behaviour: "drag-fixed",
+  range: {
+    'min': 0,
+    'max': 1
+  }
+});
+
+
+sizeSlider();
+
+// update the slider position when the div is scrolled via direct interaction
+var divScroll = function(){
+  var viewMin = $(".dataTables_scrollBody").scrollLeft();
+  var view = $(".dataTables_scrollBody").width(); // visible width
+  var viewMax = viewMin + view;
+  slider.noUiSlider.set([viewMin, viewMax]);
+}
+$(".dataTables_scrollBody").on('scroll', divScroll);
+// update the table view when the slider is dragged
+slider.noUiSlider.on('slide', function(values, handle, unencoded){
+  $(".dataTables_scrollBody").off('scroll', divScroll) // turn off the direct interaction scroll listener to keep things smooth
+  $(".dataTables_scrollBody").scrollLeft(Math.round(unencoded[0])) // move the view based on the new slider position
+  $(".dataTables_scrollBody").css("overflow-x", "hidden") // prevent the browser scrollbar from showing
+});
+slider.noUiSlider.on('end', function(){
+  $(".dataTables_scrollBody").on('scroll', divScroll); // after done dragging the slider turn back on the direct interaction scroll listener
+  $(".dataTables_scrollBody").css("overflow-x", "auto"); // turn back on the browser scroll styling
+})
+
+}
+
+
+
+</script>

@@ -6,6 +6,7 @@ express, handlebars, sqlite, passport, foundation
 - user
 - editor
   - add/edit images in gallery
+  - add/edit documents
 - admin
   - all lower permissions, add/edit users
 

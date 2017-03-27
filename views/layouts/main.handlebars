@@ -117,7 +117,7 @@
           </li>
           {{#eq user.permissions "editor"}}
             <li>
-              <a href="list-assets"><i class="fa fa-files-o"></i> &nbsp; Manage assets</a>
+              <a href="{{opts.nginxlocation}}edit/documents"><i class="fa fa-files-o"></i> &nbsp; Manage documents</a>
             </li>
             <li>
               <a href="{{opts.nginxlocation}}edit/gallery"><i class="fa fa-fw fa-file-image-o"></i> &nbsp; Manage gallery</a>
@@ -125,7 +125,7 @@
           {{/eq}}
           {{#eq user.permissions "admin"}}
             <li>
-              <a href="list-assets"><i class="fa fa-files-o"></i> &nbsp; Manage assets</a>
+              <a href="{{opts.nginxlocation}}edit/documents"><i class="fa fa-files-o"></i> &nbsp; Manage documents</a>
             </li>
             <li>
               <a href="{{opts.nginxlocation}}edit/gallery"><i class="fa fa-fw fa-file-image-o"></i> &nbsp; Manage gallery</a>

@@ -17,13 +17,13 @@ var db = new sqlite3.Database(file);
 
 // initialize db table for admin users
 db.run("CREATE TABLE IF NOT EXISTS users ( id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT, password TEXT, permissions TEXT )", function(err) {
-    if(err) { console.log(err); }
+    if(err) { throw Error(err); }
     db.get("SELECT user from users", function(err, row) {
-      if(err) { console.log(err); }
+      if(err) { throw Error(err); }
       if(!row) {
         bcrypt.hash(settings.app.defaultpass, saltRounds, function(err, hash) {
           db.run("INSERT INTO users ( user, password, permissions ) VALUES( ?, ?, 'admin' )", settings.app.defaultuser, hash, function(err) {
-            if(err) { console.log(err); }
+            if(err) { throw Error(err); }
           });
         });
       }
@@ -35,7 +35,20 @@ db.run('CREATE TABLE IF NOT EXISTS gallery ( ' +
   'rowid INTEGER PRIMARY KEY AUTOINCREMENT, ' +
   'published INTEGER DEFAULT 0, ' +
   'caption TEXT, ' +
-  'filename TEXT' + ' )', function(err) { if(err) { console.log(err); } });
+  'filename TEXT' + ' )', function(err) { if(err) { throw Error(err); } });
+
+db.run('CREATE TABLE IF NOT EXISTS documents ( ' +
+  'rowid INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+  'key TEXT, ' +
+  'published INTEGER DEFAULT 0, ' +
+  'title TEXT, ' +
+  'description TEXT, ' +
+  'category TEXT, ' +
+  'subcategory TEXT, ' +
+  'type TEXT, ' +
+  'date TEXT, ' +
+  'creator TEXT, ' +
+  'bytes INTEGER' + ' )' , function(err) { if(err) { throw Error(err); } });
 
 // db functions
 var createUser = function(req, res) {
@@ -209,7 +222,10 @@ app.engine('handlebars', exphbs({
     returnThumb: function(filePath) {
       return filePath.slice(0, filePath.lastIndexOf(".")) +
         "_THUMB" + filePath.slice(filePath.lastIndexOf("."));
-    }
+    },
+    formatDate: function(context,format) {
+			return moment(context).format(format);
+		}
   }
 }));
 app.set('view engine', 'handlebars');
@@ -429,6 +445,132 @@ app.post('/edit/gallery', galleryImage.single('imageFile'), function(req, res) {
     }
   } else { res.redirect('/edit/gallery'); }
 });
+
+
+// documents stuff
+app.get('/edit/documents', function(req, res) {
+  if (req.user && (req.user.permissions == "admin" || req.user.permissions == "editor")) {
+    db.all('SELECT * FROM documents', function(err, result) {
+      res.render('admin-documents',{
+        user:req.user,
+        documents:result,
+        settings:settings.documents,
+        opts:settings.page,
+        error:req.flash("errorMessage"),
+        success:req.flash("successMessage")
+      });
+    });
+  } else {
+    res.redirect(settings.page.nginxlocation);
+  }
+})
+
+var multerS3 = require('multer-s3');
+
+var documentsDoc = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: settings.s3.mediabucket,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: function(req, file, cb) {
+      // append upload timestamp to filename
+      var key = settings.s3.docsfolder + '/' + file.originalname.substr(0, file.originalname.lastIndexOf('.')) +
+        '_' + moment().format("YYYYMMDD-HHmmss") + path.extname(file.originalname);
+      cb(null, key);
+    }
+  })
+});
+
+var deleteDoc = function(req, res) { }
+var editDoc = function(req, res) {
+  if(req.body.subcategory === undefined) {
+    req.body.subcategory = "";
+  }
+  var query = "UPDATE documents SET ";
+  var updates = [];
+  for (key in req.body) {
+    if(key !== "_method" && key !== "rowid") {
+      updates.push(key + " = '" + req.body[key].replace("'","''") + "'" ) // single quotes in a string screw up the sql query
+    }
+  }
+  query += updates.join(", ");
+  query += " WHERE rowid = " + req.body.rowid;
+  console.log(query);
+  db.run(query, function(err) {
+    // if(err) ...
+    if(this.changes) {
+      req.flash('successMessage', 'Document metadata updated!');
+      res.redirect('/edit/documents');
+    } else {
+      req.flash('errorMessage', 'Apologies, it seems something went wrong.');
+      res.redirect('/edit/documents');
+    }
+  });
+}
+
+var createDoc = function(req, res) {
+  if(req.body.subcategory === undefined) {
+    req.body.subcategory = "";
+  }
+  var query = "INSERT into documents (key, published, title, description, category, subcategory, type, date, creator, bytes) VALUES (" +
+    "'" + req.file.key + "', " +
+    "'" + req.body.published + "', " +
+    "'" + req.body.title.replace("'","''") + "', " +
+    "'" + req.body.description.replace("'","''") + "', " +
+    "'" + req.body.category.replace("'","''") + "', " +
+    "'" + req.body.subcategory.replace("'","''") + "', " +
+    "'" + req.body.type.replace("'","''") + "', " +
+    "'" + req.body.date.replace("'","''") + "', " +
+    "'" + req.user.user.replace("'","''") + "', " +
+    "'" + req.file.size + "') ";
+    // TODO: make a function to getting string values ready for inclusion in sql queries and figure that out
+    console.log(query);
+  db.run(query, function(err) {
+    // if(err)
+    if(this.changes) {
+      req.flash('successMessage', 'File uploaded');
+      res.redirect('/edit/documents');
+    } else {
+      req.flash('errorMessage', 'Apologies, it seems something went wrong.');
+      res.redirect('/edit/documents');
+    }
+  });
+}
+
+app.post('/api/documents', documentsDoc.single('docFile'), function(req, res) {
+  if (req.user && req.user.permissions == "admin") {
+    switch(req.body["_method"]) {
+      case "DELETE":
+        deleteDoc(req, res);
+      break;
+      case "PUT":
+        editDoc(req, res);
+      break;
+      default:
+        createDoc(req, res);
+      break;
+    }
+  } else { res.redirect('/edit/documents'); }
+});
+
+app.get('/api/documents/all', function(req, res){
+  var query = "SELECT * FROM documents";
+  db.all(query, function(err, rows) {
+      // if(err) ...
+      res.json(rows);
+  });
+});
+
+app.get('/api/documents/doc/:rowid', function(req, res) {
+  if(req.user) {
+    var query = "SELECT * FROM documents WHERE rowid = " + req.params.rowid;
+    db.get(query, function(err, row) {
+      // if(err) ...
+      res.json(row);
+    });
+  }
+});
+
 
 
 app.listen(settings.app.port, function() {
