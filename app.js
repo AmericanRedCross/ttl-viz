@@ -572,6 +572,31 @@ app.get('/api/documents/doc/:rowid', function(req, res) {
 });
 
 
+// dashboard pages using a postgres connection
+var PostGresHelper = require("./routes/postGresHelper.js");
+var pghelper = new PostGresHelper();
+
+app.get('/progress', function(req, res) {
+	if (req.user) {
+		res.render('progress',{
+			user:req.user,
+			opts:settings.page
+		});
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/progress', function (req, res) {
+	if(req.user) {
+		var queryStr = 'SELECT * FROM "INDICATOR_TRACKING_TABLE" where remarks='+"'visible';";
+		pghelper.query(queryStr, function(err, data){
+			res.json(data);
+		})
+	}
+})
+
+
 
 app.listen(settings.app.port, function() {
   console.log('app listening on port ' + settings.app.port);

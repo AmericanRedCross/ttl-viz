@@ -17,6 +17,10 @@
   border-radius: 4px;
 }
 
+.small {
+  font-size: 85%;
+}
+
 // Preventing FOUC
 // ###############
 // http://foundation.zurb.com/sites/docs/responsive-navigation.html#preventing-fouc
@@ -139,7 +143,7 @@
 
 
 /* Footer */
-.row-logo { text-align: center; padding: rem-calc(32); }
+.row-logo { text-align: center; padding: rem-calc(32) 0; }
 .row-logo img { height: rem-calc(32); margin: rem-calc(0 16 8); }
 
 
@@ -195,4 +199,29 @@
 }
 .noUi-target, .noUi-connect {
   box-shadow: none;
+}
+
+#progress-page {
+  .progress-indicators {
+    font-size: rem-calc(14);
+  	background: #fff;
+  	table-layout: auto !important;
+  }
+  td {
+    padding: 1em 0.5em;
+  }
+  .progress-pie {
+  	float: left;
+  	margin: 2px 8px;
+  }
+  .btn-map-filter{
+  	padding-left: 15px;
+  	padding-right: 15px;
+  }
+  .panel-group{
+    position:absolute;
+  	padding-left: 15px;
+  	padding-right: 15px;
+    z-index: 1;
+  }
 }

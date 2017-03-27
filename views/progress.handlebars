@@ -1,0 +1,196 @@
+<div id="progress-page">
+
+<div class="row">
+	<div class="medium-offset-1 medium-10 columns">
+		<h2>Overall Program Progess </h2>
+    <h5 class="subheader"><p>as of December 2016</p></h5>
+    <!-- <br>
+
+    <div class="btn-group btn-map-filter">
+      <button class="btn btn-default btn-sm" type="button" onclick="indicatorFilter('showfilters')"></span>Filters</button>
+    </div>
+    <div class="filter-panel panel-group" id="accordion" role="tablist" >
+      <div class="filter-panel panel panel-default">
+
+      </div>
+    </div> -->
+
+	</div>
+</div>
+
+<br>
+
+<div class="row table-group">
+  <div class="medium-offset-1 medium-10 columns">
+  	<div class="objective-one-group">
+  		<h5>Philppine Red Cross (PRC) increases their capacity in community-based recovery and preparedness to enhance comunity resilience</h5>
+  		<table id="objective-one-indicators" class="progress-indicators"></table>
+  	</div>
+  	<div>
+  		<h5>Communities increase their capacity in adopting resilient practices</h5>
+  		<table id="objective-two-indicators" class="progress-indicators"></table>
+  	</div>
+  	<div>
+  		<h5>Household and community has increased access to safer and sustainable infrastructure and resources</h5>
+  		<table id="objective-three-indicators" class="progress-indicators"></table>
+  	</div>
+  	<div>
+  		<h5>Crosscutting</h5>
+  		<table id="crosscutting-indicators" class="progress-indicators"></table>
+  	</div>
+  </div>
+</div>
+
+</div> <!-- / container -->
+
+<br>
+{{> page/footer}}
+
+<script>
+
+$('#accordion').hide();
+
+function getNumber(str){
+  return (isNaN(parseFloat(str))) ? 0 : parseFloat(str);
+}
+var commas = d3.format(",");
+var data, filteredData={}, newData=[];
+
+function getProgress(){
+  $.get('/api/pages/progress', function(response) {
+    	data = response;
+      buildPage(response,1,"#objective-one-indicators");
+    	buildPage(response,2,"#objective-two-indicators");
+    	buildPage(response,3,"#objective-three-indicators");
+    	buildPage(response,4,"#crosscutting-indicators");
+  });
+}
+
+function buildPage(response,objectiveNumber,indicatorTable){
+	response.forEach(function(d){
+		var actual = getNumber(d.actual);
+		var target = getNumber(d.target);
+		var remainder = (target - actual > 0) ? (target - actual) : 0;
+		d.pie = [
+			{ label: 'actual', count: actual },
+			{ label: 'remainder', count: remainder }
+		]
+	})
+
+
+	var indicators = d3.select(indicatorTable).selectAll('tr')
+    .data(response.filter(function(d){ if(objectiveNumber == null){return d;} else{ return d.objective === objectiveNumber;}}))
+    .enter().append('tr');
+
+	var width = 30,
+			height = 30,
+			radius = Math.min(width, height) / 2,
+			path = d3.arc().outerRadius(radius).innerRadius(0),
+			pie = d3.pie().value(function(d){
+				return d.count
+			})
+
+	var svg = indicators.append('td').append('svg')
+    .attr('class', 'progress-pie')
+    .attr('width', width)
+    .attr('height', height)
+    .append('g').attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')')
+
+  var	g = svg.selectAll('g').data(function(d) { return pie(d.pie); })
+    .enter().append('path')
+    .attr('d', path)
+    .style("fill", function(d) { return (d.data.label === "actual") ? "#8ec06c" : "#d7d7d8"; });
+
+	var description = indicators.append('td');
+
+	description.append('div').text(function(d){ return d.indicator; });
+
+	description.append('div').html(function(d){
+		var unitText = (d.unit_of_measure === "Percent") ? "&#37;" : d.unit_of_measure;
+		return '<span class="small">' + d.indicator_level + ': &nbsp;&nbsp;<b>' + commas(d.actual) + '</b> ' + unitText + ' of <b>' + commas(d.target) + '</b></span>'
+	});
+}
+
+// function buildFilterHTML(title,options,isLocation){
+//   var thisBodyHtml = '';
+//
+// 	thisBodyHtml += '<div class="panel-body">';
+// 	$.each(options, function(i, a){
+// 		thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+ title + '" value="' + a + '" onchange="buildFilters();">' + a + '</label></div>';
+// 		}
+// 	)
+// 	thisBodyHtml += '</div>';
+// 	$('.filter-panel.panel').append(thisBodyHtml);
+// }
+//
+// function indicatorFilter(filter){
+// 	if(filter=="all"){
+// 		clearAllFilters();
+// 		$('#accordion').hide();
+// 	}
+// 	else if(filter=="showfilters"){
+// 		if($('#accordion').is(':visible')){
+// 			clearAllFilters();
+// 			$('#accordion').hide();
+// 		}
+// 		else{
+// 			// Filter by sector
+// 			buildFilterHTML('sectors',['All','Shelter','Livelihood','Water and Sanitation','Health','DRR','M&E','Infrastructure'],false);
+//
+// 			$('.checkbox input:checkbox').click(function() {
+// 				$('.checkbox input:checkbox').not(this).prop('checked', false);
+// 			});
+//
+// 			$('#accordion').show();
+// 		}
+// 	}
+// }
+//
+// function clearAllFilters(){
+// 	$('.filter-panel.panel').empty();
+//   var allCheckboxes = $.find("input:checkbox");
+//   $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+// }
+//
+// function buildFilters(){
+// 	var activeFilters = [];
+// 	var filter;
+//
+// 	newData =[];
+//
+//   checkboxes = $(".filter-panel.panel input[type=checkbox]");
+//     for (i=0; i<checkboxes.length; i++) {
+//       if(checkboxes[i].checked === true) {
+//         activeFilters.push({
+//           filterKey: checkboxes[i].name,
+//           filterValue: checkboxes[i].value
+//         })
+//       }
+//     }
+//
+// 		filter = activeFilters[0];
+//
+// 		if(filter.filterValue=="All"){
+// 			newData = data;
+// 		}else{
+// 			data.forEach(function (d){
+// 				if(filter.filterValue === d.sector_responsible){
+// 					filteredData[d.indicator_id] =  d;
+// 					newData.push(filteredData[d.indicator_id]);
+// 					}
+// 			})
+// 		}
+// 		$('#objective-one-indicators').empty();
+// 		$('#objective-two-indicators').empty();
+// 		$('#objective-three-indicators').empty();
+// 		$('#crosscutting-indicators').empty();
+//
+// 	 	buildPage(newData,1,"#objective-one-indicators");
+// 		buildPage(newData,2,"#objective-two-indicators");
+// 		buildPage(newData,3,"#objective-three-indicators");
+// 		buildPage(newData,4,"#crosscutting-indicators");
+// }
+
+getProgress();
+
+</script>
