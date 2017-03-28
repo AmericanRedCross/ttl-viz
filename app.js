@@ -611,7 +611,7 @@ app.get('/query/agriculturetraining', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'" + 'Livelihood' + "'" + ';';
 			pghelper.query(queryStr, function(err, data){
-				res.json(data);
+				res.send(data);
 			})
 	}
 })

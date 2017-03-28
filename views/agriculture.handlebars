@@ -1,4 +1,26 @@
 <div class="container-fluid" id="agriculture_page">
+	<ul class="accordion"
+	data-responsive-accordion-tabs="accorion small tabs"
+	data-active-collapse="true">
+		<li class="accordion-item" data-accordion-item>
+			<a class="accordion-title" href="#collapse-training_name">Training name</a>
+			<div class="accordion-content" data-tab-content><div class="panel-body">
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="training_name" value="Poultry Production and Management" onchange="filter();">Poultry Production and Management
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="training_name" value="Rice Production and Management" onchange="filter();">Rice Production and Management</label>
+				</div><div class="checkbox"><label><input type="checkbox" name="training_name" value="Swine Production and Management" onchange="filter();">Swine Production and Management</label></div><div class="checkbox"><label><input type="checkbox" name="training_name" value="Vegetable Production and Management" onchange="filter();">Vegetable Production and Management</label></div>
+			</div></li>
+			<li class="accordion-item" data-accordion-item><a class="accordion-title" href="#collapse-knowledge_change">Knowledge change</a><div class="accordion-content" data-tab-content><div class="panel-body"><div class="checkbox"><label><input type="checkbox" name="knowledge_change" value="data missing" onchange="filter();">data missing</label>
+			</div><div class="checkbox"><label><input type="checkbox" name="knowledge_change" value="decrease" onchange="filter();">decrease</label></div><div class="checkbox"><label><input type="checkbox" name="knowledge_change" value="increase" onchange="filter();">increase</label></div>
+			<div class="checkbox"><label><input type="checkbox" name="knowledge_change" value="maintain" onchange="filter();">maintain</label></div></div></div></li>
+
+	</ul>
+
 
 <header class="row">
 	<div class="medium-offset-1 medium-10 columns">
@@ -6,7 +28,6 @@
 		<p><u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span></p>
 	</div>
 </header>
-
 
 <div id="loader" class="text-center">
 	<img src="media/ajax_loader_gray_512.gif" alt="loading..." />
@@ -17,9 +38,10 @@
 
 <div class="filter-panel panel-group">
   <div class="filter-panel panel panel-default" >
-    <div class="filter-panel panel-heading accordion"data-accordion role="tab">
+		<ul class="accordion" data-accordion>
 			<!-- panel titles go here -->
-    </div>
+
+    </ul>
 		<!-- collapse divs go here -->
   </div>
 </div>
@@ -86,7 +108,6 @@
 <script>
 var data, filteredData, dateData;
 var locationLookup = {};
-
 // # HELPERS
 function adminText(locationId, type){
   if(locationLookup[locationId] === undefined){ return "no data"}
@@ -206,12 +227,11 @@ function buildFilters(){
   var panelTitles = [];
   var panelBodies = [];
   function panelHtml(title, dataId, array, geo){
-    var thisTitleHtml = '<span class="panel-title accordion" data-accordion-item>' +
-      '<a class="collapsed accordion-title" data-toggle="collapse" data-parent="#accordion" href="#collapse-' +
-        dataId + '" aria-expanded="false" aria-controls="collapse' + dataId + '">' +
-        title + '</a></span>';
-    panelTitles.push(thisTitleHtml);
-    var thisBodyHtml = '<div id="collapse-' + dataId + '" class="accordion-content" data-tab-content>' +
+    var thisTitleHtml = '<li class="accordion-item" data-accordion-item>' +
+      '<a class="accordion-title" href="#collapse-' +
+        dataId + '">' +
+        title + '</a>';
+    var thisBodyHtml = '<div class="accordion-content" data-tab-content>' +
       '<div class="panel-body">';
     if(geo === true) {
       var municipArray = [];
@@ -234,19 +254,21 @@ function buildFilters(){
             dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
       })
     }
-    thisBodyHtml += '</div>' + '</div>';
-    $('.filter-panel.panel').append(thisBodyHtml);
+		thisBodyHtml += '</div></div></li>';
+		thisTitleBodyHtml = thisTitleHtml + thisBodyHtml
+		console.log(thisTitleBodyHtml)
+    $('.filter-panel.panel ul').append(thisTitleBodyHtml);
   }
   panelHtml('Training name', 'training_name', trainingnameArray);
   panelHtml('Training ID', 'training_id', trainingidArray);
   panelHtml('Knowledge change', 'knowledge_change', knowledgechangeArray);
   panelHtml('Location', null, locationArray, true);
-  $('.filter-panel.panel-heading').html(panelTitles.join('&nbsp; | &nbsp;'));
+  // $('.filter-panel.panel-heading').html(panelTitles.join('&nbsp; | &nbsp;'));
 
   filteredData = data;
   $('#loader').hide();
-  // buildBars();
-  buildPies();
+  //buildBars();
+  //buildPies();
 
 }
 
