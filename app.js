@@ -628,19 +628,19 @@ app.get('/agriculture',function(req,res) {
 	}
 })
 
-app.get('/query/agriculturetraining', function(req,res) {
+app.get('/api/pages/agriculture', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'" + 'Livelihood' + "'" + ';';
 			pghelper.query(queryStr, function(err, data){
-				res.send(data);
+				res.json(data);
 			})
 	}
 })
-app.get('/query/targetlocations', function(req,res) {
+app.get('/api/pages/targetlocations', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT * FROM "TARGET_LOCATION";';
 			pghelper.query(queryStr, function(err, data){
-				res.send(data);
+				res.json(data);
 			})
 	}
 });

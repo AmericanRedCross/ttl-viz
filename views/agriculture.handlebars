@@ -121,7 +121,7 @@ function resize() {
 
 
 function getLocationData(){
-  $.get('query/targetlocations', function(response){
+  $.get('api/pages/targetlocations', function(response){
     $.each(response, function(index, location){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
@@ -146,7 +146,7 @@ function getLocationData(){
 }
 
 function fetchData(){
-  $.get('query/agriculturetraining', function(response){
+  $.get('api/pages/agriculture', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){
