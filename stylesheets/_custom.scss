@@ -226,6 +226,34 @@
   }
 }
 
+#agriculture_page {
+  #headText{
+    color: rgba(62,62,62,1);
+    p {
+      font-size:13px;
+    }
+  }
+  #clearAll {
+    font-size:14px;
+  }
+  ul.tabs {
+      border-radius: 4px;
+      border: 1px solid rgba(213,213,213,1);
+      text-align: center;
+      margin:auto;
+      width:100%;
+      li a {
+        display: block;
+        padding-left: 25px;
+        padding-right: 25px;
+      }
+  }
+  .checkbox {
+    display: inline-block;
+    padding-right:10px
+  }
+}
+
 #gallery-page {
   .gallery-thumb {
     cursor: pointer;
@@ -242,3 +270,4 @@
   }
 }
 .pdfobject-container.pdfobject-container { height: 100%;}
+

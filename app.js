@@ -617,6 +617,33 @@ app.get('/api/pages/progress', function(req, res) {
 	}
 });
 
+app.get('/agriculture',function(req,res) {
+	if (req.user) {
+    res.render('agriculture', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/query/agriculturetraining', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'" + 'Livelihood' + "'" + ';';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+})
+app.get('/query/targetlocations', function(req,res) {
+	if (req.user) {
+			var queryStr = 'SELECT * FROM "TARGET_LOCATION";';
+			pghelper.query(queryStr, function(err, data){
+				res.send(data);
+			})
+	}
+});
 
 
 app.listen(settings.app.port, function() {
