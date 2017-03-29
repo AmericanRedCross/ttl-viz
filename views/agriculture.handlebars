@@ -1,5 +1,5 @@
 <div class="container-fluid" id="agriculture_page">
-	<div class="small-offset-3 small-7 columns">
+	<div id="headText" class="small-offset-3 small-7 columns">
 		<h1>Agriculture Training</h1>
 		<p><u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span></p>
 	<div>
@@ -8,10 +8,10 @@
 <div id="loader" class="text-center">
 	<img src="media/ajax_loader_gray_512.gif" alt="loading..." />
 </div>
-<a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
+<a id='clearAll' onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
 
-<div class="filter-panel panel-group">
-  <div class="filter-panel panel panel-default" >
+<div class="filter-panel panel-group row">
+  <div class="filter-panel panel panel-default small-columns 12" >
 			<ul class="tabs" data-active-collapse="true" data-tabs id="collapsing-tabs">
 				<!-- panel titles go here -->
 
@@ -289,7 +289,7 @@ function filter(){
     $.each(filterData,function(iKey, filterKey){
       var pass = false;
       var thisKey = filterKey.key;
-      $.each(filterKey.values, function(iValue, filterValue){
+      $.each(filterKey.value, function(iValue, filterValue){
         // # if any of the filter values for a given key are present, that filter key is passed
         if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
       });
@@ -338,14 +338,12 @@ function buildBars(){
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-
   buildKnowledgeLine()
 
 }
 
 var knowLineMeas, knowLineSvg, knowLineY, knowLineX, knowY, knowYaxis;
 function buildKnowledgeLine(){
-
     var changeExt = d3.extent(data, function(d){ return d.score_change; });
     var maxChange = (Math.abs(changeExt[0]) > Math.abs(changeExt[1])) ?  Math.abs(changeExt[0]) : Math.abs(changeExt[1]);
 
@@ -384,7 +382,6 @@ function buildKnowledgeLine(){
       .attr("dy", ".71em")
       .style("text-anchor", "end")
       .text("Participants");
-
 
   drawPies();
 
@@ -429,7 +426,7 @@ function drawPies(){
     return d.data.key;
   }
 
-  var pie = d3.pie().sort(null).value(function(d) { return d.values; });
+  var pie = d3.pie().sort(null).value(function(d) { return d.value; });
 
   var arc = d3.arc()
         .outerRadius(pieRadius - 10)
@@ -509,7 +506,7 @@ function drawPies(){
   knowledgechangeLegend.exit().remove();
   // sort
   knowledgechangeLegend.sort(function(a, b) {
-    return b.values - a.values;
+    return b.value - a.value;
   })
 
   //////////////////////
@@ -572,12 +569,13 @@ function drawPies(){
 
 function drawBars(){
   // get sume of participants per brgy
+
   var brgyBarsData = d3.nest()
     .key(function(d) { if(d['location_id'] === null){ return 'data missing'} else { return d['location_id']; } })
     .rollup(function(values) { return values.length; })
     .entries(filteredData);
 
-  brgyBarsX.domain([0, d3.max(brgyBarsData, function(d) { return d.values; })]);
+  brgyBarsX.domain([0, d3.max(brgyBarsData, function(d) { return d.value; })]);
 
   brgyBars.attr("height", brgyBarsMeas.barHeight * brgyBarsData.length);
 
@@ -585,6 +583,7 @@ function drawBars(){
       .data(brgyBarsData, function(d){ return d['key']; })
 
   var gEnter = g.enter().append("g")
+
   gEnter.append('rect')
       .attr("height", brgyBarsMeas.barHeight - 1)
   gEnter.append("text")
@@ -597,18 +596,18 @@ function drawBars(){
       .attr("y", brgyBarsMeas.barHeight / 2)
       .attr("dy", ".35em")
 
-  g.sort(function(a, b) { return b.values - a.values; }).transition().duration(1000).ease(d3.easeSinInOut)
+  g.sort(function(a, b) { return b.value - a.value; }).transition().duration(1000).ease(d3.easeSinInOut)
       .attr("transform", function(d, i) { return "translate(" + brgyBarsMeas.left + "," + i * brgyBarsMeas.barHeight + ")"; });
   g.select("rect").transition().duration(1000).ease(d3.easeSinInOut)
-    .attr("width", function(d) { return brgyBarsX(d.values); })
+    .attr("width", function(d) { return brgyBarsX(d.value); })
   g.select(".brgy-label")
       .text(function(d) {
         if(locationLookup[d.key] === undefined){ return d.key; }
         else { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; }
       });
   g.select(".brgy-total").transition().duration(1000).ease(d3.easeSinInOut)
-      .attr("x", function(d) { return brgyBarsX(d.values) + 3; })
-      .text(function(d) { return d.values; });
+      .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
+      .text(function(d) { return d.value; });
 
   g.exit().remove();
 
@@ -630,7 +629,7 @@ function drawKnowLine(){
     return a.key - b.key
   });
 
-  knowLineY.domain(d3.extent(knowLineData, function(d){ return d.values }))
+  knowLineY.domain(d3.extent(knowLineData, function(d){ return d.value }))
 
   knowYaxis.call(knowY)
 
@@ -641,8 +640,12 @@ function drawKnowLine(){
         .attr("class", "bar")
         .attr("x", function(d) { return knowLineX(d.key) + 1; })
         .attr("width", knowLineMeas.barWidth - 2)
-        .attr("y", function(d) { return knowLineY(d.values); })
-        .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.values) + 1; });
+        .attr("y", function(d) {
+					console.log(d)
+					console.log(d.value)
+					console.log(knowLineY(d.value))
+					return knowLineY(d.value); })
+        .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.value) + 1; });
 
   g.exit().remove();
 
@@ -687,11 +690,10 @@ function buildList(){
 
   table.columns().every( function() {
     var that = this;
-
     $('input', this.footer() ).on('keyup change', function(){
-      if( that.search() !== this.value ){
+      if( that.search() !== this.values ){
         that
-        .search( this.value )
+        .search( this.values )
         .draw();
       }
     });
