@@ -49,15 +49,38 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title">Household Id: <small><span id="modal-hh-id"></span></small></h4>
+          <h4 class="modal-title">Head of household: <small><span id="modal-hh-head"></span></small>&nbsp;&nbsp;&nbsp;&nbsp;Household Id: <small><span id="modal-hh-id"></span></small></h4>
         </div>
         <div class="modal-body">
-          <p>Head of household: <span id="modal-hh-head"></span></p>
-          <p># of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)</p>
-          <p># of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
-          <p># of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
-          </p>
+          <div class="row">
+          <div id="hh-demo" class="col-xs-12">
+            <h4 class="no-margin">Household Demographics</h4>
+            <p class="col-xs-6"># of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)</p>
+            <p class="col-xs-3"># of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+            <p class="col-xs-3"># of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+          </div>
         </div>
+        <hr>
+        <div class="row">
+          <div id="hh-assistance" class="col-xs-12">
+            <div id="training" class="col-xs-6">
+              <h4>Trainings Attended</h4>
+              <p>Safer Construction Techniques: <span id="modal-hh-sst"></span></p>
+              <p>Agricultural Extension Trainings: <span id="modal-hh-agri"></span></p>
+              <p>Skills Training and Enterprise Development: <span id="modal-hh-sted"></span></p>
+              <p>PHAST: <span id="modal-hh-phast"></span></p>
+              <p>CBHFA: <span id="modal-hh-cbhfa"></span></p>
+            </div>
+            <div id="asset" class="col-xs-6">
+              <h4>Assistance Received</h4>
+              <p>Core Shelter: <span id="modal-hh-core"></span></p>
+              <p>Shelter Retrofitting Assistance: <span id="modal-hh-sra"></span></p>
+              <p>Household Level Assistance: <span id="modal-hh-ccg"></span></p>
+            </div>
+
+          </div>
+        </div>
+      </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
@@ -176,6 +199,9 @@ function drawPoints(){
 }
 
 function clickedHousehold(data, target){
+
+  console.log(data);
+
   $.post('query/hhoverview', {"id": data.id}, function(response){
     // # response should be an array containing one object
     if(response[0]){
@@ -191,6 +217,12 @@ function clickedHousehold(data, target){
       $("#modal-hh-elderly-m").empty().text(response[0].vul_male_elderly);
       $("#modal-hh-minor-f").empty().text(response[0].vul_female_minor);
       $("#modal-hh-minor-m").empty().text(response[0].vul_male_minor);
+
+      data.sra !== null ? $("#modal-hh-sra").empty().text("Yes") : $("#modal-hh-sra").empty();
+      data.core !== null ? $("#modal-hh-core").empty().text("Yes") : $("#modal-hh-core").empty();
+      data.sted !== null ? $("#modal-hh-sted").empty().text("Yes") : $("#modal-hh-sted").empty();
+      data.ccg !== null ? $("#modal-hh-ccg").empty().text("Yes") : $("#modal-hh-ccg").empty();
+
       $("#info-modal").modal();
     } else {
       $("#modal-hh-id").empty().html("<i>Sorry, an error occurred.</i>");
@@ -220,6 +252,8 @@ function getLocationData(){
 
 var filterTitles = [];
 var filterOptions = [];
+var filterConditions = [];
+var activeFilters = [];
 
 function buildFilterHTML(title,titleName,options,isLocation){
 
@@ -272,13 +306,14 @@ function filtermap(wat){
       filterTitles = [];
       filterOptions = [];
 
-      buildFilterHTML('Shelter','shelter',['Core','SRA'],false);
-      buildFilterHTML('Livelihood','livelihood',['CCG','STED'],false);
+      buildFilterHTML('Shelter','shelter',['core','sra'],false);
+      buildFilterHTML('Livelihood','livelihood',['ccg','sted'],false);
+      // panelHtml('Location', null, locationArray, true);
       $('.filter-panel.panel-heading').html(filterTitles.join('&nbsp; | &nbsp;'));
 
-      $('.checkbox input:checkbox').click(function() {
-        $('.checkbox input:checkbox').not(this).prop('checked', false);
-      });
+      // $('.checkbox input:checkbox').click(function() {
+      //   $('.checkbox input:checkbox').not(this).prop('checked', false);
+      // });
       $('#accordion').show();
     }
   }
@@ -287,17 +322,20 @@ function filtermap(wat){
 function closeFilterBox(){
       clearAllFilters();
       $('#accordion').hide();
+
 }
 
 function clearAllFilters(){
+  activeFilters = [];
+
   var allCheckboxes = $.find("input:checkbox");
   $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
 }
 
 function buildFilters(){
+  var i;
 
-  var activeFilters = []
-
+  filterConditions = [];
   checkboxes = $(".filter-panel.panel input[type=checkbox]");
     for (i=0; i<checkboxes.length; i++) {
       if(checkboxes[i].checked === true) {
@@ -308,21 +346,25 @@ function buildFilters(){
       }
     }
 
-  if(activeFilters.length > 0 && activeFilters[0].filterValue == "Core"){
-    points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
-  }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "SRA"){
-    points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
-  }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "STED"){
-    points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
-  }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "CCG"){
-    points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
-  }
-  else{
-    points.classed("hide", false);
-  }
+// filter data
+    // var filterKeyCount = filterData.length;
+    // filteredData = data.filter(function(d){
+    //   var passCount = 0;
+    //   var project = d;
+    //   $.each(filterData,function(iKey, filterKey){
+    //     var pass = false;
+    //     var thisKey = filterKey.key;
+    //     $.each(filterKey.values, function(iValue, filterValue){
+    //       // # if any of the filter values for a given key are present, that filter key is passed
+    //       if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
+    //     });
+    //     if(pass === true){ passCount ++; }
+    //   });
+    //   // # if all filter keys are passed, the project passes the filtering
+    //   return passCount === filterKeyCount;
+    // })
+
+// draw points
 }
 
 getLocationData();
