@@ -8,17 +8,17 @@
 <div id="loader" class="text-center">
 	<img src="media/ajax_loader_gray_512.gif" alt="loading..." />
 </div>
+<a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
 
- <a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
 <div class="filter-panel panel-group">
   <div class="filter-panel panel panel-default" >
-		<ul class="tabs" data-active-collapse="true" data-tabs id="collapsing-tabs tabs-ul">
-			<!-- panel titles go here -->
+			<ul class="tabs" data-active-collapse="true" data-tabs id="collapsing-tabs">
+				<!-- panel titles go here -->
 
-    </ul>
-		<div class="tabs-content" data-tabs-content="collapsing-tabs" id="tabs-div">
-		</div>
-		<!-- collapse divs go here -->
+	    </ul>
+			<div class="tabs-content" data-tabs-content="collapsing-tabs" id="tabsdiv">
+			<!-- collapse divs go here -->
+			</div>
   </div>
 </div>
 
@@ -38,7 +38,7 @@
 	<div class="small-offset-2 small-6 columns"><div id="knowledgechangeLegend"> </div></div>
 
 	<div class="small-12 columns">
-		</br>
+			</br>
 			<h4>Number of participants by knowledge change score</h4>
 			<div id="knowLine"></div>
 	</div>
@@ -205,10 +205,10 @@ function buildFilters(){
   var panelTitles = [];
   var panelBodies = [];
   function panelHtml(title, dataId, array, geo){
-    var thisTitleHtml = '<li class="tabs-title is-active">' +
-			'<a href="' + dataId + '">' + title + '</a></li>';
+    var thisTitleHtml = '<li class="tabs-title">' +
+			'<a href="#' + dataId + '">' + title + '</a></li>';
 		panelTitles.push(thisTitleHtml);
-    var thisBodyHtml = '<div class="tabs-panel" id="#collapse-' + dataId + '">';
+    var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
     if(geo === true) {
       var municipArray = [];
       $.each(array, function(i, a){
@@ -231,14 +231,15 @@ function buildFilters(){
       })
     }
 		thisBodyHtml += '</div>';
-    $('.filter-panel #tabs-div').append(thisBodyHtml);
+    $('.filter-panel #tabsdiv').append(thisBodyHtml);
+
   }
   panelHtml('Training name', 'training_name', trainingnameArray);
   panelHtml('Training ID', 'training_id', trainingidArray);
   panelHtml('Knowledge change', 'knowledge_change', knowledgechangeArray);
   panelHtml('Location', null, locationArray, true);
 	$('.filter-panel ul').append(panelTitles);
-	Foundation.reInit($('[data-tabs]'));
+	Foundation.reInit($('.filter-panel ul'))
   filteredData = data;
   $('#loader').hide();
   //buildBars();
