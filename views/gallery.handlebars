@@ -1,0 +1,137 @@
+<div id="gallery-page">
+
+<div id="modal" class="reveal full" style="padding-bottom:60px;" data-reveal>
+  <div id="pdf-viewer"></div>
+  <button class="button secondary float-right" style="margin-top:8px;" data-close>
+    <i class="fa fa-close" aria-hidden="true"></i> Close
+  </button>
+</div>
+
+<br>
+
+<div class="row">
+  <div class="medium-offset-1 medium-10 columns">
+    <div id="blueimp-video-carousel" class="blueimp-gallery blueimp-gallery-controls blueimp-gallery-carousel">
+        <div class="slides"></div>
+        <h3 class="title"></h3>
+        <a class="prev">‹</a>
+        <a class="next">›</a>
+        <a class="play-pause"></a>
+    </div>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+  <div class="medium-offset-1 medium-10 columns">
+    <div class="row collapse">
+      <div id="feature-article" class="small-12 medium-8 columns">
+        <div class="card">
+          <img class="img-responsive" src='https://img.youtube.com/vi/fPGx4IYrYiw/maxresdefault.jpg' />
+        </div>
+      </div>
+
+      <div id="article-list" class="small-12 medium-4 columns">
+        <div class="button-group">
+          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story1.pdf')">Nilda's Second Choice</button>
+          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story2.pdf')">Rosalinda's Garden</button>
+          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story3.pdf')">Herminigilda's Red House</button>
+          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story4.pdf')">Michell's New Job</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+  <div id="gallery-links" class="medium-offset-1 medium-10 columns">
+    <div class="text-center"><img src="img/loading.gif" alt="loading..."></div>
+  </div>
+</div>
+
+
+<!-- The Gallery as lightbox dialog, should be a child element of the document body -->
+<div id="blueimp-gallery" class="blueimp-gallery blueimp-gallery-controls">
+    <div class="slides"></div>
+    <h3 class="title"></h3>
+    <a class="prev">‹</a>
+    <a class="next">›</a>
+    <a class="close">×</a>
+    <a class="play-pause"></a>
+    <ol class="indicator"></ol>
+</div>
+
+</div> <!-- / #gallery-page -->
+
+<br>
+{{> page/footer}}
+
+<link rel="stylesheet" href="{{opts.nginxlocation}}css/blueimp-gallery.min.css">
+<script src="{{opts.nginxlocation}}js/blueimp-gallery.min.js"></script>
+<script src="{{opts.nginxlocation}}js/pdfobject.min.js"></script>
+<script>
+
+function getGalleryList(){
+  $.get('/api/pages/gallery', function(response) {
+    buildGallery(response);
+  });
+}
+
+
+function buildGallery(data){
+  var data = data.filter(function(d){
+    return d.published !== 0;
+  })
+
+  $('#gallery-links').html('');
+  var linksContainer = $('#gallery-links');
+  var baseUrl = "http://arcttl.s3.amazonaws.com/";
+  var galleryLinks = data.map(function(d){ return baseUrl + d.filename; })
+
+  var links = d3.select('#gallery-links').selectAll('div')
+      .data(data).enter()
+      .append('div').attr('class', 'gallery-thumb')
+      .attr('data-href', function(d){ return baseUrl + d.filename; })
+      .on('click', function(d){
+        blueimp.Gallery(galleryLinks, { index: galleryLinks.indexOf(d3.select(this).attr('data-href')) });
+      })
+
+    links.append('img').attr('src', function(d){
+      return baseUrl + d.filename.slice(0, d.filename.lastIndexOf(".")) +
+        "_THUMB" + d.filename.slice(d.filename.lastIndexOf("."));
+    }).classed('img-responsive', true)
+
+}
+
+var videoId = ['ktn5xafEbis','kZBKLzAFRfs','4iVYAlvIq5U','Zu9tvqHip1E','rPF6M-vIcXM','4qp4z97HXHI','kv--VZhBw6E',
+'fPGx4IYrYiw','GcK7xrA9TRk','B10I_iRzI84','S8ZUmpqT9pE','BDn1-MNb9mc','tAZulxGrbDs','5n2fZisRbqc','FpyqAir5LEU',
+'G8J-1ll8fXA','hM_z3xWvR58','S6SaMu-FUkA','0Uk_OPBHtoU', '7rpeZv0_t_k','78hevWNhRm8','GfeX45lMM3A']
+
+var videos = [];
+
+for(var i=0;i<videoId.length;i++){
+  videos[i] ={
+    title: '',
+    href: 'https://www.youtube.com/watch?v='+videoId[i],
+    type: 'text/html',
+    youtube: videoId[i],
+    poster: 'https://img.youtube.com/vi/'+videoId[i]+'/maxresdefault.jpg'
+  }
+}
+
+function getPreview(article){
+  PDFObject.embed("pdf"+article, "#pdf-viewer");
+  $('#modal').foundation('open');
+}
+
+blueimp.Gallery(videos, {
+  container: '#blueimp-video-carousel',
+  carousel: true
+});
+
+getGalleryList();
+
+</script>

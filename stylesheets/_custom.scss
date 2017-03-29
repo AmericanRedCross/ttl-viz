@@ -253,3 +253,21 @@
     padding-right:10px
   }
 }
+
+#gallery-page {
+  .gallery-thumb {
+    cursor: pointer;
+    margin: rem-calc(12);
+    padding: rem-calc(4);
+    height: 150px;
+    width: 150px;
+    border-radius: 2px;
+    display: inline-block;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+  }
+  #article-list .button-group{
+    padding: rem-calc(12);
+  }
+}
+.pdfobject-container.pdfobject-container { height: 100%;}
+
