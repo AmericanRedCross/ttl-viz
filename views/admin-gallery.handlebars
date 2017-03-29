@@ -23,7 +23,7 @@
       <div id="thisImage"><img style="width:100%;" src="" /></div><br>
 
 
-      <button type="submit" value="submit" class="button">
+      <button id="modal_submit" type="submit" value="submit" class="button">
         <i class="fa fa-check" aria-hidden="true"></i> Submit
       </button>
       <button id="modal_close" class="button secondary" data-close>
@@ -99,6 +99,10 @@ window.onload = function() {
 
 $("#imageFile").on('change', function() {
   $("#selectedFile").text(this.files[0].name);
+})
+
+$("#modal form").on('submit', function(){
+  $("#modal_submit").prop('disabled', true);
 })
 
 var addImage = function() {

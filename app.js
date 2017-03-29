@@ -372,6 +372,7 @@ var uploadImage = function(req, res){
   var processImage = flow.define(
     function() {
       // upload the original image
+      req.file.originalname = req.file.originalname.replace(/\s/g, "_");
       var body = fs.createReadStream(tmpImg);
       var key = "gallery_testing/" + timestamp + "_" +
         req.file.originalname.slice(0, req.file.originalname.lastIndexOf(".")) +
@@ -553,6 +554,7 @@ app.post('/api/documents', documentsDoc.single('docFile'), function(req, res) {
   } else { res.redirect('/edit/documents'); }
 });
 
+// TODO: require a user here
 app.get('/api/documents/all', function(req, res){
   var query = "SELECT * FROM documents";
   db.all(query, function(err, rows) {
@@ -571,8 +573,27 @@ app.get('/api/documents/doc/:rowid', function(req, res) {
   }
 });
 
+app.get('/gallery', function(req, res) {
+  if (req.user) {
+    res.render('gallery',{
+      user:req.user,
+      opts:settings.page
+    });
+  } else {
+    res.redirect(settings.page.nginxlocation);
+  }
+});
 
-// dashboard pages using a postgres connection
+app.get('/api/pages/gallery', function(req, res) {
+  if (req.user) {
+    db.all('SELECT * FROM gallery', function(err, result) {
+      // if(err) ...
+      res.json(result);
+    });
+  }
+});
+
+// for dashboard pages using a postgres connection
 var PostGresHelper = require("./routes/postGresHelper.js");
 var pghelper = new PostGresHelper();
 
@@ -585,16 +606,16 @@ app.get('/progress', function(req, res) {
 	} else {
 		res.redirect(settings.page.nginxlocation);
 	}
-})
+});
 
-app.get('/api/pages/progress', function (req, res) {
+app.get('/api/pages/progress', function(req, res) {
 	if(req.user) {
 		var queryStr = 'SELECT * FROM "INDICATOR_TRACKING_TABLE" where remarks='+"'visible';";
 		pghelper.query(queryStr, function(err, data){
 			res.json(data);
 		})
 	}
-})
+});
 
 
 
