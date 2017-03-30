@@ -1,0 +1,157 @@
+<div id="commmunity-infrastructure-page" class="expanded small-collapse row">
+  <div class="columns">
+
+    <div id="info-modal" class="reveal" data-reveal>
+      <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
+      <h5 class="modal-title"></h5>
+      <p>
+        <b>Municipality:</b> <span id="modal-municipality"></span><br>
+        <b>Barangay:</b> <span id="modal-barangay"></span><br>
+        <b>Date Completed:</b> <span id="date-completed"></span>
+      </p>
+      <div style="text-align:center;">
+        <div style="width:49%;display:inline-block;"><img src="" class="img-responsive" id="img-photo-one" ></div>
+        <div style="width:49%;display:inline-block;"><img src="" class="img-responsive" id="img-photo-two" ></div>
+      </div>
+    </div>
+
+    <div class="button-group small btn-map-filter">
+      <button class="button secondary hollow" style="background:#fff;" onclick="filtermap('all');">Show all</button>
+      <button class="button secondary hollow" style="background:#fff;" onclick="filtermap('l1');">Level 1 Water System <i class="fa fa-circle" style="color:#7570b3;" aria-hidden="true"></i></button>
+      <button class="button secondary hollow" style="background:#fff;" onclick="filtermap('l2');">Level 2 Water System <i class="fa fa-circle" style="color:#1b9e77;" aria-hidden="true"></i></button>
+    </div>
+
+    <div id="map"></div>
+
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+<script>
+
+var height = $(window).height();
+$('#map').height(height);
+$(window).resize(function(){
+  height = $(window).height();
+  $('#map').height(height);
+})
+
+var data, points;
+
+// create basic leaflet map
+// ========================
+// tile layer for base map
+var hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  hotAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles from <a href="http://hot.openstreetmap.org/" target="_blank">H.O.T.</a>',
+  hotLayer = L.tileLayer(hotUrl, {attribution: hotAttribution});
+// initialize map w options
+var map = L.map('map', {
+  layers: [hotLayer],
+  center: new L.LatLng(0,0),
+  zoom: 2,
+  minZoom: 2
+});
+
+var mapBounds = L.latLngBounds([10.714586690981509,124.71954345703126],[11.321173722096153,126.28509521484375])
+map.fitBounds(mapBounds);
+
+// initialize the SVG layer for D3 drawn markers
+L.svg().addTo(map);
+// pick up the SVG from the map object
+var svg = d3.select('#map').select('svg');
+var pointsGroup = svg.append('g').attr('id', 'markers')
+  // .attr('class', 'leaflet-zoom-hide');
+
+function getData(){
+	$.get('api/pages/commmunity-infrastructure', function(response){
+    response.forEach(function(d, i) {
+      if(!isNaN(d.lat) && !isNaN(d.lng)) {
+        d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
+      }
+    });
+		data = response;
+		drawPoints(); 
+	});
+}
+
+function drawPoints(){
+	points = pointsGroup.selectAll("circle")
+    .data(data).enter().append("circle")
+    .classed('point', true)
+    .attr('fill', function(d){
+      if(d.sector_intervention == "hand pump"){
+        return "#7570b3";
+      } else if (d.sector_intervention == "water system") {
+        return "#1b9e77";
+      } else {
+        return "#d95f02";
+      }
+    })
+    .on('click', function(d){ clickedMarker(d, this); })
+
+  // when map view changes adjust the locations of the svg circles
+	updatePoint = function(){
+    points.attr('cx',function(d) { return map.latLngToLayerPoint(d.LatLng).x; });
+    points.attr('cy',function(d) { return map.latLngToLayerPoint(d.LatLng).y; });
+	}
+	map.on('zoom move viewreset', updatePoint);
+	updatePoint();
+}
+
+var locationLookup = {};
+
+function getLocationData(){
+  $.get('api/pages/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+  });
+}
+
+function clickedMarker(data, target){
+  var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/";
+  var date_comp = data.completion_date;
+  var p_one = data.photo_one;
+  var p_two = data.photo_two;
+
+  var title = "";
+
+  if(data.sector_intervention=="hand pump"){
+    title = "Level 1 Water System";
+  }else if(data.sector_intervention=="water system"){
+    title = "Level 2 Water System";
+  }else{
+    title = "";
+  }
+
+  var loc_m = locationLookup[data.hh_municipality+data.hh_barangay].municipality;
+  var loc_b = locationLookup[data.hh_municipality+data.hh_barangay].barangay;
+
+  $('#info-modal .modal-title').html(title);
+  $('#modal-barangay').html(loc_b);
+  $('#modal-municipality').html(loc_m);
+  $('#date-completed').html(date_comp);
+  $('#img-photo-one').attr("src", src+p_one);
+  $('#img-photo-two').attr("src", src+p_two);
+  $("#info-modal").foundation('open');
+}
+
+function filtermap(wat){
+  if(wat === "l1"){
+    points.classed("hide", true).filter(function(d){ return d.sector_intervention == "hand pump" }).classed("hide", false);
+  }
+  else if(wat === "l2"){
+    points.classed("hide", true).filter(function(d){ return d.sector_intervention == "water system" }).classed("hide", false);
+  }
+  else{
+    points.classed("hide", false);
+  }
+
+}
+
+getLocationData();
+getData()
+
+</script>

@@ -609,9 +609,9 @@ app.get('/progress', function(req, res) {
 });
 
 app.get('/api/pages/progress', function(req, res) {
-	if(req.user) {
+	if (req.user) {
 		var queryStr = 'SELECT * FROM "INDICATOR_TRACKING_TABLE" where remarks='+"'visible';";
-		pghelper.query(queryStr, function(err, data){
+		pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
 	}
@@ -631,20 +631,41 @@ app.get('/agriculture',function(req,res) {
 app.get('/api/pages/agriculture', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'" + 'Livelihood' + "'" + ';';
-			pghelper.query(queryStr, function(err, data){
+			pghelper.query(queryStr, function(err, data) {
 				res.json(data);
 			})
 	}
 })
+
+app.get('/community-infrastructure',function(req,res) {
+	if (req.user) {
+    res.render('community-infrastructure', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/commmunity-infrastructure', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat  FROM community_works_tool_v2 WHERE sector_intervention=' + "'hand pump' AND ws_shed='y' OR sector_intervention="+"'water system';";
+		pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+});
+
+
 app.get('/api/pages/targetlocations', function(req,res) {
 	if (req.user) {
 			var queryStr = 'SELECT * FROM "TARGET_LOCATION";';
-			pghelper.query(queryStr, function(err, data){
+			pghelper.query(queryStr, function(err, data) {
 				res.json(data);
 			})
 	}
 });
-
 
 app.listen(settings.app.port, function() {
   console.log('app listening on port ' + settings.app.port);
