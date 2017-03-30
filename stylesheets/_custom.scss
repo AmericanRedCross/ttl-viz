@@ -264,7 +264,7 @@
 }
 .pdfobject-container.pdfobject-container { height: 100%;}
 
-#commmunity-infrastructure-page {
+#households-overview-page, #commmunity-infrastructure-page {
   #map{
     width: 100%;
     z-index: 0;
@@ -277,23 +277,19 @@
     fill-opacity: 0.9;
     cursor: pointer;
   }
-  .leaflet-control-attribution a {
-    color: #6d6e70 !important;
-    cursor: pointer;
-  }
-  .leaflet-control-attribution {
-    font-size: x-small;
-    color: #78787d;
-  }
-  .leaflet-control-attribution a {
-    text-decoration: none;
-    cursor: pointer;
-    color: #6d6e70;
-  }
   .btn-map-filter {
     position: absolute;
     left: 47px;
     top: 10px;
     z-index: 99;
   }
+}
+
+.leaflet-control-attribution {
+  color: #78787d;
+}
+.leaflet-control-attribution a {
+  text-decoration: none;
+  cursor: pointer;
+  color: #6d6e70 !important;
 }
