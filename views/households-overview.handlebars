@@ -65,17 +65,15 @@
           <div id="hh-assistance" class="col-xs-12">
             <div id="training" class="col-xs-6">
               <h4>Trainings Attended</h4>
-              <p>Safer Construction Techniques: <span id="modal-hh-sst"></span></p>
-              <p>Agricultural Extension Trainings: <span id="modal-hh-agri"></span></p>
-              <p>Skills Training and Enterprise Development: <span id="modal-hh-sted"></span></p>
-              <p>PHAST: <span id="modal-hh-phast"></span></p>
-              <p>CBHFA: <span id="modal-hh-cbhfa"></span></p>
+              <p id="modal-hh-sst">Safer Construction Techniques<strong><span></span></strong></p>
+              <p id="modal-hh-agri">Agricultural Extension Trainings<strong><span></span></strong></p>
+              <p id="modal-hh-sted">Skills Training and Enterprise Development<strong><span></span></strong></p>
             </div>
             <div id="asset" class="col-xs-6">
               <h4>Assistance Received</h4>
-              <p>Core Shelter: <span id="modal-hh-core"></span></p>
-              <p>Shelter Retrofitting Assistance: <span id="modal-hh-sra"></span></p>
-              <p>Household Level Assistance: <span id="modal-hh-ccg"></span></p>
+              <p id="modal-hh-core">Core Shelter<strong><span></span></strong></p>
+              <p id="modal-hh-sra">Shelter Retrofitting Assistance<strong><span></span></strong></p>
+              <p id="modal-hh-ccg">Household Level Assistance<strong><span></span></strong></p>
             </div>
 
           </div>
@@ -135,7 +133,7 @@ $(window).resize(function(){
   $('#map').height(height);
 })
 
-var data, points;
+var data, sstData, agriData, points;
 
 // create basic leaflet map
 // ========================
@@ -169,12 +167,30 @@ function projectPoint(x, y) {
 var transform = d3.geo.transform({point: projectPoint}),
     path = d3.geo.path().projection(transform);
 
+var locationLookup = {};
 
+function getLocationData(){
+  $.get('query/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+    });
+}
 
 function getHouseholds(){
 	$.get('query/hhlocations', function(response){
 		data = response;
 		drawPoints(); 
+	});
+}
+
+function getTrainingData(){
+	$.get('query/safersheltertraining', function(response){
+		sstData = response;
+	});
+  $.get('query/agriculturetraining', function(response){
+		agriData = response;
 	});
 }
 
@@ -218,10 +234,13 @@ function clickedHousehold(data, target){
       $("#modal-hh-minor-f").empty().text(response[0].vul_female_minor);
       $("#modal-hh-minor-m").empty().text(response[0].vul_male_minor);
 
-      data.sra !== null ? $("#modal-hh-sra").empty().text("Yes") : $("#modal-hh-sra").empty();
-      data.core !== null ? $("#modal-hh-core").empty().text("Yes") : $("#modal-hh-core").empty();
-      data.sted !== null ? $("#modal-hh-sted").empty().text("Yes") : $("#modal-hh-sted").empty();
-      data.ccg !== null ? $("#modal-hh-ccg").empty().text("Yes") : $("#modal-hh-ccg").empty();
+      data.sra !== null ? $("#modal-hh-sra").show() : $("#modal-hh-sra").hide();
+      data.core !== null ? $("#modal-hh-core").show() : $("#modal-hh-core").hide();
+      data.sted !== null ? $("#modal-hh-sted").show() : $("#modal-hh-sted").hide();
+      data.ccg !== null ? $("#modal-hh-ccg").show() : $("#modal-hh-ccg").hide();
+
+      agriData.filter(function(d){ return d.participant_id == data.id; }).length > 0 ? $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
+      sstData.filter(function(d){ return d.participant_id === data.id; }).length > 0 ? $("#modal-hh-sst").show() : $("#modal-hh-sst").hide();
 
       $("#info-modal").modal();
     } else {
@@ -236,17 +255,6 @@ function clickedHousehold(data, target){
       $("#modal-hh-minor-m").empty();
       $("#info-modal").modal();
     }
-  });
-}
-
-var locationLookup = {};
-
-function getLocationData(){
-  $.get('query/targetlocations', function(response){
-    $.each(response, function(index, location){
-      locationLookup[location.location_id] = location;
-      locationLookup[location['location_id'].slice(0,2)] = location;
-    });
   });
 }
 
@@ -368,6 +376,7 @@ function buildFilters(){
 }
 
 getLocationData();
+getTrainingData();
 getHouseholds()
 
 </script>
