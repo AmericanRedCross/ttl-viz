@@ -266,7 +266,6 @@ function clickedHousehold(data, target){
 var filterTitles = [];
 var filterOptions = [];
 var filterConditions = [];
-var activeFilters = [];
 
 function buildFilterHTML(title,titleName,options,isLocation){
 
@@ -323,9 +322,9 @@ function filtermap(wat){
       buildFilterHTML('Livelihood','livelihood',['ccg','sted'],false);
       $('.filter-panel.panel-heading').html(filterTitles.join('&nbsp; | &nbsp;'));
 
-      // $('.checkbox input:checkbox').click(function() {
-      //   $('.checkbox input:checkbox').not(this).prop('checked', false);
-      // });
+      $('.checkbox input:checkbox').click(function() {
+        $('.checkbox input:checkbox').not(this).prop('checked', false);
+      });
       $('#accordion').show();
     }
   }
@@ -338,16 +337,14 @@ function closeFilterBox(){
 }
 
 function clearAllFilters(){
-  activeFilters = [];
-
   var allCheckboxes = $.find("input:checkbox");
   $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
 }
 
 function buildFilters(){
   var i;
+  var activeFilters = [];
 
-  filterConditions = [];
   checkboxes = $(".filter-panel.panel input[type=checkbox]");
     for (i=0; i<checkboxes.length; i++) {
       if(checkboxes[i].checked === true) {
@@ -358,25 +355,21 @@ function buildFilters(){
       }
     }
 
-// filter data
-    // var filterKeyCount = filterData.length;
-    // filteredData = data.filter(function(d){
-    //   var passCount = 0;
-    //   var project = d;
-    //   $.each(filterData,function(iKey, filterKey){
-    //     var pass = false;
-    //     var thisKey = filterKey.key;
-    //     $.each(filterKey.values, function(iValue, filterValue){
-    //       // # if any of the filter values for a given key are present, that filter key is passed
-    //       if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
-    //     });
-    //     if(pass === true){ passCount ++; }
-    //   });
-    //   // # if all filter keys are passed, the project passes the filtering
-    //   return passCount === filterKeyCount;
-    // })
-
-// draw points
+    if(activeFilters.length > 0 && activeFilters[0].filterValue == "core"){
+      points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
+    }
+    else if(activeFilters.length > 0 && activeFilters[0].filterValue === "sra"){
+      points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
+    }
+    else if(activeFilters.length > 0 && activeFilters[0].filterValue === "sted"){
+      points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
+    }
+    else if(activeFilters.length > 0 && activeFilters[0].filterValue === "ccg"){
+      points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
+    }
+    else{
+      points.classed("hide", false);
+    }
 }
 
 getLocationData();
