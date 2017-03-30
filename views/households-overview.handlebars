@@ -40,6 +40,10 @@
   color: #6d6e70;
 }
 
+.no-margin{
+  margin: 0px;
+}
+
 </style>
 
 <div class="container-fluid" style="margin:0;padding:0;">
@@ -48,16 +52,40 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title">Household Id: <small><span id="modal-hh-id"></span></small></h4>
+          <div class="row">
+              <h4 class="col-xs-5">Head of Household: <small><span id="modal-hh-head"></span></small></h4>
+              <h4 class="col-xs-6">Household ID: <small><span id="modal-hh-id"></span></small></h4>
+              <button type="button" class="close col-xs-1" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
         </div>
         <div class="modal-body">
-          <p>Head of household: <span id="modal-hh-head"></span></p>
-          <p># of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)</p>
-          <p># of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
-          <p># of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
-          </p>
+          <div class="row">
+          <div id="hh-demo" class="col-xs-12">
+            <h4 style="margin">Household Demographics</h4>
+            <p class="col-xs-5">Number of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)</p>
+            <p class="col-xs-3">Number of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+            <p class="col-xs-4">Number of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+          </div>
         </div>
+        <hr>
+        <div class="row">
+          <div id="hh-assistance" class="col-xs-12">
+            <div id="training" class="col-xs-5">
+              <h4>Trainings Attended</h4>
+              <p id="modal-hh-sst">Safer Construction Techniques<strong><span></span></strong></p>
+              <p id="modal-hh-agri">Agricultural Extension Trainings<strong><span></span></strong></p>
+              <p id="modal-hh-sted">Skills Training and Enterprise Development<strong><span></span></strong></p>
+            </div>
+            <div id="asset" class="col-xs-7">
+              <h4>Assistance Received</h4>
+              <p id="modal-hh-core">Core Shelter<strong><span></span></strong></p>
+              <p id="modal-hh-sra">Shelter Retrofitting Assistance<strong><span></span></strong></p>
+              <p id="modal-hh-ccg">Household Level Assistance<strong><span></span></strong></p>
+            </div>
+
+          </div>
+        </div>
+      </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
@@ -112,7 +140,7 @@ $(window).resize(function(){
   $('#map').height(height);
 })
 
-var data, points;
+var data, sstData, agriData, points;
 
 // create basic leaflet map
 // ========================
@@ -146,12 +174,30 @@ function projectPoint(x, y) {
 var transform = d3.geo.transform({point: projectPoint}),
     path = d3.geo.path().projection(transform);
 
+var locationLookup = {};
 
+function getLocationData(){
+  $.get('query/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+    });
+}
 
 function getHouseholds(){
 	$.get('query/hhlocations', function(response){
 		data = response;
 		drawPoints(); 
+	});
+}
+
+function getTrainingData(){
+	$.get('query/safersheltertraining', function(response){
+		sstData = response;
+	});
+  $.get('query/agriculturetraining', function(response){
+		agriData = response;
 	});
 }
 
@@ -176,6 +222,7 @@ function drawPoints(){
 }
 
 function clickedHousehold(data, target){
+
   $.post('query/hhoverview', {"id": data.id}, function(response){
     // # response should be an array containing one object
     if(response[0]){
@@ -191,6 +238,15 @@ function clickedHousehold(data, target){
       $("#modal-hh-elderly-m").empty().text(response[0].vul_male_elderly);
       $("#modal-hh-minor-f").empty().text(response[0].vul_female_minor);
       $("#modal-hh-minor-m").empty().text(response[0].vul_male_minor);
+
+      data.sra !== null ? $("#modal-hh-sra").show() : $("#modal-hh-sra").hide();
+      data.core !== null ? $("#modal-hh-core").show() : $("#modal-hh-core").hide();
+      data.sted !== null ? $("#modal-hh-sted").show() : $("#modal-hh-sted").hide();
+      data.ccg !== null ? $("#modal-hh-ccg").show() : $("#modal-hh-ccg").hide();
+
+      agriData.filter(function(d){ return d.participant_id == data.id; }).length > 0 ? $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
+      sstData.filter(function(d){ return d.participant_id === data.id; }).length > 0 ? $("#modal-hh-sst").show() : $("#modal-hh-sst").hide();
+
       $("#info-modal").modal();
     } else {
       $("#modal-hh-id").empty().html("<i>Sorry, an error occurred.</i>");
@@ -207,19 +263,9 @@ function clickedHousehold(data, target){
   });
 }
 
-var locationLookup = {};
-
-function getLocationData(){
-  $.get('query/targetlocations', function(response){
-    $.each(response, function(index, location){
-      locationLookup[location.location_id] = location;
-      locationLookup[location['location_id'].slice(0,2)] = location;
-    });
-  });
-}
-
 var filterTitles = [];
 var filterOptions = [];
+var filterConditions = [];
 
 function buildFilterHTML(title,titleName,options,isLocation){
 
@@ -272,8 +318,8 @@ function filtermap(wat){
       filterTitles = [];
       filterOptions = [];
 
-      buildFilterHTML('Shelter','shelter',['Core','SRA'],false);
-      buildFilterHTML('Livelihood','livelihood',['CCG','STED'],false);
+      buildFilterHTML('Shelter','shelter',['core','sra'],false);
+      buildFilterHTML('Livelihood','livelihood',['ccg','sted'],false);
       $('.filter-panel.panel-heading').html(filterTitles.join('&nbsp; | &nbsp;'));
 
       $('.checkbox input:checkbox').click(function() {
@@ -287,6 +333,7 @@ function filtermap(wat){
 function closeFilterBox(){
       clearAllFilters();
       $('#accordion').hide();
+
 }
 
 function clearAllFilters(){
@@ -295,8 +342,8 @@ function clearAllFilters(){
 }
 
 function buildFilters(){
-
-  var activeFilters = []
+  var i;
+  var activeFilters = [];
 
   checkboxes = $(".filter-panel.panel input[type=checkbox]");
     for (i=0; i<checkboxes.length; i++) {
@@ -308,24 +355,25 @@ function buildFilters(){
       }
     }
 
-  if(activeFilters.length > 0 && activeFilters[0].filterValue == "Core"){
-    points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
-  }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "SRA"){
-    points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
-  }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "STED"){
-    points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
-  }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "CCG"){
-    points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
-  }
-  else{
-    points.classed("hide", false);
-  }
+    if(activeFilters.length > 0 && activeFilters[0].filterValue == "core"){
+      points.classed("hide", true).filter(function(d){ return d.core !== null }).classed("hide", false);
+    }
+    else if(activeFilters.length > 0 && activeFilters[0].filterValue === "sra"){
+      points.classed("hide", true).filter(function(d){ return d.sra !== null }).classed("hide", false);
+    }
+    else if(activeFilters.length > 0 && activeFilters[0].filterValue === "sted"){
+      points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
+    }
+    else if(activeFilters.length > 0 && activeFilters[0].filterValue === "ccg"){
+      points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
+    }
+    else{
+      points.classed("hide", false);
+    }
 }
 
 getLocationData();
+getTrainingData();
 getHouseholds()
 
 </script>
