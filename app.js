@@ -657,6 +657,17 @@ app.get('/api/pages/commmunity-infrastructure', function(req, res) {
 	}
 });
 
+app.get('/spot-maps',function(req,res) {
+	if (req.user) {
+    res.render('spot-maps', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
 
 app.get('/api/pages/targetlocations', function(req,res) {
 	if (req.user) {
