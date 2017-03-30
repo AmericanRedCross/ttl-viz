@@ -1,0 +1,93 @@
+<div id="hardware-page" class="progress-page">
+
+  <div class="row">
+  	<div class="medium-offset-1 medium-10 columns">
+  		<h2>Hardware Intervention Progress </h2>
+  	</div>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <div class="medium-offset-1 medium-10 columns">
+      <div id="hardware-sectors">
+        <!-- ... -->
+      </div>
+    </div>
+  </div>
+
+</div> <!-- / container -->
+
+<br>
+{{> page/footer}}
+
+<script>
+
+function getNumber(str) {
+  return (isNaN(parseFloat(str))) ? 0 : parseFloat(str);
+}
+var commas = d3.format(",");
+
+function getProgress() {
+  $.get('/api/pages/hardware', function(response) {
+      buildPage(response);
+  });
+}
+
+function buildPage(response) {
+
+	var sectorList = d3.set(response.map(function(d) { return d.indicator_sector; })).values();
+
+	response.forEach(function(d) {
+		var actual = getNumber(d.indicator_actual);
+		var target = getNumber(d.indicator_target);
+		var remainder = (target - actual > 0) ? (target - actual) : 0;
+		d.pie = [
+			{ label: 'actual', count: actual },
+			{ label: 'remainder', count: remainder }
+		]
+	})
+
+	var tables = d3.select('#hardware-sectors').selectAll('div').data(sectorList).enter()
+		.append('div').append('div').sort(function(a,b) { return d3.ascending(a, b); })
+		.html(function(d) {
+			return '<h5>' + d + '</h5>';
+		}).append('table').attr('class', 'progress-indicators')
+
+	var indicators = tables.selectAll('tr').data(function(a){  return response.filter(function(b){ return a === b.indicator_sector; }); })
+      .enter().append('tr')
+
+	indicators.sort(function(a,b){
+		return d3.ascending(a.indicator, b.indicator);
+	})
+
+	var width = 30,
+			height = 30,
+			radius = Math.min(width, height) / 2,
+      path = d3.arc().outerRadius(radius).innerRadius(0),
+			pie = d3.pie().value(function(d){
+				return d.count
+			});
+
+	var svg = indicators.append('td').attr('class', 'pie-cell').append('svg')
+		.attr('class', 'progress-pie')
+		.attr('width', width)
+    .attr('height', height)
+		.append('g').attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')')
+
+	var g = svg.selectAll('g').data(function(d) { return pie(d.pie); })
+    .enter().append('path')
+		.attr('d', path)
+		.style("fill", function(d) { return (d.data.label === "actual") ? "#8ec06c" : "#d7d7d8"; });
+
+  var description = indicators.append('td');
+
+	description.append('div').html(function(d){
+		return '<div>' + d.indicator + '</div><div><span class="small"><b>' + commas(d.indicator_actual) + '</b> of <b>' + commas(d.indicator_target) + '</b></span><div>'
+	});
+
+}
+
+getProgress();
+
+</script>

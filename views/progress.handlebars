@@ -1,9 +1,8 @@
-<div id="progress-page">
+<div id="overall-progress-page" class="progress-page">
 
 <div class="row">
 	<div class="medium-offset-1 medium-10 columns">
 		<h2>Overall Program Progess </h2>
-    <h5 class="subheader"><p>as of December 2016</p></h5>
     <!-- <br>
 
     <div class="btn-group btn-map-filter">
@@ -20,7 +19,7 @@
 
 <br>
 
-<div class="row table-group">
+<div class="row">
   <div class="medium-offset-1 medium-10 columns">
   	<div class="objective-one-group">
   		<h5>Philppine Red Cross (PRC) increases their capacity in community-based recovery and preparedness to enhance comunity resilience</h5>
@@ -90,7 +89,7 @@ function buildPage(response,objectiveNumber,indicatorTable){
 				return d.count
 			})
 
-	var svg = indicators.append('td').append('svg')
+	var svg = indicators.append('td').attr('class', 'pie-cell').append('svg')
     .attr('class', 'progress-pie')
     .attr('width', width)
     .attr('height', height)

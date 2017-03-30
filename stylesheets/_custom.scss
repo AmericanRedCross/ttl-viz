@@ -201,28 +201,21 @@
   box-shadow: none;
 }
 
-#progress-page {
+.progress-page {
+  .progress-pie {
+    float: left;
+    margin: 2px 8px;
+  }
   .progress-indicators {
     font-size: rem-calc(14);
-  	background: #fff;
-  	table-layout: auto !important;
+    background: #fff;
+    table-layout: auto !important;
   }
   td {
     padding: 1em 0.5em;
   }
-  .progress-pie {
-  	float: left;
-  	margin: 2px 8px;
-  }
-  .btn-map-filter{
-  	padding-left: 15px;
-  	padding-right: 15px;
-  }
-  .panel-group{
-    position:absolute;
-  	padding-left: 15px;
-  	padding-right: 15px;
-    z-index: 1;
+  td.pie-cell {
+    width: 60px;
   }
 }
 

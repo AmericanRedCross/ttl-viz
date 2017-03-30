@@ -617,6 +617,46 @@ app.get('/api/pages/progress', function(req, res) {
 	}
 });
 
+app.get('/hardware', function(req, res) {
+	if (req.user) {
+		res.render('hardware',{
+			user:req.user,
+			opts:settings.page
+		});
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+});
+
+app.get('/api/pages/hardware', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "HARDWARE_INDICATORS";';
+		pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+});
+
+app.get('/software', function(req, res) {
+	if (req.user) {
+		res.render('software',{
+			user:req.user,
+			opts:settings.page
+		});
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+});
+
+app.get('/api/pages/software', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "SOFTWARE_INDICATORS";';
+		pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+});
+
 app.get('/agriculture',function(req,res) {
 	if (req.user) {
     res.render('agriculture', {
