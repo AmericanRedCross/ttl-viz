@@ -40,6 +40,10 @@
   color: #6d6e70;
 }
 
+.no-margin{
+  margin: 0px;
+}
+
 </style>
 
 <div class="container-fluid" style="margin:0;padding:0;">
@@ -48,28 +52,31 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title">Head of household: <small><span id="modal-hh-head"></span></small>&nbsp;&nbsp;&nbsp;&nbsp;Household Id: <small><span id="modal-hh-id"></span></small></h4>
+          <div class="row">
+              <h4 class="col-xs-5">Head of Household: <small><span id="modal-hh-head"></span></small></h4>
+              <h4 class="col-xs-6">Household ID: <small><span id="modal-hh-id"></span></small></h4>
+              <button type="button" class="close col-xs-1" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
         </div>
         <div class="modal-body">
           <div class="row">
           <div id="hh-demo" class="col-xs-12">
-            <h4 class="no-margin">Household Demographics</h4>
-            <p class="col-xs-6"># of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)</p>
-            <p class="col-xs-3"># of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
-            <p class="col-xs-3"># of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+            <h4 style="margin">Household Demographics</h4>
+            <p class="col-xs-5">Number of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)</p>
+            <p class="col-xs-3">Number of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
+            <p class="col-xs-4">Number of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i></p>
           </div>
         </div>
         <hr>
         <div class="row">
           <div id="hh-assistance" class="col-xs-12">
-            <div id="training" class="col-xs-6">
+            <div id="training" class="col-xs-5">
               <h4>Trainings Attended</h4>
               <p id="modal-hh-sst">Safer Construction Techniques<strong><span></span></strong></p>
               <p id="modal-hh-agri">Agricultural Extension Trainings<strong><span></span></strong></p>
               <p id="modal-hh-sted">Skills Training and Enterprise Development<strong><span></span></strong></p>
             </div>
-            <div id="asset" class="col-xs-6">
+            <div id="asset" class="col-xs-7">
               <h4>Assistance Received</h4>
               <p id="modal-hh-core">Core Shelter<strong><span></span></strong></p>
               <p id="modal-hh-sra">Shelter Retrofitting Assistance<strong><span></span></strong></p>
@@ -216,8 +223,6 @@ function drawPoints(){
 
 function clickedHousehold(data, target){
 
-  console.log(data);
-
   $.post('query/hhoverview', {"id": data.id}, function(response){
     // # response should be an array containing one object
     if(response[0]){
@@ -316,7 +321,6 @@ function filtermap(wat){
 
       buildFilterHTML('Shelter','shelter',['core','sra'],false);
       buildFilterHTML('Livelihood','livelihood',['ccg','sted'],false);
-      // panelHtml('Location', null, locationArray, true);
       $('.filter-panel.panel-heading').html(filterTitles.join('&nbsp; | &nbsp;'));
 
       // $('.checkbox input:checkbox').click(function() {
