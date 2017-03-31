@@ -1,0 +1,59 @@
+<div id="analytics-page">
+
+  <div class="row">
+  	<div class="medium-offset-1 medium-10 columns">
+  		<h2>Analytics </h2>
+  	</div>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <div class="medium-offset-1 medium-10 columns">
+      <div id="documents-wrapper">
+        <!-- ... -->
+      </div>
+    </div>
+  </div>
+
+</div><!-- / container -->
+
+<br>
+{{> page/footer}}
+
+<script>
+
+function buildPage(documents) {
+  var nested = d3.nest()
+      .key(function(d) { return d.subcategory; })
+      .sortKeys(d3.ascending)
+      .entries(documents);
+
+	$.each(nested, function(a, subcategory) {
+		$('#documents-wrapper').append('<div class="row columns"><h5>' + subcategory.key + '</h5></div>');
+		var docsHtml = '<div class="row small-up-1 medium-up-3">';
+		$.each(subcategory.values, function(b, doc) {
+			docsHtml += '<div class="column">' +
+                    '<div class="card">' +
+                      '<div class="card-divider red-bar"></div>' +
+              				'<div class="card-section">' +
+                        '<h6>' +
+                          '<strong>' + doc.title + '</strong>&nbsp; '+
+                          '<span class="small">' +doc.description + ' &nbsp;</span>' +
+                          '<a href="http://arcttl.s3.amazonaws.com/' + doc.key + '" download><i class="fa fa-fw fa-download"></i></a>' +
+                        '</h6>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>';
+		});
+    docsHtml += '</div><br>';
+		$('#documents-wrapper').append(docsHtml);
+	});
+}
+
+$.get('/api/documents/published', function(response) {
+  response = response.filter(function(d) { return d.category === "Analytics"; });
+  buildPage(response);
+});
+
+</script>

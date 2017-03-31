@@ -563,6 +563,14 @@ app.get('/api/documents/all', function(req, res){
   });
 });
 
+app.get('/api/documents/published', function(req, res){
+  var query = "SELECT * FROM documents WHERE published = 1";
+  db.all(query, function(err, rows) {
+      // if(err) ...
+      res.json(rows);
+  });
+});
+
 app.get('/api/documents/doc/:rowid', function(req, res) {
   if(req.user) {
     var query = "SELECT * FROM documents WHERE rowid = " + req.params.rowid;
@@ -746,6 +754,27 @@ app.get('/spot-maps',function(req,res) {
 	}
 })
 
+app.get('/documents', function(req, res) {
+	if (req.user) {
+		res.render('documents',{
+			user:req.user,
+			opts:settings.page
+		});
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+});
+
+app.get('/analytics', function(req, res) {
+	if (req.user) {
+		res.render('analytics',{
+			user:req.user,
+			opts:settings.page
+		});
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+});
 
 app.get('/api/pages/targetlocations', function(req,res) {
 	if (req.user) {

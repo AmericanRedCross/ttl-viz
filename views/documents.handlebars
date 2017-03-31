@@ -1,0 +1,122 @@
+<div id="documents-page">
+
+  <div class="row">
+  	<div class="medium-offset-1 medium-10 columns">
+  		<h2>Documents </h2>
+  	</div>
+  </div>
+
+  <br>
+
+  <div class="row">
+    <div class="medium-offset-1 medium-10 columns">
+
+      <ul class="tabs" data-tabs id="categories-nav">
+        <li class="tabs-title is-active"><a href="#panel-home" aria-selected="true">Home</a></li>
+        <li class="tabs-title"><a href="#panel-programs">Programs</a></li>
+        <li class="tabs-title"><a href="#panel-finance">Finance</a></li>
+        <li class="tabs-title"><a href="#panel-operations">Operations</a></li>
+        <li class="tabs-title"><a href="#panel-me">M&amp;E</a></li>
+        <li class="tabs-title"><a href="#panel-other">Other</a></li>
+      </ul>
+
+      <div class="tabs-content" data-tabs-content="categories-nav">
+        <div class="tabs-panel is-active" id="panel-home" data-category="Home">
+          <!-- ... -->
+        </div>
+        <div class="tabs-panel" id="panel-programs" data-category="Programs">
+          <!-- ... -->
+        </div>
+        <div class="tabs-panel" id="panel-finance" data-category="Finance">
+          <!-- ... -->
+        </div>
+        <div class="tabs-panel" id="panel-operations" data-category="Operations">
+          <!-- ... -->
+        </div>
+        <div class="tabs-panel" id="panel-me" data-category="M&E">
+          <!-- ... -->
+        </div>
+        <div class="tabs-panel" id="panel-other" data-category="Other">
+          <!-- ... -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- / container -->
+
+<br>
+{{> page/footer}}
+
+<script>
+
+var typeIcon = function(extension) {
+  switch(extension) {
+    case ".doc":
+    case ".docx":
+      return '<i class="fa fa-fw fa-file-word-o"></i> '
+      break;
+    case ".jpeg":
+    case ".jpg":
+    case ".png":
+      return '<i class="fa fa-fw fa-file-image-o"></i> '
+      break;
+    case ".pdf":
+      return '<i class="fa fa-fw fa-file-pdf-o"></i> '
+      break;
+    case ".ppt":
+    case ".pptx":
+      return '<i class="fa fa-fw fa-file-powerpoint-o"></i> '
+      break;
+    case ".xls":
+    case ".xlsm":
+    case ".xlsx":
+      return '<i class="fa fa-fw fa-file-excel-o"></i> '
+      break;
+    case ".zip":
+      return '<i class="fa fa-fw fa-file-archive-o"></i> '
+      break;
+    default:
+      return '<i class="fa fa-fw fa-file-o"></i> '
+  }
+};
+
+function buildPage(documents) {
+  var nested = d3.nest()
+      .key(function(d) { return d.category; })
+      .key(function(d) { return d.subcategory; })
+      .entries(documents);
+
+  $.each(nested, function(a, category) {
+    var categoryTab = $('*[data-category="' + category.key + '"]');
+    var categoryHtml = "";
+    $.each(category.values, function(b, subcategory) {
+        categoryHtml += '<div class="row columns"><h5>' + subcategory.key + '</h5></div>';
+    		categoryHtml +=  '<div class="row small-up-1 medium-up-3">';
+    		$.each(subcategory.values, function(b, doc) {
+    			categoryHtml += '<div class="column">' +
+                '<div class="card">' +
+                  '<div class="card-divider red-bar"></div>' +
+          				'<div class="card-section">' +
+                    '<h6>' +
+                      '<strong>' + doc.title + '</strong>&nbsp; '+
+                      '<span class="small">' +doc.description + ' &nbsp;</span>' +
+                      '<a href="http://arcttl.s3.amazonaws.com/' + doc.key + '" download><i class="fa fa-fw fa-download"></i></a>' +
+                    '</h6>' +
+                  '</div>' +
+                '</div>' +
+              '</div>';
+    		});
+        categoryHtml +=  '</div><br>';
+      });
+      categoryTab.append(categoryHtml);
+    });
+}
+
+$.get('/api/documents/published', function(response) {
+  response = response.filter(function(d) { return d.category !== "Analytics"; });
+  buildPage(response);
+});
+
+</script>
