@@ -685,6 +685,27 @@ app.get('/api/pages/agriculture', function(req,res) {
 	}
 })
 
+app.get('/ccg',function(req, res) {
+	if (req.user) {
+    res.render('ccg', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/ccg', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT "LIVELIHOOD_CCG".household_id, amount_category, livelihood_category, livelihood_proposal, head_of_hh_fname, head_of_hh_lname ' +
+        'FROM "LIVELIHOOD_CCG" LEFT OUTER JOIN "HOUSEHOLD" ON ("LIVELIHOOD_CCG".household_id = "HOUSEHOLD".household_id);';
+		pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
 app.get('/households-overview',function(req,res) {
 	if (req.user) {
     res.render('households-overview', {

@@ -148,7 +148,6 @@ function getLocationData(){
 function fetchData(){
   $.get('api/pages/agriculture', function(response){
     data = response;
-    var counter = 0;
     data.forEach(function(d){
       // calculate the value of score change
       if( isNaN(parseFloat(d['score_posttest'])) || isNaN(parseFloat(d['score_pretest'])) ) {
@@ -171,9 +170,8 @@ function fetchData(){
       d['training_name'] = [d['training_name']];
       d['training_id'] = [d['training_id']];
       d['location'] = (d['location_id'] === null) ? ['data missing','data missing'] : [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
-      counter++;
-      if(counter === data.length){ buildFilters(); }
     });
+		buildFilters();
   });
 }
 

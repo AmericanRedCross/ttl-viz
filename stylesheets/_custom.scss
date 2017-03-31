@@ -219,6 +219,31 @@
   }
 }
 
+#filter-nav-tabs {
+  .checkbox {
+    display: inline-block;
+    padding-right:10px
+  }
+}
+
+#ccg-page {
+  #brgyBars rect {
+  fill: #c11b2b;
+  }
+  #brgyBars text {
+    font-size: 11px;
+    font-family: inherit;
+  }
+  text.brgy-label {
+    text-anchor: end;
+    fill: black;
+  }
+  text.brgy-total {
+    text-anchor: start;
+    fill: black;
+  }
+}
+
 #agriculture_page {
   #headText{
     color: rgba(62,62,62,1);
