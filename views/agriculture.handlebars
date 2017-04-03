@@ -669,10 +669,20 @@ function drawKnowLine(){
 function buildList(){
 
   $('#listTable').empty();
-  $('#listTable').html('<table data-sortable id="dataTable" class="compact sortable-theme-minimal">' +
-        '<thead><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training</th><th>Pre</th><th>Post</th><th>Change</th><th>Change</th></tr></thead>' +
-        '<tfoot><tr><th>First</th><th>Last</th><th>Barangay</th><th>Municipality</th><th>Training</th><th>Pre</th><th>Post</th><th>Change</th><th>Change</th></tr></tfoot>' +
-        '<tbody></tbody></table>')
+
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
+      '<thead>'+
+        '<tr><th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Training<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Pre<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Post<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th></tr>'+
+      '</thead>'+
+      '<tbody></tbody></table>');
 
   var readableTime = d3.timeFormat("%d-%b-%Y");
 
@@ -691,25 +701,34 @@ function buildList(){
     $('#listTable tbody').append(rowHtml);
   });
 
-  var table = $('#dataTable').DataTable({"sDom":'lrtip'});
+  var table = $('#dataTable').DataTable({
+        // scrollX: true,
+        "sDom":'lrtip',
+        "lengthChange": false,
+        "pageLength": 10,
+        // "lengthMenu": [ 10, 50, 100 ],
+        "language": {
+          "lengthMenu": "Display _MENU_ records",
+          "info": "Showing _START_ to _END_ of _TOTAL_ records",
+        }
+      });
 
-  var readableTime = d3.timeFormat("%d-%b-%Y");
+      // stop a click in the search input box from triggering a sort on the column
+      $('.column-search').on('click', function(e){
+        e.stopPropagation();
+      });
 
-  $('#dataTable tfoot th').each(function(){
-    var title = $(this).text();
-    $(this).html('<input type="text" placeholder="'+title+'" />');
-  });
-
-  table.columns().every( function() {
-    var that = this;
-    $('input', this.footer() ).on('keyup change', function(){
-      if( that.search() !== this.values ){
-        that
-        .search( this.values )
-        .draw();
-      }
-    });
-  });
+      // initialize column search functionality
+      table.columns().every( function() {
+        var that = this;
+        $('input', this.header() ).on('keyup change', function(){
+          if( that.search() !== this.value ){
+            that
+            .search( this.value )
+            .draw();
+          }
+        });
+      });
 }
 
 getLocationData();
