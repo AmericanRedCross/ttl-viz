@@ -766,6 +766,35 @@ app.get('/api/pages/safer-shelter-training', function(req, res) {
 	}
 })
 
+app.get('/core-shelter',function(req, res) {
+	if (req.user) {
+    res.render('core-shelter', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/core-shelter', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "core_shelter_100_percent_completion" WHERE hh_id_qr != ' + "''" + ';';
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
+app.get('/api/pages/core-shelter/enumerationhousephoto/:id', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT house_photo FROM "ENUMERATION" WHERE household_id=' + "'" + req.params.id  + "';";
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
 app.get('/phast',function(req, res) {
 	if (req.user) {
     res.render('phast', {

@@ -255,6 +255,37 @@ rect.graph-bar-2 {
   fill: #537b35;
 }
 
+#core-shelter-page {
+  #progressGraph {
+    width:100%;
+    font: 10px sans-serif;
+  }
+  #progressGraph .detail {
+    font-size: 14px;
+  }
+
+  #progressGraph path {
+      stroke: #7f181b;
+      stroke-width: 2;
+      fill: none;
+  }
+  #progressGraph .axis path,
+  #progressGraph .axis line {
+      fill: none;
+      stroke: grey;
+      stroke-width: 1;
+      shape-rendering: crispEdges;
+  }
+  .overlay {
+    fill: none;
+    pointer-events: all;
+  }
+  .focus circle {
+    fill: rgba(237,27,46,0.6);
+    stroke: #ed1b2e;
+    stroke-width: 1.5px;
+  }
+}
 
 #agriculture_page {
   #headText{
