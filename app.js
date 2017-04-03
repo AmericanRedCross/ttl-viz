@@ -374,7 +374,7 @@ var uploadImage = function(req, res){
       // upload the original image
       req.file.originalname = req.file.originalname.replace(/\s/g, "_");
       var body = fs.createReadStream(tmpImg);
-      var key = "gallery_testing/" + timestamp + "_" +
+      var key = settings.s3.galleryfolder + "/" + timestamp + "_" +
         req.file.originalname.slice(0, req.file.originalname.lastIndexOf(".")) +
         "_ORIGINAL" + req.file.originalname.slice(req.file.originalname.lastIndexOf("."));
       s3.upload({ Body: body, Bucket: settings.s3.mediabucket, Key: key }, this);
@@ -389,7 +389,7 @@ var uploadImage = function(req, res){
     ,function() {
       // upload the resized image for use on the website
       var body = fs.createReadStream(tmpImg);
-      var key = "gallery_testing/" + timestamp + "_" + req.file.originalname;
+      var key = settings.s3.galleryfolder + "/" + timestamp + "_" + req.file.originalname;
       s3.upload({ Body: body, Bucket: settings.s3.mediabucket, Key: key }, this);
     }
     ,function(err, data) {
