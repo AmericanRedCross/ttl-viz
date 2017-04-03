@@ -226,11 +226,11 @@
   }
 }
 
-#ccg-page {
-  #brgyBars rect {
-  fill: #c11b2b;
+#brgyBars {
+  rect {
+    fill: #c11b2b;
   }
-  #brgyBars text {
+  text {
     font-size: 11px;
     font-family: inherit;
   }
@@ -242,6 +242,10 @@
     text-anchor: start;
     fill: black;
   }
+}
+
+.info-modal-trigger {
+  cursor: pointer;
 }
 
 #agriculture_page {
