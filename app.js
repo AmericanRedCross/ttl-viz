@@ -726,6 +726,27 @@ app.get('/api/pages/sted', function(req, res) {
 	}
 })
 
+app.get('/sra',function(req, res) {
+	if (req.user) {
+    res.render('sra', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/sra', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "SHELTER_SRA" LEFT OUTER JOIN "HOUSEHOLD" ON ("SHELTER_SRA".c_u_household_id = "HOUSEHOLD".household_id);';
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
+
 app.get('/phast',function(req, res) {
 	if (req.user) {
     res.render('phast', {
