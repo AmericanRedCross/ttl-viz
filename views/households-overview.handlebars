@@ -165,27 +165,11 @@ function buildFilterHTML(title, dataId, array, geo){
     '<a href="#' + dataId + '">' + title + '</a></li>';
   panelTitles.push(thisTitleHtml);
   var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
-  if(geo === true) {
-    var municipArray = [];
-    $.each(array, function(i, a){
-      var thisMunicip = a.slice(0,2);
-      if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
-        municipArray.push(thisMunicip);
-        thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
-        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
-            thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
-      }
-      if(locationLookup[a] === undefined){ thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
-          a + '" onchange="filter();">' + 'data error' + '</label></div>'; }
-      else { thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
-          a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>'; }
-    })
-  } else {
-    $.each(array, function(i, a){
-      thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
-          dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
-    })
-  }
+  $.each(array, function(i, a){
+    thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
+        dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
+  })
+
   thisBodyHtml += '</div>';
   $('#tabsdiv').append(thisBodyHtml);
 }
@@ -244,7 +228,6 @@ function filter(){
   }
 }
 
-// getLocationData();
 getHouseholds()
 
 </script>
