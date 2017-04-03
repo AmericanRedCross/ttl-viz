@@ -11,7 +11,7 @@ var bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 // initialize database
-var file = path.resolve(__dirname, settings.app.db);
+var file = path.resolve(__dirname,'db',settings.app.db);
 fs.existsSync(file);
 var db = new sqlite3.Database(file);
 
@@ -199,7 +199,7 @@ app.use(bodyParser.json());
 
 app.use(cookieParser('secret'));
 app.use(session({
-  store: new SQLiteStore,
+  store: new SQLiteStore({dir:path.resolve(__dirname,'db')}),
   secret: 'secret',
   resave: false,
   saveUninitialized: true,

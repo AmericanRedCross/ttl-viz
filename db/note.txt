@@ -1,0 +1,1 @@
+# site db files go here so directory can be made writeable
