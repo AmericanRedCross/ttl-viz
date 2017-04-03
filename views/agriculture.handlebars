@@ -1,58 +1,70 @@
-<div class="container-fluid" id="agriculture_page">
-	<div id="headText" class="small-offset-3 small-7 columns">
-		<h1>Agriculture Training</h1>
-		<p><u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span></p>
-	<div>
-</header>
+<div id="agriculture-page">
 
-<div id="loader" class="text-center">
-	<img src="media/ajax_loader_gray_512.gif" alt="loading..." />
-</div>
-<a id='clearAll' onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
-
-<div class="filter-panel panel-group row">
-  <div class="filter-panel panel panel-default small-columns 12" >
-			<ul class="tabs" data-active-collapse="true" data-tabs id="collapsing-tabs">
-				<!-- panel titles go here -->
-
-	    </ul>
-			<div class="tabs-content" data-tabs-content="collapsing-tabs" id="tabsdiv">
-			<!-- collapse divs go here -->
-			</div>
+<div id="details-modal" class="reveal" data-reveal>
+  <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
+  <h5 class="modal-title"></h5>
+  <div class="modal-body">
+    <p></p>
   </div>
 </div>
 
-<hr>
 
 <div class="row">
-	<div id="brgyBars"></div>
+	<div class="columns">
+		<h2>Agriculture Training</h2>
+	</div>
 </div>
 
-<hr>
+<br>
 
 <div class="row">
-	<div class="small-12 columns">
+  <div class="columns">
+    <div id="loader" class="text-center">
+    	<img src="{{opts.nginxlocation}}media/ajax_loader_gray_512.gif" alt="loading..." />
+    </div>
+    <p>
+      <u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span><br>
+      <a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
+    </p>
+    <ul class="tabs" data-active-collapse="true" data-tabs id="filter-nav">
+    	<!-- panel titles go here -->
+    </ul>
+    <div class="tabs-content" data-tabs-content="filter-nav" id="filter-nav-tabs">
+      <!-- collapse divs go here -->
+    </div>
+  </div>
+</div>
+<br>
+
+
+<div class="row">
+  <div class="columns">
+	   <div id="brgyBars"></div>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+	<div class="small-3 columns">
 		<h4>Knowledge change</h4>
 	  <div id="knowledgechangePie"></div>
 	</div>
-	<div class="small-offset-2 small-6 columns"><div id="knowledgechangeLegend"> </div></div>
-
-	<div class="small-12 columns">
-			</br>
+	<div class="small-3 columns"><div id="knowledgechangeLegend"> </div></div>
+	<div class="small-6 columns">
 			<h4>Number of participants by knowledge change score</h4>
 			<div id="knowLine"></div>
 	</div>
-
 </div>
 
-<hr>
+<br>
 
 <div class="row">
-	<div class="small-12 columns">
+	<div class="small-3 columns">
 		<h4>Participants per training</h4>
 	  <div id="perTrainingPie"></div>
 	</div>
-	<div class="small-12 columns"><div id="perTrainingLegend"> </div></div>
+	<div class="small-5 columns end"><div id="perTrainingLegend"> </div></div>
 </div>
 
 <!-- <div class="dashboard-section">
@@ -63,16 +75,16 @@
 <!--
 <hr style="margin:0;"> -->
 
-<hr>
+<br>
 
-<div id="listTable"></div>
+<div class="row">
+  <div class="columns">
+      <div id="listTable"></div>
+  </div>
+</div>
 
-<hr>
-<footer id="site-footer">
-	<div class="row row-logo">
-				{{{logos}}}
-			</div>
-</footer>
+<br>
+{{> page/footer}}
 </div>
 
 <link rel="stylesheet" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
@@ -96,11 +108,6 @@ function adminText(locationId, type){
   } else { return "error" }
 }
 
-function clearAllCheckboxes(){
-  var allCheckboxes = $.find("input:checkbox");
-  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
-  filter();
-}
 
 d3.select(window).on("resize", throttle);
 var throttleTimer;
@@ -118,7 +125,11 @@ function resize() {
   buildPies();
 }
 
-
+function clearAllCheckboxes(){
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+  filter();
+}
 
 function getLocationData(){
   $.get('api/pages/targetlocations', function(response){
@@ -148,6 +159,7 @@ function getLocationData(){
 function fetchData(){
   $.get('api/pages/agriculture', function(response){
     data = response;
+		var counter = 0;
     data.forEach(function(d){
       // calculate the value of score change
       if( isNaN(parseFloat(d['score_posttest'])) || isNaN(parseFloat(d['score_pretest'])) ) {
@@ -170,8 +182,9 @@ function fetchData(){
       d['training_name'] = [d['training_name']];
       d['training_id'] = [d['training_id']];
       d['location'] = (d['location_id'] === null) ? ['data missing','data missing'] : [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
+			counter++;
+      if(counter === data.length){ buildFilters(); }
     });
-		buildFilters();
   });
 }
 
@@ -203,41 +216,41 @@ function buildFilters(){
   var panelTitles = [];
   // var panelBodies = [];
   function panelHtml(title, dataId, array, geo){
-    var thisTitleHtml = '<li class="tabs-title">' +
+		var thisTitleHtml = '<li class="tabs-title">' +
 			'<a href="#' + dataId + '">' + title + '</a></li>';
 		panelTitles.push(thisTitleHtml);
-    var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
-    if(geo === true) {
-      var municipArray = [];
-      $.each(array, function(i, a){
-        var thisMunicip = a.slice(0,2);
-        if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
-          municipArray.push(thisMunicip);
-          thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
-          thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
-              thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
-        }
+		var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
+		if(geo === true) {
+			var municipArray = [];
+			$.each(array, function(i, a){
+				var thisMunicip = a.slice(0,2);
+				if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
+					municipArray.push(thisMunicip);
+					thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
+					thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+							thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
+				}
         if(locationLookup[a] === undefined){ thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
             a + '" onchange="filter();">' + 'data error' + '</label></div>'; }
         else { thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
             a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>'; }
       })
     } else {
-      $.each(array, function(i, a){
-        thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
-            dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
-      })
-    }
+			$.each(array, function(i, a){
+				thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
+						dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
+			})
+		}
 		thisBodyHtml += '</div>';
-    $('.filter-panel #tabsdiv').append(thisBodyHtml);
+		$('#filter-nav-tabs').append(thisBodyHtml);
 
-  }
+	}
   panelHtml('Training name', 'training_name', trainingnameArray);
   panelHtml('Training ID', 'training_id', trainingidArray);
   panelHtml('Knowledge change', 'knowledge_change', knowledgechangeArray);
   panelHtml('Location', null, locationArray, true);
-	$('.filter-panel ul').append(panelTitles);
-	Foundation.reInit($('.filter-panel ul'))
+	  $('#filter-nav').append(panelTitles);
+	Foundation.reInit($('#filter-nav'))
   filteredData = data;
   $('#loader').hide();
   //buildBars();
@@ -246,58 +259,59 @@ function buildFilters(){
 }
 
 function filter(){
-  // # look at all the checkboxes and record whats checked
-  activeFilters = []
-  checkboxes = $(".filter-panel.panel input[type=checkbox]");
-    for (i=0; i<checkboxes.length; i++) {
-      if(checkboxes[i].checked === true) {
-        activeFilters.push({
-          filterKey: checkboxes[i].name,
-          filterValue: checkboxes[i].value
-        })
-      }
-    }
-  // # reformat the data on checks to make it easier to work with
-  // ? combine this into what's above
-  filterData = d3.nest().key(function(d){ return d.filterKey })
-    .rollup(function(values){
-      var valuesArray = [];
-      values.forEach(function(d){
-        valuesArray.push(d.filterValue);
-      });
-      return valuesArray;
-    }).entries(activeFilters)
-  // # update the html on the page to let the user know what filters are active
-  var keyGroups = [];
-  $.each(filterData,function(i,filterKey){
-    var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
-    var valueGroups = [];
-    $.each(filterKey.values, function(j,filterValue){
-      valueGroups.push('<b>' + filterValue + '</b>');
-    })
-    keyGroupHtml += valueGroups.join(" <small>OR</small> ") + ")"
-    keyGroups.push(keyGroupHtml);
-  });
-  $('#filter-active-text').html(keyGroups.join(" <small>AND</small> "));
-  // # filter the data
-  var filterKeyCount = filterData.length;
-  filteredData = data.filter(function(d){
-    var passCount = 0;
-    var project = d;
-    $.each(filterData,function(iKey, filterKey){
-      var pass = false;
-      var thisKey = filterKey.key;
-      $.each(filterKey.value, function(iValue, filterValue){
-        // # if any of the filter values for a given key are present, that filter key is passed
-        if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
-      });
-      if(pass === true){ passCount ++; }
-    });
-    // # if all filter keys are passed, the project passes the filtering
-    return passCount === filterKeyCount;
-  })
+	activeFilters = []
+	checkboxes = $("#filter-nav-tabs input[type=checkbox]");
+		for (i=0; i<checkboxes.length; i++) {
+			if(checkboxes[i].checked === true) {
+				activeFilters.push({
+					filterKey: checkboxes[i].name,
+					filterValue: checkboxes[i].value
+				})
+			}
+		}
+	// # reformat the data on checks to make it easier to work with
+	// ? combine this into what's above
+	filterData = d3.nest().key(function(d){ return d.filterKey })
+		.rollup(function(values){
+			var valuesArray = [];
+			values.forEach(function(d){
+				valuesArray.push(d.filterValue);
+			});
+			return valuesArray;
+		}).entries(activeFilters)
+	// # update the html on the page to let the user know what filters are active
+	var keyGroups = [];
+	$.each(filterData,function(i,filterKey){
+		var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
+		var valueGroups = [];
+		console.log(filterKey)
+		$.each(filterKey.value, function(j,filterValue){
+			valueGroups.push('<b>' + filterValue + '</b>');
+		})
+		keyGroupHtml += valueGroups.join(" <small>OR</small> ") + ")"
+		keyGroups.push(keyGroupHtml);
+	});
+	$('#filter-active-text').html(keyGroups.join(" <small>AND</small> "));
+	// # filter the data
+	var filterKeyCount = filterData.length;
+	filteredData = data.filter(function(d){
+		var passCount = 0;
+		var project = d;
+		$.each(filterData,function(iKey, filterKey){
+			var pass = false;
+			var thisKey = filterKey.key;
+			$.each(filterKey.value, function(iValue, filterValue){
+				// # if any of the filter values for a given key are present, that filter key is passed
+				if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
+			});
+			if(pass === true){ passCount ++; }
+		});
+		// # if all filter keys are passed, the project passes the filtering
+		return passCount === filterKeyCount;
+	})
+	console.log(filteredData.length)
 
-  drawPies()
+	drawPies()
 
 }
 
@@ -309,6 +323,7 @@ function buildPies(){
   var height = width;
   pieRadius = Math.min(width, height) / 2;
 
+	// build the pie charts
   knowledgechangePie = d3.select('#knowledgechangePie').append("svg")
       .attr("width", width)
       .attr("height", height)
@@ -329,6 +344,7 @@ function buildPies(){
 
 var brgyBarsMeas, brgyBars, brgyBarsX;
 function buildBars(){
+	// build the bar charts
   brgyBarsMeas = {top: 20, right: 50, bottom: 20, left: 170, barHeight: 20, width: $('#brgyBars').innerWidth()};
   brgyBars = d3.select('#brgyBars').append('svg')
       .attr("width", brgyBarsMeas.width)
@@ -342,6 +358,7 @@ function buildBars(){
 
 var knowLineMeas, knowLineSvg, knowLineY, knowLineX, knowY, knowYaxis;
 function buildKnowledgeLine(){
+		// build the knowledge chart
     var changeExt = d3.extent(data, function(d){ return d.score_change; });
     var maxChange = (Math.abs(changeExt[0]) > Math.abs(changeExt[1])) ?  Math.abs(changeExt[0]) : Math.abs(changeExt[1]);
 
@@ -351,10 +368,8 @@ function buildKnowledgeLine(){
     knowLineSvg = d3.select('#knowLine').append('svg')
       .attr("width", knowLineMeas.width + knowLineMeas.left + knowLineMeas.right)
       .attr("height", knowLineMeas.height + knowLineMeas.top + knowLineMeas.bottom)
+			.attr("fill","rgba(0,124,196,1)")
       .append('g').attr("transform", "translate(" + knowLineMeas.left + "," + knowLineMeas.top + ")");
-
-
-
 
     knowLineY = d3.scaleLinear()
       .range([knowLineMeas.height, 0])
@@ -383,17 +398,14 @@ function buildKnowledgeLine(){
 
   drawPies();
 
-
 }
-
-
 
 function drawPies(){
   /////////////////
   // PIE HELPERS //
   // ########### //
   /////////////////
-  function findNeighborArc(i, data0, data1, key) {
+	function findNeighborArc(i, data0, data1, key) {
     var d;
     return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
     : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
@@ -419,21 +431,20 @@ function drawPies(){
       }
     }
   }
-
   function key(d) {
     return d.data.key;
   }
 
-  var pie = d3.pie().sort(null).value(function(d) { return d.value; });
+	var pie = d3.pie().sort(null).value(function(d) { return d.value; });
 
-  var arc = d3.arc()
+  var path = d3.arc()
         .outerRadius(pieRadius - 10)
         .innerRadius(0);
 
-  function arcTween(d) {
+  arcTween = function(d) {
     var i = d3.interpolate(this._current, d);
     this._current = i(0);
-    return function(t) { return arc(i(t)); };
+    return function(t) { return path(i(t)); };
   }
 
   //////////////////
@@ -441,6 +452,7 @@ function drawPies(){
   // ############ //
   //////////////////
   var knowledgechangeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['knowledge_change'][0]; }))
+	// customize knowledgechangeColor colors
   var knowledgechangeColor = function(key){
     switch(key) {
       case "increase":
@@ -461,15 +473,15 @@ function drawPies(){
 
   var knowledgechangePieData = d3.nest()
     .key(function(d) { return d['knowledge_change'][0]; })
-    .rollup(function(values){
-      return values.length
+    .rollup(function(value){
+      return value.length
     })
     .entries(filteredData)
 
   var categoryData0 = knowledgechangePiePath.data(),
     categoryData1 = pie(knowledgechangePieData);
 
-  knowledgechangePiePath = knowledgechangePiePath.data(categoryData1, key);
+  knowledgechangePiePath = d3.select('#knowledgechangePie').select('svg').select('g').selectAll('path').data(categoryData1, key);
 
   knowledgechangePiePath.enter().append("path")
     .each(function(d, i) { this._current = findNeighborArc(i, categoryData0, categoryData1, key) || d; })
@@ -478,10 +490,10 @@ function drawPies(){
     .text(function(d) { return d.data.key; });
 
   knowledgechangePiePath.exit()
-    .datum(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
-  .transition()
-    .duration(750)
-    .attrTween("d", arcTween)
+  //   .datum(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
+  // .transition()
+  //   .duration(750)
+  //   .attrTween("d", arcTween)
     .remove();
 
   knowledgechangePiePath.transition()
@@ -515,15 +527,15 @@ function drawPies(){
 
   var perTrainingData = d3.nest()
     .key(function(d) { return d['training_name'][0]; })
-    .rollup(function(values){
-      return values.length
+    .rollup(function(value){
+      return value.length
     })
     .entries(filteredData)
 
   var perTrainingData0 = perTrainingPiePath.data(),
     perTrainingData1 = pie(perTrainingData);
 
-  perTrainingPiePath = perTrainingPiePath.data(perTrainingData1, key);
+  perTrainingPiePath =  d3.select('#perTrainingPie').select('svg').select('g').selectAll('path').data(perTrainingData1, key);
 
   perTrainingPiePath.enter().append("path")
     .each(function(d, i) { this._current = findNeighborArc(i, perTrainingData0, perTrainingData1, key) || d; })
@@ -532,10 +544,10 @@ function drawPies(){
     .text(function(d) { return d.data.key; });
 
   perTrainingPiePath.exit()
-    .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
-  .transition()
-    .duration(750)
-    .attrTween("d", arcTween)
+  //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
+  // .transition()
+  //   .duration(750)
+  //   .attrTween("d", arcTween)
     .remove();
 
   perTrainingPiePath.transition()
@@ -577,38 +589,41 @@ function drawBars(){
 
   brgyBars.attr("height", brgyBarsMeas.barHeight * brgyBarsData.length);
 
-  var g = brgyBars.selectAll("g")
-      .data(brgyBarsData, function(d){ return d['key']; })
+	var barEnter= d3.select('#brgyBars').select('svg').selectAll("g")
+			.data(brgyBarsData, function(d){ return d['key']; })
 
-  var gEnter = g.enter().append("g")
+  barEnter.exit().remove();
 
-  gEnter.append('rect')
-      .attr("height", brgyBarsMeas.barHeight - 1)
-  gEnter.append("text")
-      .attr("class","brgy-label")
-      .attr("x", -5)
-      .attr("y", brgyBarsMeas.barHeight / 2)
-      .attr("dy", ".35em")
-  gEnter.append("text")
-      .attr("class","brgy-total")
-      .attr("y", brgyBarsMeas.barHeight / 2)
-      .attr("dy", ".35em")
+	barEnter.enter().append("g").each(function(d){
+		d3.select(this).append('rect')
+			.attr("height", brgyBarsMeas.barHeight - 1)
+		d3.select(this).append("text")
+			.attr("class","brgy-label")
+			.attr("x", -5)
+			.attr("y", brgyBarsMeas.barHeight / 2)
+			.attr("dy", ".35em")
+		d3.select(this).append("text")
+			.attr("class","brgy-total")
+			.attr("y", brgyBarsMeas.barHeight / 2)
+			.attr("dy", ".35em")
+	});
 
-  g.sort(function(a, b) { return b.value - a.value; }).transition().duration(1000).ease(d3.easeSinInOut)
-      .attr("transform", function(d, i) { return "translate(" + brgyBarsMeas.left + "," + i * brgyBarsMeas.barHeight + ")"; });
-  g.select("rect").transition().duration(1000).ease(d3.easeSinInOut)
+	var barUpdate = d3.select('#brgyBars').select('svg').selectAll("g");
+  barUpdate.sort(function(a, b) { return b.value - a.value; })
+    .transition().duration(1000).ease(d3.easeLinear)
+    .attr("transform", function(d, i) { return "translate(" + brgyBarsMeas.left + "," + i * brgyBarsMeas.barHeight + ")"; });
+  barUpdate.select("rect")
+    .transition().duration(1000).ease(d3.easeLinear)
     .attr("width", function(d) { return brgyBarsX(d.value); })
-  g.select(".brgy-label")
-      .text(function(d) {
-        if(locationLookup[d.key] === undefined){ return d.key; }
-        else { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; }
-      });
-  g.select(".brgy-total").transition().duration(1000).ease(d3.easeSinInOut)
-      .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
-      .text(function(d) { return d.value; });
-
-  g.exit().remove();
-
+  barUpdate.select(".brgy-label")
+    .text(function(d) {
+      if(locationLookup[d.key] === undefined){ return d.key; }
+      else { return locationLookup[d.key].barangay + ", " + locationLookup[d.key].municipality; }
+    });
+  barUpdate.select(".brgy-total")
+    .transition().duration(1000).ease(d3.easeLinear)
+    .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
+    .text(function(d) { return d.value; });
   // drawTimeline();
   drawKnowLine();
 
@@ -639,9 +654,6 @@ function drawKnowLine(){
         .attr("x", function(d) { return knowLineX(d.key) + 1; })
         .attr("width", knowLineMeas.barWidth - 2)
         .attr("y", function(d) {
-					console.log(d)
-					console.log(d.value)
-					console.log(knowLineY(d.value))
 					return knowLineY(d.value); })
         .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.value) + 1; });
 
@@ -696,8 +708,7 @@ function buildList(){
       }
     });
   });
-
-
 }
+
 getLocationData();
 </script>
