@@ -193,7 +193,7 @@ $("#docFile").on('change', function() {
 });
 
 function editRow(rowid) {
-  $.get('/api/documents/doc/' + rowid, function(response) {
+  $.get('{{opts.nginxlocation}}api/documents/doc/' + rowid, function(response) {
     console.log(response)
     $("#add-edit-title").html('Edit: <span class="subheader">' + response.key.slice(response.key.indexOf('/') + 1) + '</span>');
     $('#modal-add-edit').find('form')[0].reset();

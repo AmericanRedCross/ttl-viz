@@ -51,7 +51,7 @@ function buildPage(documents) {
 	});
 }
 
-$.get('/api/documents/published', function(response) {
+$.get('{{opts.nginxlocation}}api/documents/published', function(response) {
   response = response.filter(function(d) { return d.category === "Analytics"; });
   buildPage(response);
 });

@@ -78,7 +78,7 @@ var pointsGroup = svg.append('g').attr('id', 'markers')
   // .attr('class', 'leaflet-zoom-hide');
 
 function getHouseholds(){
-	$.get('api/pages/households-overview/hhlocations', function(response) {
+	$.get('{{opts.nginxlocation}}api/pages/households-overview/hhlocations', function(response) {
     response.forEach(function(d, i) {
       if(!isNaN(d.lat) && !isNaN(d.lng)) {
         d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
@@ -116,7 +116,7 @@ function createFilterPageElement() {
 }
 
 function clickedHousehold(data, target){
-  $.get('api/pages/households-overview/hhoverview/' + data.id, function(response) {
+  $.get('{{opts.nginxlocation}}api/pages/households-overview/hhoverview/' + data.id, function(response) {
     // # response should be an array containing one object
     if(response[0]){
       var head = response[0].head_of_hh_fname;
@@ -150,7 +150,7 @@ function clickedHousehold(data, target){
 var locationLookup = {};
 
 function getLocationData(){
-  $.get('api/pages/targetlocations', function(response){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
     $.each(response, function(index, location){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;

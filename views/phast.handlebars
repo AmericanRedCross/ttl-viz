@@ -111,7 +111,7 @@ function clearAllCheckboxes(){
 }
 
 function getLocationData(){
-  $.get('api/pages/targetlocations', function(response){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
     $.each(response, function(index, location){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
@@ -127,7 +127,7 @@ function getLocationData(){
 }
 
 function fetchData(){
-  $.get('api/pages/phast', function(response){
+  $.get('{{opts.nginxlocation}}api/pages/phast', function(response){
     data = response;
     var counter = 0;
     data.forEach(function(d){

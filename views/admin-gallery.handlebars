@@ -118,7 +118,7 @@ var addImage = function() {
 }
 
 var editImage = function(rowid) {
-  $.get('/api/gallery/' + rowid, function(response) {
+  $.get('{{opts.nginxlocation}}api/gallery/' + rowid, function(response) {
     $("#modal_title").text("Edit image");
     $("#imageFileSection").hide();
     $("#imageFile").prop("disabled", true);

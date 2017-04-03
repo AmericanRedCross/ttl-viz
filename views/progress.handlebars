@@ -56,7 +56,7 @@ var commas = d3.format(",");
 var data, filteredData={}, newData=[];
 
 function getProgress(){
-  $.get('/api/pages/progress', function(response) {
+  $.get('{{opts.nginxlocation}}api/pages/progress', function(response) {
     	data = response;
       buildPage(response,1,"#objective-one-indicators");
     	buildPage(response,2,"#objective-two-indicators");

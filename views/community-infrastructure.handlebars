@@ -64,7 +64,7 @@ var pointsGroup = svg.append('g').attr('id', 'markers')
   // .attr('class', 'leaflet-zoom-hide');
 
 function getData(){
-	$.get('api/pages/commmunity-infrastructure', function(response){
+	$.get('{{opts.nginxlocation}}api/pages/commmunity-infrastructure', function(response){
     response.forEach(function(d, i) {
       if(!isNaN(d.lat) && !isNaN(d.lng)) {
         d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
@@ -102,7 +102,7 @@ function drawPoints(){
 var locationLookup = {};
 
 function getLocationData(){
-  $.get('api/pages/targetlocations', function(response){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
     $.each(response, function(index, location){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;

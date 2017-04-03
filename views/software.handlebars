@@ -29,7 +29,7 @@ function getNumber(str) {
 var commas = d3.format(",");
 
 function getProgress() {
-  $.get('/api/pages/software', function(response) {
+  $.get('{{opts.nginxlocation}}api/pages/software', function(response) {
       buildPage(response);
   });
 }

@@ -76,7 +76,7 @@
 <script>
 
 function getGalleryList(){
-  $.get('/api/pages/gallery', function(response) {
+  $.get('{{opts.nginxlocation}}api/pages/gallery', function(response) {
     buildGallery(response);
   });
 }
