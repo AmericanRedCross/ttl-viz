@@ -58,17 +58,17 @@ var createUser = function(req, res) {
     // if(err)
     if(row) {
       req.flash('errorMessage', " there is already a user with that name");
-      res.redirect('/admin/users');
+      res.redirect(settings.page.nginxlocation + 'admin/users');
     } else {
       bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
         db.run('INSERT INTO users ( user, password, permissions ) VALUES( ?, ?, ? )', user, hash, permissions, function(err) {
           // if(err)
           if(this.lastID) {
             req.flash('successMessage', " user created");
-            res.redirect('/admin/users');
+            res.redirect(settings.page.nginxlocation + 'admin/users');
           } else {
             req.flash('errorMessage', " something went wrong");
-            res.redirect('/admin/users');
+            res.redirect(settings.page.nginxlocation + 'admin/users');
           }
         });
       });
@@ -79,14 +79,14 @@ var createUser = function(req, res) {
 var deleteUser = function(req, res) {
   if(req.user.id == req.body.id) {
     req.flash('errorMessage', " you can't delete yourself");
-    res.redirect('/admin/users');
+    res.redirect(settings.page.nginxlocation + 'admin/users');
   } else {
     db.run('DELETE FROM users WHERE id = ?', req.body.id, function(err) {
       if(err) {
         //...
       } else {
         req.flash('successMessage', " user deleted");
-        res.redirect('/admin/users');
+        res.redirect(settings.page.nginxlocation + 'admin/users');
       }
     });
   }
@@ -139,15 +139,15 @@ var editUser = flow.define(
           //...
           console.log(err);
           req.flash('errorMessage', " something went wrong");
-          res.redirect('/admin/users');
+          res.redirect(settings.page.nginxlocation + 'admin/users');
         } else {
           req.flash('successMessage', " user updated");
-          res.redirect('/admin/users');
+          res.redirect(settings.page.nginxlocation + 'admin/users');
         }
       });
     } else {
       req.flash('errorMessage', " something went wrong");
-      res.redirect('/admin/users');
+      res.redirect(settings.page.nginxlocation + 'admin/users');
     }
   }
 );
@@ -356,10 +356,10 @@ var editImage = function(req, res) {
     // if(err)
     if(this.changes) {
       req.flash('successMessage', 'Image updated!');
-      res.redirect('/edit/gallery');
+      res.redirect(settings.page.nginxlocation + 'edit/gallery');
     } else {
       req.flash('errorMessage', 'Apologies, it seems something went wrong.');
-      res.redirect('/edit/gallery');
+      res.redirect(settings.page.nginxlocation + 'edit/gallery');
     }
   });
 
@@ -424,7 +424,7 @@ var uploadImage = function(req, res){
         "'" + this.key + "') ";
         console.log(query);
       db.run(query, function(err) {
-        res.redirect('/edit/gallery');
+        res.redirect(settings.page.nginxlocation + 'edit/gallery');
       });
     }
   );
@@ -444,7 +444,7 @@ app.post('/edit/gallery', galleryImage.single('imageFile'), function(req, res) {
         uploadImage(req, res);
       break;
     }
-  } else { res.redirect('/edit/gallery'); }
+  } else { res.redirect(settings.page.nginxlocation + 'edit/gallery'); }
 });
 
 
@@ -501,10 +501,10 @@ var editDoc = function(req, res) {
     // if(err) ...
     if(this.changes) {
       req.flash('successMessage', 'Document metadata updated!');
-      res.redirect('/edit/documents');
+      res.redirect(settings.page.nginxlocation + 'edit/documents');
     } else {
       req.flash('errorMessage', 'Apologies, it seems something went wrong.');
-      res.redirect('/edit/documents');
+      res.redirect(settings.page.nginxlocation + 'edit/documents');
     }
   });
 }
@@ -530,10 +530,10 @@ var createDoc = function(req, res) {
     // if(err)
     if(this.changes) {
       req.flash('successMessage', 'File uploaded');
-      res.redirect('/edit/documents');
+      res.redirect(settings.page.nginxlocation + 'edit/documents');
     } else {
       req.flash('errorMessage', 'Apologies, it seems something went wrong.');
-      res.redirect('/edit/documents');
+      res.redirect(settings.page.nginxlocation + 'edit/documents');
     }
   });
 }
@@ -551,7 +551,7 @@ app.post('/api/documents', documentsDoc.single('docFile'), function(req, res) {
         createDoc(req, res);
       break;
     }
-  } else { res.redirect('/edit/documents'); }
+  } else { res.redirect(settings.page.nginxlocation + 'edit/documents'); }
 });
 
 // TODO: require a user here
