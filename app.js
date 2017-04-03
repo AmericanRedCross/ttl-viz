@@ -746,6 +746,25 @@ app.get('/api/pages/sra', function(req, res) {
 	}
 })
 
+app.get('/safer-shelter-training',function(req, res) {
+	if (req.user) {
+    res.render('safer-shelter-training', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/safer-shelter-training', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "training_name"=' + "'" + 'Safer Shelter Techniques Orientation' + "'" + ';';
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
 
 app.get('/phast',function(req, res) {
 	if (req.user) {

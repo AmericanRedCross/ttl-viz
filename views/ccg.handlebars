@@ -90,7 +90,6 @@ var throttleTimer;
 function throttle() {
   window.clearTimeout(throttleTimer);
     throttleTimer = window.setTimeout(function() {
-      $('.coreByBarangay').empty();
       resize();
     }, 200);
 }
