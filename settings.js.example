@@ -1,0 +1,50 @@
+var settings = {}
+
+settings.page = {
+	siteName: "Tindog Tabang Leyteno",
+	description: "Use this site to view progress of TTL programs.",
+  nginxlocation: "/"
+}
+
+settings.app = {
+  defaultpass: '123',
+  defaultuser: 'me',
+	port: 3001,
+	db: 'site.db'
+}
+
+settings.pg = {
+	server: '',
+	port: '',
+	database: '',
+	user: '',
+	password: ''
+}
+
+settings.documents = {
+	categories: {
+		"Home": ["General", "Programs", "Operations", "Finance"],
+		"Programs": ["Cross-sector","Shelter", "WASH", "Livelihoods", "Health", "DRR"],
+		"Finance": [],
+		"Operations": ["HR/Admin/IT", "Procurement", "Logistics"],
+		"M&E": [],
+		"Other": [],
+		"Analytics": ["Cross-cutting", "Livelihoods", "WASH"]
+	},
+	types: [
+		"Tracker",
+		"Policy/ procedure",
+		"Form/ template",
+		"Report"
+	]
+}
+
+settings.s3 = {
+  backupbucket: '',
+	mediabucket: '',
+	galleryfolder: '',
+	docsfolder: ''
+  //Amazon S3 Credentials are stored in ~/.aws/credentials (see: http://aws.amazon.com/sdk-for-node-js/)
+}
+
+module.exports = settings;
