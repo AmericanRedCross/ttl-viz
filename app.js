@@ -233,7 +233,7 @@ app.set('view engine', 'handlebars');
 app.use(express.static('public'));
 
 app.post('/login', passport.authenticate('local', {
-    failureRedirect: '/'
+    failureRedirect: settings.page.nginxlocation
   }), function(req, res) {
     res.redirect(settings.page.nginxlocation);
   }
