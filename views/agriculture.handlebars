@@ -272,9 +272,9 @@ function filter(){
 	// # reformat the data on checks to make it easier to work with
 	// ? combine this into what's above
 	filterData = d3.nest().key(function(d){ return d.filterKey })
-		.rollup(function(values){
+		.rollup(function(value){
 			var valuesArray = [];
-			values.forEach(function(d){
+			value.forEach(function(d){
 				valuesArray.push(d.filterValue);
 			});
 			return valuesArray;
@@ -451,7 +451,6 @@ function drawPies(){
   // CATEGORY PIE //
   // ############ //
   //////////////////
-  var knowledgechangeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['knowledge_change'][0]; }))
 	// customize knowledgechangeColor colors
   var knowledgechangeColor = function(key){
     switch(key) {
@@ -478,22 +477,24 @@ function drawPies(){
     })
     .entries(filteredData)
 
-  var categoryData0 = knowledgechangePiePath.data(),
-    categoryData1 = pie(knowledgechangePieData);
+  var knowledgechangeData0 = knowledgechangePiePath.data(),
+    knowledgechangeData1 = pie(knowledgechangePieData);
 
-  knowledgechangePiePath = d3.select('#knowledgechangePie').select('svg').select('g').selectAll('path').data(categoryData1, key);
+  knowledgechangePiePath = d3.select('#knowledgechangePie').select('svg').select('g').selectAll('path').data(knowledgechangeData1, key);
 
   knowledgechangePiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, categoryData0, categoryData1, key) || d; })
+    .each(function(d, i) { this._current = findNeighborArc(i, knowledgechangeData0, knowledgechangeData1, key) || d; })
     .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
+		.attr('d', path)
   .append("title")
     .text(function(d) { return d.data.key; });
 
   knowledgechangePiePath.exit()
-  //   .datum(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
-  // .transition()
-  //   .duration(750)
-  //   .attrTween("d", arcTween)
+    //  .each(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
+		//  .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
+  	//  .transition()
+    //  .duration(750)
+    //  .attrTween("d", arcTween)
     .remove();
 
   knowledgechangePiePath.transition()
@@ -540,6 +541,7 @@ function drawPies(){
   perTrainingPiePath.enter().append("path")
     .each(function(d, i) { this._current = findNeighborArc(i, perTrainingData0, perTrainingData1, key) || d; })
     .attr("fill", function(d) { return perTrainingColor(d.data.key); })
+		.attr('d', path)
   .append("title")
     .text(function(d) { return d.data.key; });
 
