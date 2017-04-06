@@ -842,6 +842,18 @@ app.get('/api/pages/households-overview/hhlocations', function(req, res) {
 	}
 });
 
+app.get('/api/pages/trainings', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT "HOUSEHOLD".household_id AS id, "TRAINING_PARTICIPANT".participant_id AS agri, "TRAINING_MODULE_PARTICIPATION".household_id AS phast' +
+      'FROM "HOUSEHOLD"'+
+      ' LEFT JOIN "TRAINING_PARTICIPANT" ON CAST("HOUSEHOLD".household_id AS TEXT) = "TRAINING_PARTICIPANT".participant_id AND "TRAINING_PARTICIPANT".sector ='+"'Livelihood'"+
+      ' LEFT JOIN "TRAINING_MODULE_PARTICIPATION" ON "HOUSEHOLD".household_id = "TRAINING_MODULE_PARTICIPATION".household_id';
+		pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+});
+
 app.get('/api/pages/households-overview/hhoverview/:id', function(req, res) {
 	if (req.user) {
     var queryStr = 'SELECT * FROM "HOUSEHOLD_DEMOGRAPHICS" FULL JOIN "HOUSEHOLD"' +

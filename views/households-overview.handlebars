@@ -108,7 +108,7 @@ function getTrainings(){
   // draw data from query of hhtraining
   // set as trainingData
 
-  // $.get('{{opts.nginxlocation}}api/pages/hhtrainings', function(response) {  trainingData = response });
+  $.get('{{opts.nginxlocation}}api/pages/hhtrainings', function(response) {  trainingData = response });
 }
 
 function drawPoints(){
@@ -164,7 +164,7 @@ function clickedHousehold(data, target){
       agData.filter(function(d){ return d.participant_id === data.id}).length > 0 ?  $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
       phastData.filter(function(d){ return d.household_id === data.id}).length > 0 ?  $("#modal-hh-phast").show() : $("#modal-hh-phast").hide();
 
-      // console.log(trainingData.filter(function(d){ return d.household_id === data.id}));
+      console.log(trainingData.filter(function(d){ return d.household_id === data.id}));
 
       $("#info-modal").foundation('open');
     } else {
