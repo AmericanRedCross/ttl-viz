@@ -4,13 +4,24 @@
     <div id="info-modal" class="reveal" data-reveal>
       <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
 
-      <h5 class="modal-title">Household Id: <span id="modal-hh-id" class="subheader"></span></h5>
+      <h5 class="modal-title">Household ID: <span id="modal-hh-id" class="subheader"></span></h5>
       <p>
-        Head of household: <span id="modal-hh-head"></span><br>
-        # of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)<br>
-        # of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i><br>
-        # of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i><br>
+        Head of Household: <span id="modal-hh-head"></span><br><hr>
+        Number of household members: <span id="modal-hh-total"></span> (<span id="modal-hh-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)<br>
+        Number of elderly: <span id="modal-hh-elderly-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-elderly-m"></span> <i class="fa fa-male" aria-hidden="true"></i><br>
+        Number of minors: <span id="modal-hh-minor-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-hh-minor-m"></span> <i class="fa fa-male" aria-hidden="true"></i><br>
       </p>
+      <hr>
+      <h5>Assistance Received</h5>
+      <span><p id="modal-hh-core" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Core Shelter</p></span>
+      <span><p id="modal-hh-sra" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Shelter Retrofitting Assistance</p></span>
+      <span><p id="modal-hh-hla" style="margin: 0px"><i class="fa fa-fw fa-money"></i>&nbsp;Household Level Assistance</p></span>
+      <br>
+      <h5>Trainings Attended</h5>
+      <span><p id="modal-hh-sst" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Safer Shelter Construction Techniques</p></span>
+      <span><p id="modal-hh-sted" style="margin: 0px"><i class="fa fa-fw fa-briefcase"></i>&nbsp;Skills Training and Enterprise Development</p></span>
+      <span><p id="modal-hh-agri" style="margin: 0px"><i class="fa fa-fw fa-leaf"></i>&nbsp;Agricultural Extention Training</p></span>
+      <span><p id="modal-hh-phast" style="margin: 0px"><i class="fa fa-fw fa-tint"></i>&nbsp;Participatory Hygiene and Sanitation Transformation</p></span>
 
     </div>
 
@@ -52,6 +63,7 @@ $(window).resize(function(){
 })
 
 var data, points;
+var sstData, agData, phastData, trainingData;
 
 // create basic leaflet map
 // ========================
@@ -87,6 +99,16 @@ function getHouseholds(){
 		data = response;
 		drawPoints(); 
 	});
+}
+
+function getTrainings(){
+  $.get('{{opts.nginxlocation}}api/pages/safer-shelter-training', function(response) {  sstData = response; });
+  $.get('{{opts.nginxlocation}}api/pages/phast', function(response) {  phastData = response; });
+  $.get('{{opts.nginxlocation}}api/pages/agriculture', function(response) {  agData = response; });
+  // draw data from query of hhtraining
+  // set as trainingData
+
+  // $.get('{{opts.nginxlocation}}api/pages/hhtrainings', function(response) {  trainingData = response });
 }
 
 function drawPoints(){
@@ -131,6 +153,19 @@ function clickedHousehold(data, target){
       $("#modal-hh-elderly-m").empty().text(response[0].vul_male_elderly);
       $("#modal-hh-minor-f").empty().text(response[0].vul_female_minor);
       $("#modal-hh-minor-m").empty().text(response[0].vul_male_minor);
+
+      data.sra !== null ?  $("#modal-hh-sra").show() : $("#modal-hh-sra").hide();
+      data.ccg !== null ?  $("#modal-hh-ccg").show() : $("#modal-hh-ccg").hide();
+      data.core !== null ?  $("#modal-hh-core").show() : $("#modal-hh-core").hide();
+      data.sted !== null ?  $("#modal-hh-sted").show() : $("#modal-hh-sted").hide();
+
+      // use trainingData to show trainings attended by hh
+      sstData.filter(function(d){ return d.participant_id === data.id}).length > 0 ?  $("#modal-hh-sst").show() : $("#modal-hh-sst").hide();
+      agData.filter(function(d){ return d.participant_id === data.id}).length > 0 ?  $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
+      phastData.filter(function(d){ return d.household_id === data.id}).length > 0 ?  $("#modal-hh-phast").show() : $("#modal-hh-phast").hide();
+
+      // console.log(trainingData.filter(function(d){ return d.household_id === data.id}));
+
       $("#info-modal").foundation('open');
     } else {
       $("#modal-hh-id").empty().html("<i>Sorry, an error occurred.</i>");
@@ -228,6 +263,7 @@ function filter(){
   }
 }
 
+getTrainings();
 getHouseholds()
 
 </script>
