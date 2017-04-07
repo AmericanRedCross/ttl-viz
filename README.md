@@ -22,3 +22,4 @@ express, handlebars, sqlite, passport, foundation
 - create `settings.js` file from `settings.js.example` and adjust settings for your deployment
 - run the webpage using `node app.js`
 - use PM2 or something similar to keep the app up and running
+- login and change the admin from the default of user: `admin` and pass: `123`
