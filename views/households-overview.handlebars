@@ -105,10 +105,6 @@ function getTrainings(){
   $.get('{{opts.nginxlocation}}api/pages/safer-shelter-training', function(response) {  sstData = response; });
   $.get('{{opts.nginxlocation}}api/pages/phast', function(response) {  phastData = response; });
   $.get('{{opts.nginxlocation}}api/pages/agriculture', function(response) {  agData = response; });
-  // draw data from query of hhtraining
-  // set as trainingData
-
-  $.get('{{opts.nginxlocation}}api/pages/hhtrainings', function(response) {  trainingData = response });
 }
 
 function drawPoints(){
@@ -159,12 +155,9 @@ function clickedHousehold(data, target){
       data.core !== null ?  $("#modal-hh-core").show() : $("#modal-hh-core").hide();
       data.sted !== null ?  $("#modal-hh-sted").show() : $("#modal-hh-sted").hide();
 
-      // use trainingData to show trainings attended by hh
       sstData.filter(function(d){ return d.participant_id === data.id}).length > 0 ?  $("#modal-hh-sst").show() : $("#modal-hh-sst").hide();
       agData.filter(function(d){ return d.participant_id === data.id}).length > 0 ?  $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
       phastData.filter(function(d){ return d.household_id === data.id}).length > 0 ?  $("#modal-hh-phast").show() : $("#modal-hh-phast").hide();
-
-      console.log(trainingData.filter(function(d){ return d.household_id === data.id}));
 
       $("#info-modal").foundation('open');
     } else {
