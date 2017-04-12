@@ -63,7 +63,7 @@ $(window).resize(function(){
 })
 
 var data, points;
-var sstData, agData, phastData, trainingData;
+var sstData, agData, phastData;
 
 // create basic leaflet map
 // ========================
@@ -101,12 +101,6 @@ function getHouseholds(){
 	});
 }
 
-function getTrainings(){
-  $.get('{{opts.nginxlocation}}api/pages/safer-shelter-training', function(response) {  sstData = response; });
-  $.get('{{opts.nginxlocation}}api/pages/phast', function(response) {  phastData = response; });
-  $.get('{{opts.nginxlocation}}api/pages/agriculture', function(response) {  agData = response; });
-}
-
 function drawPoints(){
 	points = pointsGroup.selectAll("circle")
     .data(data).enter().append("circle")
@@ -126,14 +120,41 @@ function drawPoints(){
 
 function createFilterPageElement() {
   buildFilterHTML('Shelter','shelter',['Core','SRA'],false);
-  buildFilterHTML('Livelihood','livelihood',['CCG','STED'],false);
-  // $('.filter-panel.panel-heading').html(filterTitles.join('&nbsp; | &nbsp;'));
+  buildFilterHTML('Livelihood','livelihood',['HLA','STED'],false);
   $('.filter-panel ul').append(panelTitles);
   Foundation.reInit($('.filter-panel ul'));
   $('.filter-panel.panel-group').hide();
 }
 
+function getTrainings(trainingQuery, holder, callback){
+  $.get(trainingQuery, function(response){
+    if(holder == 'sst') sstData = response;
+    else if(holder == 'phast') phastData = response;
+    else if(holder == 'ag') agData = response;});
+  callback(null);
+}
+
+d3.queue().defer(getTrainings,'{{opts.nginxlocation}}api/pages/safer-shelter-training','sst')
+       .defer(getTrainings,'{{opts.nginxlocation}}api/pages/phast', 'phast')
+       .defer(getTrainings,'{{opts.nginxlocation}}api/pages/agriculture', 'ag')
+       .await(function(d){});
+
+var hhtraining = [];
+function getHouseholdTrainings(id, arraySource, callback){
+  arraySource.filter(function(d){ if (d.participant_id === id){ hhtraining.push(d); } });
+  callback(null);
+}
+
 function clickedHousehold(data, target){
+  d3.queue()
+    .defer(getHouseholdTrainings, data.id, sstData)
+    .defer(getHouseholdTrainings, data.id, agData)
+    .await(function(d){});
+
+  var phFilter  = phastData.filter(function(d){ return d.household_id === data.id});
+
+  console.log(hhtraining);
+
   $.get('{{opts.nginxlocation}}api/pages/households-overview/hhoverview/' + data.id, function(response) {
     // # response should be an array containing one object
     if(response[0]){
@@ -155,10 +176,12 @@ function clickedHousehold(data, target){
       data.core !== null ?  $("#modal-hh-core").show() : $("#modal-hh-core").hide();
       data.sted !== null ?  $("#modal-hh-sted").show() : $("#modal-hh-sted").hide();
 
-      sstData.filter(function(d){ return d.participant_id === data.id}).length > 0 ?  $("#modal-hh-sst").show() : $("#modal-hh-sst").hide();
-      agData.filter(function(d){ return d.participant_id === data.id}).length > 0 ?  $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
-      phastData.filter(function(d){ return d.household_id === data.id}).length > 0 ?  $("#modal-hh-phast").show() : $("#modal-hh-phast").hide();
+      hhtraining !== null && hhtraining.filter(function(a){ return a.sector==="Shelter" }).length > 0 ? $("#modal-hh-sst").show() : $("#modal-hh-sst").hide();
+      hhtraining !== null && hhtraining.filter(function(a){ return a.sector==="Livelihood" }).length > 0 ?  $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
+      phFilter.length > 0 ?  $("#modal-hh-phast").show() : $("#modal-hh-phast").hide();
 
+      hhtraining = [];
+      
       $("#info-modal").foundation('open');
     } else {
       $("#modal-hh-id").empty().html("<i>Sorry, an error occurred.</i>");
@@ -194,10 +217,8 @@ function buildFilterHTML(title, dataId, array, geo){
   panelTitles.push(thisTitleHtml);
   var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
   $.each(array, function(i, a){
-    thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
-        dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
+    thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+ dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
   })
-
   thisBodyHtml += '</div>';
   $('#tabsdiv').append(thisBodyHtml);
 }
@@ -248,7 +269,7 @@ function filter(){
   else if(activeFilters.length > 0 && activeFilters[0].filterValue === "STED"){
     points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
   }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "CCG"){
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "HLA"){
     points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
   }
   else{
@@ -256,7 +277,6 @@ function filter(){
   }
 }
 
-getTrainings();
 getHouseholds()
 
 </script>
