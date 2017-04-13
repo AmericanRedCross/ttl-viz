@@ -1,9 +1,7 @@
 <div id="households-overview-page" class="expanded collapse row">
   <div class="columns">
-
     <div id="info-modal" class="reveal" data-reveal>
       <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
-
       <h5 class="modal-title">Household ID: <span id="modal-hh-id" class="subheader"></span></h5>
       <p>
         Head of Household: <span id="modal-hh-head"></span><br><hr>
@@ -20,7 +18,7 @@
       <h5>Trainings Attended</h5>
       <span><p id="modal-hh-sst" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Safer Shelter Construction Techniques</p></span>
       <span><p id="modal-hh-sted" style="margin: 0px"><i class="fa fa-fw fa-briefcase"></i>&nbsp;Skills Training and Enterprise Development</p></span>
-      <span><p id="modal-hh-agri" style="margin: 0px"><i class="fa fa-fw fa-leaf"></i>&nbsp;Agricultural Extention Training</p></span>
+      <span><p id="modal-hh-agri" style="margin: 0px"><i class="fa fa-fw fa-leaf"></i>&nbsp;Agricultural Extension Training</p></span>
       <span><p id="modal-hh-phast" style="margin: 0px"><i class="fa fa-fw fa-tint"></i>&nbsp;Participatory Hygiene and Sanitation Transformation</p></span>
 
     </div>
@@ -63,7 +61,7 @@ $(window).resize(function(){
 })
 
 var data, points;
-var sstData, agData, phastData;
+var trainingData;
 
 // create basic leaflet map
 // ========================
@@ -126,34 +124,39 @@ function createFilterPageElement() {
   $('.filter-panel.panel-group').hide();
 }
 
-function getTrainings(trainingQuery, holder, callback){
-  $.get(trainingQuery, function(response){
-    if(holder == 'sst') sstData = response;
-    else if(holder == 'phast') phastData = response;
-    else if(holder == 'ag') agData = response;});
-  callback(null);
+function getTrainings(trainingQuery, callback){
+  $.get(trainingQuery, function(response){ callback(null, response); });
 }
 
-d3.queue().defer(getTrainings,'{{opts.nginxlocation}}api/pages/safer-shelter-training','sst')
-       .defer(getTrainings,'{{opts.nginxlocation}}api/pages/phast', 'phast')
-       .defer(getTrainings,'{{opts.nginxlocation}}api/pages/agriculture', 'ag')
-       .await(function(d){});
+function setTrainings(error, result){
+  trainingData = result;
+}
+
+d3.queue().defer(getTrainings,'{{opts.nginxlocation}}api/pages/safer-shelter-training')
+       .defer(getTrainings,'{{opts.nginxlocation}}api/pages/phast')
+       .defer(getTrainings,'{{opts.nginxlocation}}api/pages/agriculture')
+       .awaitAll(setTrainings);
 
 var hhtraining = [];
-function getHouseholdTrainings(id, arraySource, callback){
-  arraySource.filter(function(d){ if (d.participant_id === id){ hhtraining.push(d); } });
-  callback(null);
+var phFilter;
+
+function filterHouseholdTrainings(id, arraySource, callback){
+  var a = arraySource.filter(function(d){ if (d.participant_id === id){ return d; } });
+  callback(null,a);
+}
+
+function getHouseholdTrainings(error, result){
+  result.forEach(function(d){ if(d.length > 0){ d.forEach(function(e){ hhtraining.push(e);}) }  });
 }
 
 function clickedHousehold(data, target){
+
   d3.queue()
-    .defer(getHouseholdTrainings, data.id, sstData)
-    .defer(getHouseholdTrainings, data.id, agData)
-    .await(function(d){});
+    .defer(filterHouseholdTrainings, data.id, trainingData[0])
+    .defer(filterHouseholdTrainings, data.id, trainingData[2])
+    .awaitAll(getHouseholdTrainings);
 
-  var phFilter  = phastData.filter(function(d){ return d.household_id === data.id});
-
-  console.log(hhtraining);
+  phFilter  = trainingData[1].filter(function(d){ return d.household_id === data.id});
 
   $.get('{{opts.nginxlocation}}api/pages/households-overview/hhoverview/' + data.id, function(response) {
     // # response should be an array containing one object
@@ -181,7 +184,7 @@ function clickedHousehold(data, target){
       phFilter.length > 0 ?  $("#modal-hh-phast").show() : $("#modal-hh-phast").hide();
 
       hhtraining = [];
-      
+
       $("#info-modal").foundation('open');
     } else {
       $("#modal-hh-id").empty().html("<i>Sorry, an error occurred.</i>");
