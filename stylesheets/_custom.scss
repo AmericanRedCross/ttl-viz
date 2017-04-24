@@ -367,3 +367,8 @@ rect.graph-bar-2 {
   padding: rem-calc(4);
   background: #ed1b2e;
 }
+
+#data-collection-viewer {
+  #map { position: absolute; height: 60%; width: 60%; }
+  #mly { position: absolute; height: 30%; width: 30%;}
+}

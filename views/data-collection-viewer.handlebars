@@ -1,0 +1,27 @@
+<!--a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy-->
+<div id="data-collection-viewer">
+  <!-- Header -->
+  <div class="row">
+  	<div class="columns">
+  		<h2>Data Collection Viewer</h2>
+  	</div>
+  </div>
+  <!-- Map -->
+  <div class="row">
+  	<div class="columns">
+  		<div id='map'></div>
+      <div id='mly'></div>
+  	</div>
+  </div>
+</div>
+<!-- mapilary and leaflet -->
+<link href='https://unpkg.com/leaflet@1.0.1/dist/leaflet.css' rel='stylesheet' />
+<script src='https://unpkg.com/leaflet@1.0.1/dist/leaflet.js'></script>
+<script>
+  // init the map
+  var map = L.map('map').setView([11.468734, 122.054919], 13);
+  var hotosmUrl='http://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
+  var osmAttrib='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
+  var hotosm = new L.TileLayer(hotosmUrl, { maxZoom: 18, attribution: osmAttrib});
+  map.addLayer(hotosm);
+</script>
