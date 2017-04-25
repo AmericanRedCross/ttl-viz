@@ -1,45 +1,5 @@
 <!--a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy-->
 <style>
-body {
-  margin: 0;
-}
-.map {
-  position: relative;
-  overflow: hidden;
-}
-.layer {
-  position: absolute;
-  will-change: transform;
-}
-.tile {
-  position: absolute;
-  width: 256px;
-  height: 256px;
-}
-.tile path {
-  fill: none;
-  stroke: #000;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-.tile .major_road {
-  stroke: #776;
-}
-.tile .minor_road {
-  stroke: #ccb;
-}
-.tile .highway {
-  stroke: #f39;
-  stroke-width: 1.5px;
-}
-.tile .rail {
-  stroke: #7de;
-}
-.info {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-}
 </style>
 <div id="data-collection-viewer">
   <!-- Header -->
@@ -47,26 +7,32 @@ body {
   	<div class="columns">
   		<h2>Data Collection Viewer</h2>
   	</div>
+    <div class="columns">
+      <!-- Map -->
+      <div id="viz">
+        <svg></svg>
+      </div>
+    </div>
   </div>
-  <!-- Map -->
-  <div id="viz"></div>
+
 </div>
 <!-- d3-tile -->
 <script src="//d3js.org/d3.v4.min.js"></script>
 <script src="//d3js.org/d3-tile.v0.0.min.js"></script>
+<!-- <script src="/js/d3.geo.tile.min.js"></script> -->
 <script src="https://cdn.rawgit.com/devTristan/pbf/master/dist/pbf.min.js"></script>
 <script src="https://rawgit.com/devTristan/vector-tile-js/master/dist/vectortile.min.js"></script>
 <script src='//s3.amazonaws.com/assets-staging.mapzen.com/ui/components/bug/bug.min.js'></script>
 <script>
+
 var pi = Math.PI,
     tau = 2 * pi;
 
 var width = Math.max(960, $("#viz").innerWidth()-100),
     height = Math.max(500, $("#viz").innerHeight());
 
-// Initialize the projection to fit the world in a 1×1 square centered at the origin.
 var projection = d3.geoMercator()
-    .scale(1 / tau)
+    .scale(1/tau)
     .translate([0, 0]);
 
 var path = d3.geoPath()
@@ -76,61 +42,72 @@ var tile = d3.tile()
     .size([width, height]);
 
 var zoom = d3.zoom()
-    .scaleExtent([1 << 20, 1 << 23])
+    .scaleExtent([1 << 1, 1 << 23])
     .on("zoom", zoomed);
 
-var map = d3.select("#viz").append('div')
-    .attr("class", "map")
-    .style("width", width + "px")
-    .style("height", height + "px")
-    .style("margin","auto")
-    .on("mousemove", mousemoved);
+var svg = d3.select("svg")
+    .attr("width",width)
+    .attr("height",height)
 
-var layer = map.append("div")
-    .attr("class", "layer");
+var raster = svg.append("g")
 
-var info = map.append("div")
-    .attr("class", "info");
-
-// Compute the projected initial center.
-var center = projection([-74.0064, 40.7142]);
-
-// Apply a zoom transform equivalent to projection.{scale,translate,center}.
-map .call(zoom)
-    .call(zoom.transform, d3.zoomIdentity
-        .translate(width / 2, height / 2)
-        .scale(1 << 20)
-        .translate(-center[0], -center[1]));
+var vectorTiles =  svg.append("g")
 
 function zoomed() {
+
   var transform = d3.event.transform;
 
   var tiles = tile
       .scale(transform.k)
-      .translate([transform.x, transform.y])
+      .translate([transform.x,transform.y])
       ();
 
   projection
-      .scale(transform.k / tau)
-      .translate([transform.x, transform.y]);
+    .scale(transform.kf/tau)
+    .translate([transform.x,transform.y]);
 
-  var image = layer
-      .style("transform", stringify(tiles.scale, tiles.translate))
+  var image = raster
+      .attr("transform", stringify(tiles.scale, tiles.translate))
+    .selectAll("image")
+    .data(tiles, function(d) { return d; });
+
+  image.exit().remove();
+
+  image.enter().append("image")
+      .attr("xlink:href", function(d) { return "http://" + "abc"[d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+      .attr("x", function(d) { return d[0] * 256; })
+      .attr("y", function(d) { return d[1] * 256; })
+      .attr("width", 256)
+      .attr("height", 256);
+
+  var vectorTilesData = vectorTiles
+      .attr("transform", stringify(tiles.scale, tiles.translate))
     .selectAll(".tile")
     .data(tiles, function(d) { return d; });
 
-  image.exit()
-      .each(function(d) { this._xhr.abort(); })
-      .remove();
+  vectorTilesData.exit().remove();
 
-  image.enter().append("svg")
-      .attr("class", "tile")
-      .style("left", function(d) { return d[0] * 256 + "px"; })
-      .style("top", function(d) { return d[1] * 256 + "px"; })
-      .each(function(d) { this._xhr = render(d, this); });
+  vectorTilesData.enter().append("svg")
+    .attr("class","tile")
+    .style("left", function(d) { return d[0] * 256 + "px"})
+    .style("top", function(d) { return d[1] * 256 + "px"})
+    .each(function(d) {this._xhr = render(d,this)})
+
 }
+
+// function matrix3d(scale, translate) {
+//   var k = scale / 256, r = scale % 1 ? Number : Math.round;
+//   return "matrix3d(" + [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, r(translate[0] * scale), r(translate[1] * scale), 0, 1 ] + ")";
+// }
+
+function stringify(scale, translate) {
+  var k = scale / 256, r = scale % 1 ? Number : Math.round;
+  return "translate(" + r(translate[0] * scale) + "," + r(translate[1] * scale) + ") scale(" + k + ")";
+}
+
 // different mapillary layers of interest http://bit.ly/2ptvROZ
 var layers = ['mapillary-sequence-overview', 'mapillary-sequences', 'mapillary-images'];
+// function that grabs relevant vector tile, converts it to geojson, and adds as an svg to our webpage http://bit.ly/2oElm6A
 function render(d, node) {
   return d3.request("http://d25uarhxywzl1j.cloudfront.net/v0.1/" + d[2] + "/" + d[0] + "/" + d[1] + ".mvt").responseType('arraybuffer').get(function(error, json) {
     if (error) throw error;
@@ -153,42 +130,33 @@ function render(d, node) {
       }
     })
 
-    var tilePath = d3.geoPath().projection(projection)
+    var tilePath = d3.geoPath().projection(tileProjection)
     var features = [];
     layers.forEach(function(layer){
       if(geoJSON[layer]){
-        for(var i in geoJSON[layer].features){
-          features.push(geoJSON[layer].features[i]);
+        for(var j in geoJSON[layer].features){
+          features.push(geoJSON[layer].features[j]);
         }
       }
     })
-    console.log(features)
+    console.log(d, node)
     var k = Math.pow(2, d[2]) * 256; // size of the world in pixels
     d3.select(node).selectAll("path")
       .data(features)
       .enter().append("path")
-        .attr("class", function(d) { return d.properties.key; })
-        .attr("d", d3.geoPath()
-            .projection(d3.geoMercator()
-                .scale(k / tau)
-                .translate([k / 2 - d[0] * 256, k / 2 - d[1] * 256])
-                .precision(0)));
+        .attr("class", function(d) {return d.properties.key; })
+        .attr("d", d3.geoPath().projection(tileProjection));
   });
-}
+};
 
-function stringify(scale, translate) {
-  var k = scale / 256, r = scale % 1 ? Number : Math.round;
-  return "matrix3d(" + [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, r(translate[0] * scale), r(translate[1] * scale), 0, 1 ] + ")";
-}
+// Compute the projected initial center.
+var center = projection([121.7740, 12.8797]);
 
-function mousemoved() {
-  info.text(formatLocation(projection.invert(d3.mouse(this)), d3.zoomTransform(this).k));
-}
-
-function formatLocation(p, k) {
-  var format = d3.format("." + Math.floor(Math.log(k) / 2 - 2) + "f");
-  return (p[1] < 0 ? format(-p[1]) + "°S" : format(p[1]) + "°N") + " "
-       + (p[0] < 0 ? format(-p[0]) + "°W" : format(p[0]) + "°E");
-}
-
+// initialize the map in center of philippines
+svg
+  .call(zoom)
+  .call(zoom.transform, d3.zoomIdentity
+  .translate(width / 2, height / 2)
+  .scale(1<<14)
+    .translate(-center[0], -center[1]));
 </script>

@@ -369,6 +369,15 @@ rect.graph-bar-2 {
 }
 
 #data-collection-viewer {
-  #map { position: absolute; height: 60%; width: 60%; }
+  #viz {
+    height:800px;
+    width: 700px
+    svg {
+      position: absolute;
+      .tile {
+        color: rgba(255,255,255,1)
+      }
+    }
+  }
   #mly { position: absolute; height: 30%; width: 30%;}
 }
