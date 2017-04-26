@@ -78,8 +78,7 @@ function zoomed() {
   projection
     .scale(transform.k/tau)
     .translate([transform.x,transform.y]);
-  console.log(tiles.scale)
-  console.log()
+
   var image = raster
       .attr("transform", stringify(tiles.scale, tiles.translate))
     .selectAll("image")
@@ -97,7 +96,7 @@ function zoomed() {
       .attr("height", 256);
 
   var vectorTilesData = vectorTiles
-      .attr("transform", stringifyVT(tiles.scale, tiles.translate))
+      .style("transform", stringifyVT(tiles.scale, tiles.translate))
     .selectAll(".vTile")
     .data(tiles, function(d) { return d; });
 
@@ -143,17 +142,18 @@ function render(d, node) {
     var tileProjection = d3.geoTransform({
       point: function(x,y){
         if(!isNaN(y)) {
-          x = x/extents*256;
-          y = y/extents*256;
+          x = x
+          y = x
         } else {
-          y = x[0][1]/extents*256
-          x = x[0][1]/extents*256
+          y = y[0][1]
+          x = x[0][0]
         }
         this.stream.point(x,y);
       }
     })
 
     var tilePath = d3.geoPath().projection(tileProjection)
+
     var features = [];
     layers.forEach(function(layer){
       if(geoJSON[layer]){
