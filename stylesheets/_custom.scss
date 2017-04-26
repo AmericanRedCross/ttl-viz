@@ -371,12 +371,13 @@ rect.graph-bar-2 {
 #data-collection-viewer {
   #viz {
     height:800px;
-    width: 700px
-    svg {
+    width: 700px;
+    .baseTile{
       position: absolute;
-      .tile {
-        color: rgba(255,255,255,1)
-      }
+    }
+    .vTile {
+      path { stroke: rgba(255,255,255,1) }
+      position: absolute;
     }
   }
   #mly { position: absolute; height: 30%; width: 30%;}
