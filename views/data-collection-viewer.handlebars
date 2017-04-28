@@ -10,9 +10,10 @@
     <div class="columns">
       <!-- Map -->
       <div id="viz">
-        <div class='bt'>
+        <div id='bt'>
           <svg></svg>
         </div>
+        <div id='vt'></div>
       </div>
     </div>
   </div>
@@ -44,32 +45,43 @@ var tile = d3.tile()
     .size([width, height]);
 
 var zoom = d3.zoom()
-    .scaleExtent([1 << 1, 1 << 23])
+    .scaleExtent([1 << 20, 1 << 23])
     .on("zoom", zoomed);
 
-var svg = d3.select(".bt svg")
+// zoom controls
+// TODO: make zoom controls remove svg on click, zoom in, redo 'zoom'
+
+// var zoomControl = d3.select('#viz').append('div')
+//   .attr('class','zoomContainer')
+//
+// var zoomIn = zoomControl.append('a')
+//   .attr('class','zoom')
+//   .attr('id','zoomIn')
+//   .text('+')
+//
+// var zoomOut = zoomControl.append('a')
+//   .attr('class','zoom')
+//   .attr('id','zoomOut')
+//   .text('-')
+
+//disable mousewheel zoom if iframed
+if (window.self !== window.top) {
+  map.on("wheel.zoom", null);
+
+  document.documentElement.className += ' mapzen-demo-iframed';
+}
+
+var svg = d3.select("#bt svg")
     .attr("width",width)
     .attr("height",height)
 
-var vectorTilesDiv = d3.select("#viz")
-    .append("div")
-    .attr("class","vt")
-    .attr("height", "100%")
-    .attr("width", "100%")
-    .attr("position", "absolute")
-    .attr("top", 0)
-    .attr("left", 0);
-
-// var vectorTilesSVG = vectorTilesDiv.append("svg")
-//     .attr("height", height)
-//     .attr("width", width)
+var vectorTilesDiv = d3.select("#vt")
 
 var raster = svg.append("g")
-//var vectorTiles =  svg.append("g")
 
-d3.select("#viz").append("div")
-    .attr("class", "info")
-    .html('<a href="http://bl.ocks.org/mbostock/5593150" target="_top">Mike Bostock</a> | <a href="https://github.com/mapzen/d3-vector-tiles">Mapzen</a> | © <a href="https://www.openstreetmap.org/copyright" target="_top">OpenStreetMap contributors</a> | <a href=" https://www.mapillary.com" title="Mapillary, CC BY" target="_top">Tiles Courtesy of Mapillary</a>')
+// d3.select("body").append("div")
+//     .attr("class", "info")
+//     .html('<a href="http://bl.ocks.org/mbostock/5593150" target="_top">Mike Bostock</a> | <a href="https://github.com/mapzen/d3-vector-tiles">Mapzen</a> | © <a href="https://www.openstreetmap.org/copyright" target="_top">OpenStreetMap contributors</a> | <a href=" https://www.mapillary.com" title="Mapillary, CC BY" target="_top">Tiles Courtesy of Mapillary</a>')
 
 function zoomed() {
 
@@ -105,13 +117,31 @@ function zoomed() {
     .selectAll(".vTile")
     .data(tiles, function(d) { return d; });
 
-  vectorTilesData.exit().remove();
+  vectorTilesData.exit()
+    .each(function(d) {
+    //   baseVals = false
+    //   if(d3.select(this)['_groups'][0][0]['children'].length>0){
+    //     paths = d3.select(this)['_groups'][0][0]['children']
+    //     for(i=0;i<paths.length;i++){
+    //       baseVal = paths[i.toString()]['className']['baseVal']
+    //       if(baseVal === 'point') {
+    //         baseVals = true
+    //       }
+    //     }
+    //   }
+    //   if(baseVals){
+        this._xhr.abort()
+      // };
+    })
+    .remove();
 
   vectorTilesData.enter().append("svg")
     .attr("class","vTile")
     .style("left", function(d) { return d[0] * 256 + "px"})
     .style("top", function(d) { return d[1] * 256 + "px"})
-    .each(function(d) {this._xhr = render(d,this)})
+    .each(function(d) {
+      this._xhr = render(d,this)
+    })
 
 }
 
@@ -128,8 +158,6 @@ function stringifyVT(scale, translate) {
 // different mapillary layers of interest http://bit.ly/2ptvROZ
 var layers = ['mapillary-sequence-overview', 'mapillary-sequences', 'mapillary-images'];
 // function that grabs relevant vector tile, converts it to geojson, and adds as to vectorTiles group
-// TODO: figure out the correct transformation of the vt coordinates from mapillary to pixel coords in div
-// TODO: understand what's the best 'drawing order' for these linestrings found in sequences.
 function render(d, node) {
   return d3.request("http://d25uarhxywzl1j.cloudfront.net/v0.1/" + d[2] + "/" + d[0] + "/" + d[1] + ".mvt").responseType('arraybuffer').get(function(error, json) {
     if (error) {
@@ -138,7 +166,6 @@ function render(d, node) {
     }
     //console.log(d[0], d[1])
     var tile = new VectorTile( new pbf( new Uint8Array(json.response) ) );
-    console.log(tile)
     var extents = 4096;
     var geoJSON = {};
     for (var key in tile.layers) {
@@ -170,12 +197,14 @@ function render(d, node) {
         }
       }
     })
-    console.log(features)
     // size of the world in pixels
     d3.select(node).selectAll("path")
-      .data(features)
+      .data(features.sort(function(a,b) {
+        return a.properties.ca > 0 ? a.properties.ca - b.properties.sort_rank : 0
+      }))
       .enter().append("path")
         .attr("class", function(d) {return d.properties.key; })
+        .attr("class", function(d) {if(d.geometry.type === "Point") {return "point"}})
         .attr("d", tilePath);
   });
 };
@@ -186,9 +215,10 @@ var center = projection([121.9216, 11.8444]);
 // initialize the map
 svg
   .call(zoom)
+  //.on("wheel.zoom", null)
   .call(zoom.transform, d3.zoomIdentity
-  .translate(width / 2, height / 2)
-  .scale(1<<20)
+    .translate(width / 2, height / 2)
+    .scale(1 << 20)
     .translate(-center[0], -center[1]));
 
 </script>
