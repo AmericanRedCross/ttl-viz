@@ -10,7 +10,9 @@
     <div class="columns">
       <!-- Map -->
       <div id="viz">
-        <svg></svg>
+        <div class='bt'>
+          <svg></svg>
+        </div>
       </div>
     </div>
   </div>
@@ -45,22 +47,25 @@ var zoom = d3.zoom()
     .scaleExtent([1 << 1, 1 << 23])
     .on("zoom", zoomed);
 
-var svg = d3.select("svg")
+var svg = d3.select(".bt svg")
     .attr("width",width)
     .attr("height",height)
 
-// var vectorTilesDiv = d3.select("#viz")
-//     .append("div")
-//     .attr("class","vt")
-//     .attr("height", height + "px")
-//     .attr("width", width + "px")
-//
+var vectorTilesDiv = d3.select("#viz")
+    .append("div")
+    .attr("class","vt")
+    .attr("height", "100%")
+    .attr("width", "100%")
+    .attr("position", "absolute")
+    .attr("top", 0)
+    .attr("left", 0);
+
 // var vectorTilesSVG = vectorTilesDiv.append("svg")
 //     .attr("height", height)
 //     .attr("width", width)
 
 var raster = svg.append("g")
-var vectorTiles =  svg.append("g")
+//var vectorTiles =  svg.append("g")
 
 d3.select("#viz").append("div")
     .attr("class", "info")
@@ -95,7 +100,7 @@ function zoomed() {
       .attr("width", 256)
       .attr("height", 256);
 
-  var vectorTilesData = vectorTiles
+  var vectorTilesData = vectorTilesDiv
       .style("transform", stringifyVT(tiles.scale, tiles.translate))
     .selectAll(".vTile")
     .data(tiles, function(d) { return d; });
@@ -133,20 +138,23 @@ function render(d, node) {
     }
     //console.log(d[0], d[1])
     var tile = new VectorTile( new pbf( new Uint8Array(json.response) ) );
-    //console.log(tile)
+    console.log(tile)
     var extents = 4096;
     var geoJSON = {};
     for (var key in tile.layers) {
       geoJSON[key] = tile.layers[key].toGeoJSON();
     }
+
+    // get tile values, make them fraction of extents,
+    // multiply by 256 for tile h/w
     var tileProjection = d3.geoTransform({
       point: function(x,y){
         if(!isNaN(y)) {
-          x = x
-          y = x
+          x = (x/extents) * 256
+          y = (y/extents) * 256
         } else {
-          y = y[0][1]
-          x = x[0][0]
+          y = (x[0][1]/extents) * 256
+          x = (x[0][0]/extents) * 256
         }
         this.stream.point(x,y);
       }
@@ -164,7 +172,6 @@ function render(d, node) {
     })
     console.log(features)
     // size of the world in pixels
-    var k = Math.pow(2, d[2]) * 256;
     d3.select(node).selectAll("path")
       .data(features)
       .enter().append("path")
