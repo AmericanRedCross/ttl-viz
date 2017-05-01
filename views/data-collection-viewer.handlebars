@@ -14,6 +14,7 @@
           <svg></svg>
         </div>
         <div id='vt'></div>
+        <div id='zoomGui'></div>
       </div>
     </div>
   </div>
@@ -45,8 +46,22 @@ var tile = d3.tile()
     .size([width, height]);
 
 var zoom = d3.zoom()
-    .scaleExtent([1 << 20, 1 << 23])
+    .scaleExtent([1 << 15, 1 << 23])
     .on("zoom", zoomed);
+
+var zoomGui = d3.select("#zoomGui")
+zoomGui.append('span')
+  .classed('zoomIn',true)
+  .text('+')
+  .on('click',function() {
+    zoom.scaleBy(svg, 2)
+  })
+zoomGui.append('span')
+  .classed('zoomOut',true)
+  .text('-')
+  .on('click',function(){
+    zoom.scaleBy(svg,0.5)
+  })
 
 // zoom controls
 // TODO: make zoom controls remove svg on click, zoom in, redo 'zoom'
@@ -215,7 +230,7 @@ var center = projection([121.9216, 11.8444]);
 // initialize the map
 svg
   .call(zoom)
-  //.on("wheel.zoom", null)
+  .on("wheel.zoom", null)
   .call(zoom.transform, d3.zoomIdentity
     .translate(width / 2, height / 2)
     .scale(1 << 20)
