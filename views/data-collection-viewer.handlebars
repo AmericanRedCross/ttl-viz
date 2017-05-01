@@ -10,11 +10,14 @@
     <div class="columns">
       <!-- Map -->
       <div id="viz">
-        <div id='bt'>
-          <svg></svg>
+        <div id="map" class="small-8 columns">
+          <div id='bt'>
+            <svg></svg>
+          </div>
+          <div id='vt'></div>
+          <div id='zoomGui'></div>
         </div>
-        <div id='vt'></div>
-        <div id='zoomGui'></div>
+        <div id='mly' class="small-4 columns"></div>
       </div>
     </div>
   </div>
@@ -23,11 +26,16 @@
 <!-- d3-tile -->
 <script src="//d3js.org/d3.v4.min.js"></script>
 <script src="//d3js.org/d3-tile.v0.0.min.js"></script>
-<!-- <script src="/js/d3.geo.tile.min.js"></script> -->
+<!-- helper libs -->
 <script src="https://cdn.rawgit.com/devTristan/pbf/master/dist/pbf.min.js"></script>
 <script src="https://rawgit.com/devTristan/vector-tile-js/master/dist/vectortile.min.js"></script>
-<script src='//s3.amazonaws.com/assets-staging.mapzen.com/ui/components/bug/bug.min.js'></script>
+<!-- mapillary viewer -->
+<script src='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.js'></script>
+<link href='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.css' rel='stylesheet'/>
+
 <script>
+
+// d3-tile map //
 
 var pi = Math.PI,
     tau = 2 * pi;
@@ -158,6 +166,7 @@ function zoomed() {
       this._xhr = render(d,this)
     })
 
+
 }
 
 function stringify(scale, translate) {
@@ -172,6 +181,7 @@ function stringifyVT(scale, translate) {
 
 // different mapillary layers of interest http://bit.ly/2ptvROZ
 var layers = ['mapillary-sequence-overview', 'mapillary-sequences', 'mapillary-images'];
+var mapillaryImages = []
 // function that grabs relevant vector tile, converts it to geojson, and adds as to vectorTiles group
 function render(d, node) {
   return d3.request("http://d25uarhxywzl1j.cloudfront.net/v0.1/" + d[2] + "/" + d[0] + "/" + d[1] + ".mvt").responseType('arraybuffer').get(function(error, json) {
@@ -179,7 +189,7 @@ function render(d, node) {
       // 403 errors are ok, just means there aren't data in that tile
       throw error
     }
-    //console.log(d[0], d[1])
+    console.log(d[2] + "/" + d[0] + "/" + d[1])
     var tile = new VectorTile( new pbf( new Uint8Array(json.response) ) );
     var extents = 4096;
     var geoJSON = {};
@@ -209,18 +219,33 @@ function render(d, node) {
       if(geoJSON[layer]){
         for(var j in geoJSON[layer].features){
           features.push(geoJSON[layer].features[j]);
+          console.log(geoJSON[layer].features[j])
         }
       }
     })
-    // size of the world in pixels
+
+    if(d[2] === 14) {mapillaryImages = features}
+
     d3.select(node).selectAll("path")
       .data(features.sort(function(a,b) {
         return a.properties.ca > 0 ? a.properties.ca - b.properties.sort_rank : 0
       }))
       .enter().append("path")
         .attr("class", function(d) {return d.properties.key; })
-        .attr("class", function(d) {if(d.geometry.type === "Point") {return "point"}})
-        .attr("d", tilePath);
+        .attr("d", tilePath)
+        .on('mouseover', function() {
+          this.parentElement.appendChild(this);
+          d3.select(this).style("stroke",'rgba(255,255,255,1)')
+        })
+        .on('mouseout', function() {
+          d3.select(this).style("stroke",'black')
+        })
+        .on('click', function() {
+          mly.moveToKey(d3.select(this).attr("class"))
+          .then(
+            function(node){console.log(node.key)},
+            function(error){console.error(error)});
+        });
   });
 };
 
@@ -235,5 +260,13 @@ svg
     .translate(width / 2, height / 2)
     .scale(1 << 20)
     .translate(-center[0], -center[1]));
+
+// mapillary viewer //
+
+var mly = new Mapillary.Viewer(
+  'mly',
+  'a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy',
+  null
+)
 
 </script>
