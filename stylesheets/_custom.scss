@@ -376,7 +376,6 @@ rect.graph-bar-2 {
     #map {
       height:100%;
       width: 100%;
-
     #bt, #vt {
       width: 100%;
       height: 100%;
@@ -384,6 +383,7 @@ rect.graph-bar-2 {
       top: 0;
       left: 0;
     }
+    #bt{overflow: hidden;}
     // #info {
     //   width: 100%;
     //   height: 100%;
@@ -395,8 +395,9 @@ rect.graph-bar-2 {
       position: absolute;
     }
     .vTile {
+
       path {
-        stroke: black;
+        stroke: rgba(47,167,80,1);
         stroke-width:2;
         fill:transparent;
       }
@@ -439,9 +440,16 @@ rect.graph-bar-2 {
     }
     #mly {
       height: 100%;
-      width: 92%;
+      width: 91.8%;
       position: absolute;
       top:100%
+    }
+    #mlyInfo{
+        color: white;
+        height: 10%;
+        width: 91.8%;
+        text-align: center;
+        position: absolute;
     }
   }
 
