@@ -10,13 +10,7 @@
     <div class="columns">
       <!-- Map -->
       <div id="viz">
-        <div id="map">
-          <div id='bt'>
-            <svg></svg>
-          </div>
-          <div id='vt'></div>
-          <div id='zoomGui'></div>
-        </div>
+        <div id = 'map'></div>
         <div id='mly'></div>
         <div id ="mlyInfo">Select a mapillary image in the map above</div>
       </div>
@@ -24,330 +18,92 @@
   </div>
 
 </div>
-<!-- d3-tile -->
-<script src="//d3js.org/d3.v4.min.js"></script>
-<script src="//d3js.org/d3-tile.v0.0.min.js"></script>
-<!-- helper libs -->
-<script src="https://cdn.rawgit.com/devTristan/pbf/master/dist/pbf.min.js"></script>
-<script src="https://rawgit.com/devTristan/vector-tile-js/master/dist/vectortile.min.js"></script>
+<!-- mapboxGL -->
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.11.4/mapbox-gl.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.11.4/mapbox-gl.css' rel='stylesheet' />
 <!-- mapillary viewer -->
 <script src='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.js'></script>
-<link href='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.css' rel='stylesheet'/>
-<!-- lodash! -->
-<script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js'></script>
-
+<link href='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.css' rel='stylesheet' />
 <script>
 
-// d3-tile map //
+mapboxgl.accessToken = "pk.eyJ1IjoiYW1lcmljYW5yZWRjcm9zcyIsImEiOiJzdHVRWjA4In0.bnfdwZhKX8tQeMkwY-kknQ"
 
-var pi = Math.PI,
-    tau = 2 * pi;
+var map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v9',
+  center: [121.9860382,11.95598058814103],
+  zoom: 12
+})
 
-var width = Math.max(960, $("#viz").innerWidth()-100),
-    height = Math.max(500, $("#viz").innerHeight());
+map.addControl(new mapboxgl.Navigation());
 
-var projection = d3.geoMercator()
-    .scale(1/tau)
-    .translate([0, 0]);
+map.on('style.load', function(e){
+  init();
+  toggleMapillary();
+})
 
-var path = d3.geoPath()
-    .projection(projection);
-
-var tile = d3.tile()
-    .size([width, height]);
-
-var zoom = d3.zoom()
-    .scaleExtent([1 << 1, 1 << 25])
-    .on("zoom", zoomed);
-
-var zoomGui = d3.select("#zoomGui")
-zoomGui.append('span')
-  .classed('zoomIn',true)
-  .text('+')
-  .on('click',function() {
-    zoom.scaleBy(svg, 2)
-  })
-zoomGui.append('span')
-  .classed('zoomOut',true)
-  .text('-')
-  .on('click',function(){
-    zoom.scaleBy(svg,0.5)
-  })
-
-// zoom controls
-// TODO: make zoom controls remove svg on click, zoom in, redo 'zoom'
-
-// var zoomControl = d3.select('#viz').append('div')
-//   .attr('class','zoomContainer')
-//
-// var zoomIn = zoomControl.append('a')
-//   .attr('class','zoom')
-//   .attr('id','zoomIn')
-//   .text('+')
-//
-// var zoomOut = zoomControl.append('a')
-//   .attr('class','zoom')
-//   .attr('id','zoomOut')
-//   .text('-')
-
-//disable mousewheel zoom if iframed
-if (window.self !== window.top) {
-  map.on("wheel.zoom", null);
-
-  document.documentElement.className += ' mapzen-demo-iframed';
-}
-
-var svg = d3.select("#bt svg")
-    .attr("width",width)
-    .attr("height",height)
-
-var vectorTilesDiv = d3.select("#vt")
-
-var raster = svg.append("g")
-
-// d3.select("body").append("div")
-//     .attr("class", "info")
-//     .html('<a href="http://bl.ocks.org/mbostock/5593150" target="_top">Mike Bostock</a> | <a href="https://github.com/mapzen/d3-vector-tiles">Mapzen</a> | © <a href="https://www.openstreetmap.org/copyright" target="_top">OpenStreetMap contributors</a> | <a href=" https://www.mapillary.com" title="Mapillary, CC BY" target="_top">Tiles Courtesy of Mapillary</a>')
-tilesHere = []
-function zoomed() {
-
-  var transform = d3.event.transform;
-
-  var tiles = tile
-      .scale(transform.k)
-      .translate([transform.x,transform.y])
-      ();
-
-  projection
-    .scale(transform.k/tau)
-    .translate([transform.x,transform.y]);
-
-  var image = raster
-      .attr("transform", stringify(tiles.scale, tiles.translate))
-    .selectAll("image")
-    .data(tiles, function(d) { return d; });
-
-  image.exit()
-    .remove();
-
-  image.enter().append("image")
-      .attr('class','baseTile')
-      .attr('id', function(d){return d[2] + "/" + d[0] + "/" + d[1]})
-      .attr("xlink:href", function(d) { return "http://" + "abc"[d[1] % 3] + ".tile.openstreetmap.org/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
-      .attr("x", function(d) { return d[0] * 256; })
-      .attr("y", function(d) { return d[1] * 256; })
-      .attr("width", 256)
-      .attr("height", 256)
-
-  var vectorTilesData = vectorTilesDiv
-      .style("transform", stringifyVT(tiles.scale, tiles.translate))
-    .selectAll(".vTile")
-    .data(tiles, function(d) { return d; });
-
-  // note, if(this._xhr) is needed given how z<14 vector tiles are being drawn
-  vectorTilesData.exit()
-    .each(function(d) {if(this._xhr){this._xhr.abort()}})
-    .remove();
-
-  tilesHere = tiles
-
-  vectorTilesData.enter().append("svg")
-    .attr("class","vTile")
-    .attr('id', function(d){return d[2] + "/" + d[0] + "/" + d[1]})
-    .style("left", function(d) { return d[0] * 256 + "px"})
-    .style("top", function(d) { return d[1] * 256 + "px"})
-    .each(function(d) {
-      if(d[2]<=14){
-        this._xhr = render(d,this,tiles)
+function init() {
+  // add mapillary vecotr tile source
+  var mapillaryCoverage = {
+    "type": "vector",
+    "tiles": ["http://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt"],
+    "minzoom": 2,
+    "maxzoom": 22
+  };
+  map.addSource("mapillaryCoverage", mapillaryCoverage)
+  // create layers for different zoom levels
+  var mapillaryCoverageLine = {
+    "id": "mapillaryCoverageLine",
+    "type": "line",
+    "source": "mapillaryCoverage",
+    "source-layer": "mapillary-sequences",
+    "layout": { "visibility": "none" },
+    "paint": {
+      "line-color": '#2e870a',
+      "line-width": {
+        "stops": [
+          [8,1],
+          [15,3]
+        ]
+      },
+      "line-opacity": {
+        "stops": [
+          [8,0.2],
+          [17,1]
+        ]
       }
-      else {
-        // tileOI = d[2] + "/" + d[0] + "/" + d[1]
-        // filteredImgs = _.filter(mapillaryImages,function(o){
-        //   return o.properties.tile === tileOI})
-        // if(filteredImgs.length>0){overZoomDraw(filteredImgs,this)}
-      }
-    })
-}
+    }
+  };
+  var mapillaryCoveragePoints = {
+    "id": "mapillaryCoveragePoints",
+    "type": "circle",
+    "source": "mapillaryCoverage",
+    "source-layer": "mapillary-images",
+    "layout": { "visibility": "none" },
+    "paint": {
+      "circle-radius": 8,
+      "circle-color": "#2e870a",
+      "circle-opacity": 0.7,
+      "circle-stroke-width": 1,
+      "circle-stroke-color": "#2e870a"
+    }
+  }
+  map.addLayer(mapillaryCoverageLine,'noturn')
+  map.addLayer(mapillaryCoveragePoints,'noturn')
 
-function stringify(scale, translate) {
-  var k = scale / 256, r = scale % 1 ? Number : Math.round;
-  return "translate(" + r(translate[0] * scale) + "," + r(translate[1] * scale) + ") scale(" + k + ")";
-}
-function stringifyVT(scale, translate) {
-  var k = scale / 256, r = scale % 1 ? Number : Math.round;
-  return "matrix3d(" + [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, r(translate[0] * scale), r(translate[1] * scale), 0, 1 ] + ")";
-}
-
-// different mapillary layers of interest http://bit.ly/2ptvROZ
-var layers = ['mapillary-sequence-overview', 'mapillary-sequences', 'mapillary-images'];
-var mapillaryImages = []
-// function that grabs relevant vector tile, converts it to geojson, and adds as to vectorTiles group
-function render(d,node,tiles) {
-  if(d[2]<=14) {
-    return d3.request("http://d25uarhxywzl1j.cloudfront.net/v0.1/" + d[2] + "/" + d[0] + "/" + d[1] + ".mvt").responseType('arraybuffer').get(function(error, json) {
-      if (error) {
-        // 403 errors are ok, just means there aren't data in that tile
-        throw error
-      }
-      var tile = new VectorTile( new pbf( new Uint8Array(json.response) ) );
-      var extents = 4096;
-      var geoJSON = {};
-      for (var key in tile.layers) {
-        geoJSON[key] = tile.layers[key].toGeoJSON();
-      }
-
-      // get tile values, make them fraction of extents,
-      // multiply by 256 for tile h/w
-      var tileProjection = d3.geoTransform({
-        point: function(x,y){
-          if(!isNaN(y)) {
-            x = (x/extents) * 256
-            y = (y/extents) * 256
-          } else {
-            y = (x[0][1]/extents) * 256
-            x = (x[0][0]/extents) * 256
-          }
-          this.stream.point(x,y);
-        }
-      })
-      var tilePath = d3.geoPath().projection(tileProjection)
-
-      var features = [];
-      layers.forEach(function(layer){
-        if(geoJSON[layer]){
-          // when at zoom 14, only show the
-          if(d[2] >= 14) {
-            if(layer === "mapillary-images") {
-              for(var j in geoJSON[layer].features){
-                geoJSON[layer].features[j].properties['tileOld'] = d[2] + "/" + d[0] + "/" + d[1]
-                features.push(geoJSON[layer].features[j]);
-              }
-            }
-          } else {
-              for(var j in geoJSON[layer].features){
-                features.push(geoJSON[layer].features[j]);
-              }
-          }
-        }
-      })
-
-      if(d[2] === 14) {
-        mapillaryImages.push(features)
-        if(d===tiles[(tiles.length-1).toString()]) {
-          mapillaryImages = overZoomGenerate(mapillaryImages)
-        }
-      }
-
-      d3.select(node).selectAll("path")
-        .data(features.sort(function(a,b) {
-          return a.properties.ca > 0 ? a.properties.ca - b.properties.sort_rank : 0
-        }))
-        .enter().append("path")
-          .attr("class", function(d) {return d.properties.key; })
-          .attr("d", tilePath)
-          .on('mouseover', function() {
-            this.parentElement.appendChild(this);
-            d3.select(this).style("stroke",'rgba(255,255,255,1)')
-          })
-          .on('mouseout', function() {
-            d3.select(this).style("stroke",'rgba(47,167,80,1)')
-          })
-          .on('click', function() {
-            d3.select('#mlyInfo').style('color','rgba(0,0,0,0)')
-            mly.moveToKey(d3.select(this).attr("class"))
-            .then(
-              function(node){console.log(node.key)},
-              function(error){console.error(error)});
-          });
-  })}
 };
 
-newXY = function(x,y) {
-  if(x <= 2047) {x = x*2} else {x = (x-2047)*2}
-  if(y <= 2047) {y = y*2} else {y = (y-2047)*2}
-  return [x,y]
-}
-newTile = function(z,x,y) {
-  // set z as next zoom level
-  z = (parseInt(z) + 1).toString()
-  // where x is in western half of vector tile, give 0th x tile
-  if (x <= 2047) {((parseInt(x) * 2) + 1).toString()}
-  // where x is in eastern half of vector tile, give 1st x tile
-  else {x = (parseInt(x) * 2).toString()}
-  // where y is in northern half of vector tile, give 0th y tile
-  if (y <= 2047) {y = ((parseInt(y) * 2) + 1).toString()}
-  // where y is in southern half of vector tile, give 1th y tile
-  else {y = (parseInt(y) * 2).toString()}
-  // return appropriate http tile path
-  return z + "/" + x + "/" + y
+function toggleMapillary() {
+  var mapillaryLayeres = ['mapillaryCoverageLine','mapillaryCoveragePoints'];
+  mapillaryLayeres.forEach(function(id){
+    var currentState = map.getLayoutProperty(id,'visibility')
+    var nextState = currentState === "none" ? 'visibility' : 'none';
+    map.setLayoutProperty(id, 'visibility', nextState)
+  });
 }
 
-// function that maps current mvt coordinate to mvt coordinate of one zoom above
-function overZoomGenerate(mapillaryImages,z,x,y) {
-  // flatten mapillaryImages
-  mapillaryImages = [].concat.apply([],mapillaryImages)
-  // generate new x,y and new tile property for each point
-  mapillaryImages.forEach(function(e){
-    zxy = e.properties.tileOld.split('/')
-    e.geometry.coordinates[0][0] = newXY(e.geometry.coordinates[0][0][0], e.geometry.coordinates[0][0][1])
-    e.properties['tile'] = newTile(zxy[0],zxy[1],zxy[2])
-  })
-  return mapillaryImages
-}
-
-function overZoomDraw(filteredImgs,node) {
-
-  var extents = 4096;
-  var tileProjection = d3.geoTransform({
-    point: function(x,y){
-      if(!isNaN(y)) {
-        x = (x/extents) * 256
-        y = (y/extents) * 256
-      } else {
-        y = (x[0][1]/extents) * 256
-        x = (x[0][0]/extents) * 256
-      }
-      this.stream.point(x,y);
-    }
-  })
-  var tilePath = d3.geoPath().projection(tileProjection)
-
-  d3.select(node).selectAll("path")
-    .data(filteredImgs.sort(function(a,b) {
-      return a.properties.ca > 0 ? a.properties.ca - b.properties.sort_rank : 0
-    }))
-    .enter().append("path")
-      .attr("class", function(d) {return d.properties.key; })
-      .attr("d", tilePath)
-      .on('mouseover', function() {
-        this.parentElement.appendChild(this);
-        d3.select(this).style("stroke",'rgba(255,255,255,1)')
-      })
-      .on('mouseout', function() {
-        d3.select(this).style("stroke",'rgba(47,167,80,1)')
-      })
-      .on('click', function() {
-        d3.select('#mlyInfo').style('color','rgba(0,0,0,0)')
-        mly.moveToKey(d3.select(this).attr("class"))
-        .then(
-          function(node){console.log(node.key)},
-          function(error){console.error(error)});
-      });
-}
-
-
-// Compute the projected initial center. Here, phillipines
-var center = projection([121.9860382, 11.9151973]);
-
-// initialize the map
-svg
-  .call(zoom)
-  .on("wheel.zoom", null)
-  .on("dblclick.zoom", null)
-  .call(zoom.transform, d3.zoomIdentity
-    .translate(width / 2, height / 2)
-    .scale(1 << 22)
-    .translate(-center[0], -center[1]));
+// thanks mapbox http://bit.ly/2psGxfn //
+//var layerIds = ['open-aerial-map','']
 
 // mapillary viewer //
 
