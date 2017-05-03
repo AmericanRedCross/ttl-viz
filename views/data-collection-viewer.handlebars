@@ -6,43 +6,45 @@
   <div class="row">
   	<div class="columns">
   		<h2>Data Collection Viewer</h2>
+      <p>Select a mapillary image in the map above</p>
   	</div>
     <div class="columns">
       <!-- Map -->
-      <div id="viz">
-        <div id = 'map'></div>
-        <div id='mly'></div>
-        <div id ="mlyInfo">Select a mapillary image in the map above</div>
+      <div id="viz" class="row">
+        <div id='map' class="small-12 columns"></div>
+        <div id='layers'></div>
+        <div id='mly' class="small-12 columns"></div>
       </div>
     </div>
   </div>
 
 </div>
-<!-- mapboxGL -->
-<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.11.4/mapbox-gl.js'></script>
-<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.11.4/mapbox-gl.css' rel='stylesheet' />
-<!-- mapillary viewer -->
-<script src='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.js'></script>
+<!-- mapboxGL/mapillary css -->
 <link href='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.css' rel='stylesheet' />
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+<!-- mapboxGL/mapillary js -->
+<script src='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.js'></script>
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
 <script>
 
 mapboxgl.accessToken = "pk.eyJ1IjoiYW1lcmljYW5yZWRjcm9zcyIsImEiOiJzdHVRWjA4In0.bnfdwZhKX8tQeMkwY-kknQ"
 
+// mapboxgl //
+
 var map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v9',
-  center: [121.9860382,11.95598058814103],
-  zoom: 12
+  center: [121.1274,14.1],
+  zoom: 14
 })
 
-map.addControl(new mapboxgl.Navigation());
+// add layers
 
-map.on('style.load', function(e){
-  init();
-  toggleMapillary();
+map.on('load', function(e){
+  initLayers();
 })
 
-function init() {
+function initLayers() {
   // add mapillary vecotr tile source
   var mapillaryCoverage = {
     "type": "vector",
@@ -51,13 +53,18 @@ function init() {
     "maxzoom": 22
   };
   map.addSource("mapillaryCoverage", mapillaryCoverage)
+  var oam =  {
+    "type": "raster",
+    "tiles": ["http://tiles.openaerialmap.org/9/0/55c4f20f2b67227a79b4f4e8/{z}/{x}/{y}.png"],
+    "tileSize": 256
+  };
+  map.addSource("oam",oam)
   // create layers for different zoom levels
   var mapillaryCoverageLine = {
-    "id": "mapillaryCoverageLine",
+    "id": "mapillary-sequences",
     "type": "line",
     "source": "mapillaryCoverage",
     "source-layer": "mapillary-sequences",
-    "layout": { "visibility": "none" },
     "paint": {
       "line-color": '#2e870a',
       "line-width": {
@@ -72,45 +79,103 @@ function init() {
           [17,1]
         ]
       }
-    }
+    },
+    "layout": {'visibility':'visible'}
   };
   var mapillaryCoveragePoints = {
-    "id": "mapillaryCoveragePoints",
+    "id": "mapillary-images",
     "type": "circle",
     "source": "mapillaryCoverage",
     "source-layer": "mapillary-images",
-    "layout": { "visibility": "none" },
     "paint": {
       "circle-radius": 8,
       "circle-color": "#2e870a",
       "circle-opacity": 0.7,
       "circle-stroke-width": 1,
       "circle-stroke-color": "#2e870a"
-    }
+    },
+    "layout":{'visibility':'visible'}
   }
-  map.addLayer(mapillaryCoverageLine,'noturn')
-  map.addLayer(mapillaryCoveragePoints,'noturn')
-
+  var oamLayer = {
+    "id": "oam-layer",
+    "type": "raster",
+    "source": "oam",
+    "minzoom":0,
+    "maxzoom":22,
+    "layout":{'visibility':'visible'}
+  }
+  // add mapillary Layers
+  map.addLayer(mapillaryCoverageLine)
+  map.addLayer(mapillaryCoveragePoints)
+  map.addLayer(oamLayer)
+  var layers = ['mapillaryCoverageLine', 'mapillaryCoveragePoints', 'oamLayer']
 };
 
-function toggleMapillary() {
-  var mapillaryLayeres = ['mapillaryCoverageLine','mapillaryCoveragePoints'];
-  mapillaryLayeres.forEach(function(id){
-    var currentState = map.getLayoutProperty(id,'visibility')
-    var nextState = currentState === "none" ? 'visibility' : 'none';
-    map.setLayoutProperty(id, 'visibility', nextState)
-  });
-}
+// add interactivity
 
-// thanks mapbox http://bit.ly/2psGxfn //
-//var layerIds = ['open-aerial-map','']
+map.on('click', 'mapillary-images', function(evt) {
+  var feature = map.queryRenderedFeatures(evt.point)
+  console.log(feature)
+  // move mapillary viewer to image key of clicked
+  mly.moveToKey(feature[0].properties.key)
+         .then(
+           function(node){console.log(node.key)},
+           function(error){console.error(error)});
+})
 
-// mapillary viewer //
+map.on('mouseenter', 'mapillary-images', function () {
+  map.getCanvas().style.cursor = 'pointer';
+});
+
+
+// controls
+
+map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+function layerControl() {
+  var controlLayers = [
+    'mapillary-sequences',
+    'mapillary-images',
+    'oam-layer'
+  ];
+  for(var i=0; i < controlLayers.length; i++) {
+      var id = controlLayers[i]
+      var link = document.createElement('a');
+        link.href = '#';
+        link.className = 'active';
+        link.textContent = id;
+
+        link.onclick = function (e) {
+            var clickedLayer = this.textContent;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+            if (visibility === 'visible') {
+                map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+                this.className = '';
+            } else {
+                this.className = 'active';
+                map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+            }
+        };
+
+        var layers = document.getElementById('layers');
+        layers.appendChild(link);
+      }
+    }
+layerControl();
+
+
+// mapillary //
 
 var mly = new Mapillary.Viewer(
   'mly',
   'a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy',
   null
 )
+
+
 
 </script>
