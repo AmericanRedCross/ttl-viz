@@ -117,11 +117,10 @@ function buildGallery(data){
 
 }
 
-var photoId = ['1.jpg','2.jpg','3.jpg','4.jpg']
-
+var photoId = ['1.jpg','2.jpg','3.jpg','4.jpg'];
 var photos = [];
 
-for(var i=0;i<photoId.length;i++){ photos[i] = '{{opts.nginxlocation}}media/pics/'+photoId[i]; }
+photoId.forEach(function (d){ photos.push('{{opts.nginxlocation}}media/pics/'+d); });
 
 var videoId = ['H7MMRgzTjkk','WQnS62wFI8k','7HZvAp5Gsjo','kz0_cWf0d8Q','l-9k1DDLb4g','ALdLynQAvTI','Vm8E1sqSL6c','NoWhnqbxFco',
 'YK8ZYnGPcsg','o2MPz6xreoU','swSg6UasEaQ','ktn5xafEbis','kZBKLzAFRfs','4iVYAlvIq5U','Zu9tvqHip1E','rPF6M-vIcXM','4qp4z97HXHI',
@@ -130,15 +129,17 @@ var videoId = ['H7MMRgzTjkk','WQnS62wFI8k','7HZvAp5Gsjo','kz0_cWf0d8Q','l-9k1DDL
 
 var videos = [];
 
-for(var i=0;i<videoId.length;i++){
-  videos[i] ={
+videoId.forEach(function (d){
+  videos.push({
     title: '',
-    href: 'https://www.youtube.com/watch?v='+videoId[i],
+    href: 'https://www.youtube.com/watch?v='+d,
     type: 'text/html',
-    youtube: videoId[i],
-    poster: 'https://img.youtube.com/vi/'+videoId[i]+'/maxresdefault.jpg'
-  }
-}
+    youtube: d,
+    poster: 'https://img.youtube.com/vi/'+d+'/maxresdefault.jpg'
+  })
+});
+
+console.log(videos);
 
 function getPreview(article){
   PDFObject.embed("pdf"+article, "#pdf-viewer");
