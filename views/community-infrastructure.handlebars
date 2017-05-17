@@ -7,18 +7,30 @@
       <p>
         <b>Municipality:</b> <span id="modal-municipality"></span><br>
         <b>Barangay:</b> <span id="modal-barangay"></span><br>
-        <b>Date Completed:</b> <span id="date-completed"></span>
+        <b>Date Completed:</b> <span id="date-completed"></span><br>
       </p>
       <div style="text-align:center;">
-        <div style="width:49%;display:inline-block;"><img src="" class="" id="img-photo-one" ></div>
-        <div style="width:49%;display:inline-block;"><img src="" class="" id="img-photo-two" ></div>
+        <div style="width:100%;display:inline-block;"><img src="" class="" id="img-photo-one" ></div>
+        <!-- <div style="width:49%;display:inline-block;"><img src="" class="" id="img-photo-two" ></div> -->
       </div>
     </div>
 
     <div class="button-group small btn-map-filter">
       <button class="button secondary hollow" style="background:#fff;" onclick="filtermap('all');">Show all</button>
-      <button class="button secondary hollow" style="background:#fff;" onclick="filtermap('l1');">Level 1 Water System <i class="fa fa-circle" style="color:#7570b3;" aria-hidden="true"></i></button>
-      <button class="button secondary hollow" style="background:#fff;" onclick="filtermap('l2');">Level 2 Water System <i class="fa fa-circle" style="color:#1b9e77;" aria-hidden="true"></i></button>
+      <button class="button secondary hollow" style="background:#fff;" onclick="filtermap('addfilter');">Filters</button>
+
+      <div class="filter-panel panel-group row">
+        <div class="filter-panel panel panel-default small-columns 12" >
+      			<ul class="tabs" data-active-collapse="true" data-tabs id="collapsing-tabs">
+      				<!-- panel titles go here -->
+
+      	    </ul>
+      			<div class="tabs-content" data-tabs-content="collapsing-tabs" id="tabsdiv">
+      			<!-- collapse divs go here -->
+      			</div>
+        </div>
+      </div>
+
     </div>
 
     <div id="map"></div>
@@ -84,8 +96,10 @@ function drawPoints(){
         return "#7570b3";
       } else if (d.sector_intervention == "water system") {
         return "#1b9e77";
-      } else {
+      } else if (d.sector_intervention == "streetlight") {
         return "#d95f02";
+      }else {
+        return "#ffcc99";
       }
     })
     .on('click', function(d){ clickedMarker(d, this); })
@@ -97,6 +111,7 @@ function drawPoints(){
 	}
 	map.on('zoom move viewreset', updatePoint);
 	updatePoint();
+  createFilterPageElement();
 }
 
 var locationLookup = {};
@@ -110,6 +125,51 @@ function getLocationData(){
   });
 }
 
+function createFilterPageElement() {
+  buildFilterHTML('WASH','wash',['Level 1 Water System','Level 2 Water System'],false);
+  buildFilterHTML('Infrastructure','infra',['Solar Streetlight'],false);
+  $('.filter-panel ul').append(panelTitles);
+  Foundation.reInit($('.filter-panel ul'));
+  $('.filter-panel.panel-group').hide();
+}
+
+var panelTitles = [];
+
+function buildFilterHTML(title, dataId, array, geo){
+  var thisTitleHtml = '<li class="tabs-title">' +
+    '<a href="#' + dataId + '">' + title + '</a></li>';
+  panelTitles.push(thisTitleHtml);
+  var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
+  $.each(array, function(i, a){
+    thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+ dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
+  })
+  thisBodyHtml += '</div>';
+  $('#tabsdiv').append(thisBodyHtml);
+}
+
+function filtermap(wat) {
+  if(wat=="all") {
+    $('.filter-panel.panel-group').hide();
+    clearAllFilters();
+  } else if(wat=="addfilters") {
+    if($('.filter-panel.panel-group').is(':visible')){
+      $('.filter-panel.panel-group').hide();
+    } else {
+      $('.checkbox input:checkbox').click(function() {
+        // only one checked at a time
+        $('.checkbox input:checkbox').not(this).prop('checked', false);
+      });
+      $('.filter-panel.panel-group').show();
+    }
+  }
+}
+
+function clearAllFilters(){
+  points.classed("hide", false);
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+}
+
 function clickedMarker(data, target){
   var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/";
   var date_comp = data.completion_date;
@@ -118,10 +178,14 @@ function clickedMarker(data, target){
 
   var title = "";
 
+  console.log(data);
+
   if(data.sector_intervention=="hand pump"){
     title = "Level 1 Water System";
   }else if(data.sector_intervention=="water system"){
     title = "Level 2 Water System";
+  }else if(data.sector_intervention=="streetlight"){
+    title = "Solar Streetlight";
   }else{
     title = "";
   }
@@ -134,21 +198,67 @@ function clickedMarker(data, target){
   $('#modal-municipality').html(loc_m);
   $('#date-completed').html(date_comp);
   $('#img-photo-one').attr("src", src+p_one);
-  $('#img-photo-two').attr("src", src+p_two);
   $("#info-modal").foundation('open');
 }
 
 function filtermap(wat){
-  if(wat === "l1"){
+  // if(wat === "l1"){
+  //   points.classed("hide", true).filter(function(d){ return d.sector_intervention == "hand pump" }).classed("hide", false);
+  // }
+  // else if(wat === "l2"){
+  //   points.classed("hide", true).filter(function(d){ return d.sector_intervention == "water system" }).classed("hide", false);
+  // }
+  // else{
+  //   points.classed("hide", false);
+  // }
+  if(wat=="all") {
+    $('.filter-panel.panel-group').hide();
+    clearAllFilters();
+  } else if(wat=="addfilter") {
+    if($('.filter-panel.panel-group').is(':visible')){
+      $('.filter-panel.panel-group').hide();
+    } else {
+      $('.checkbox input:checkbox').click(function() {
+        // only one checked at a time
+        $('.checkbox input:checkbox').not(this).prop('checked', false);
+      });
+      $('.filter-panel.panel-group').show();
+    }
+  }
+}
+
+function clearAllFilters(){
+  points.classed("hide", false);
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+}
+
+function filter(){
+
+  var activeFilters = []
+
+  checkboxes = $(".filter-panel.panel input[type=checkbox]");
+    for (i=0; i<checkboxes.length; i++) {
+      if(checkboxes[i].checked === true) {
+        activeFilters.push({
+          filterKey: checkboxes[i].name,
+          filterValue: checkboxes[i].value
+        })
+      }
+    }
+
+  if(activeFilters.length > 0 && activeFilters[0].filterValue == "Level 1 Water System"){
     points.classed("hide", true).filter(function(d){ return d.sector_intervention == "hand pump" }).classed("hide", false);
   }
-  else if(wat === "l2"){
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "Level 2 Water System"){
     points.classed("hide", true).filter(function(d){ return d.sector_intervention == "water system" }).classed("hide", false);
+  }
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "Solar Streetlight"){
+    points.classed("hide", true).filter(function(d){ return d.sector_intervention == "streetlight" }).classed("hide", false);
   }
   else{
     points.classed("hide", false);
   }
-
 }
 
 getLocationData();
