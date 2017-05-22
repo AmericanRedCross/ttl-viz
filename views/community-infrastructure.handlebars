@@ -95,11 +95,11 @@ function drawPoints(){
       if(d.sector_intervention == "hand pump"){
         return "#7570b3";
       } else if (d.sector_intervention == "water system") {
-        return "#1b9e77";
+        return "#333399";
       } else if (d.sector_intervention == "streetlight") {
         return "#d95f02";
       }else {
-        return "#ffcc99";
+        return "#ed1b2e";
       }
     })
     .on('click', function(d){ clickedMarker(d, this); })
@@ -172,13 +172,11 @@ function clearAllFilters(){
 
 function clickedMarker(data, target){
   var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/";
+
   var date_comp = data.completion_date;
   var p_one = data.photo_one;
-  var p_two = data.photo_two;
 
   var title = "";
-
-  console.log(data);
 
   if(data.sector_intervention=="hand pump"){
     title = "Level 1 Water System";
@@ -197,20 +195,12 @@ function clickedMarker(data, target){
   $('#modal-barangay').html(loc_b);
   $('#modal-municipality').html(loc_m);
   $('#date-completed').html(date_comp);
-  $('#img-photo-one').attr("src", src+p_one);
+  $('#img-photo-one').attr("src", src+data.photo_one);
   $("#info-modal").foundation('open');
 }
 
 function filtermap(wat){
-  // if(wat === "l1"){
-  //   points.classed("hide", true).filter(function(d){ return d.sector_intervention == "hand pump" }).classed("hide", false);
-  // }
-  // else if(wat === "l2"){
-  //   points.classed("hide", true).filter(function(d){ return d.sector_intervention == "water system" }).classed("hide", false);
-  // }
-  // else{
-  //   points.classed("hide", false);
-  // }
+
   if(wat=="all") {
     $('.filter-panel.panel-group').hide();
     clearAllFilters();
