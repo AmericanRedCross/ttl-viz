@@ -53,6 +53,8 @@
 <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
 <script>
 
+$('.filter-panel.panel-group').hide();
+
 var height = $(window).height();
 $('#map').height(height);
 $(window).resize(function(){
@@ -118,7 +120,7 @@ function drawPoints(){
 
 function createFilterPageElement() {
   buildFilterHTML('Shelter','shelter',['Core','SRA'],false);
-  buildFilterHTML('Livelihood','livelihood',['HLA','STED'],false);
+  buildFilterHTML('Livelihood','livelihood',['CCG','STED'],false);
   $('.filter-panel ul').append(panelTitles);
   Foundation.reInit($('.filter-panel ul'));
   $('.filter-panel.panel-group').hide();
@@ -272,7 +274,7 @@ function filter(){
   else if(activeFilters.length > 0 && activeFilters[0].filterValue === "STED"){
     points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
   }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "HLA"){
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "CCG"){
     points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
   }
   else{
