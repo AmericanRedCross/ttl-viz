@@ -864,8 +864,10 @@ app.get('/community-infrastructure',function(req,res) {
 
 app.get('/api/pages/commmunity-infrastructure', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat  FROM community_works_tool_v2 WHERE sector_intervention=' + "'hand pump' AND ws_shed='y' OR sector_intervention="+"'water system';";
-		pghelper.query(queryStr, function(err, data) {
+
+    var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat FROM community_works_tool_v3 WHERE sector_intervention='+"'water system'"+ ' OR sector_intervention='+"'hand pump'"+' OR sector_intervention='+"'streetlight';";
+
+    pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
 	}
