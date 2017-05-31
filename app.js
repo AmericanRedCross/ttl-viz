@@ -815,6 +815,26 @@ app.get('/api/pages/phast', function(req, res) {
 	}
 })
 
+app.get('/chast',function(req, res) {
+	if (req.user) {
+    res.render('chast', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/chast', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION WHERE training_name='+"'CHAST';";
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
 app.get('/households-overview',function(req,res) {
 	if (req.user) {
     res.render('households-overview', {
