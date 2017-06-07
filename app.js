@@ -808,7 +808,7 @@ app.get('/phast',function(req, res) {
 
 app.get('/api/pages/phast', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION";';
+    var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE "TRAINING_MODULE_PARTICIPATION".training_name='+"'PHAST';";
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
@@ -828,7 +828,16 @@ app.get('/chast',function(req, res) {
 
 app.get('/api/pages/chast', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION WHERE training_name='+"'CHAST';";
+    var queryStr ='SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE "TRAINING_MODULE_PARTICIPATION".training_name='+"'CHAST';";
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
+app.get('/api/pages/targetschools', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "TRAINING_COURSE" WHERE "TRAINING_COURSE".training_name = '+"'CHAST';";
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
