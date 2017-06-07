@@ -89,11 +89,21 @@ function adminText(schoolId, type){
 function getSchoolData(){
 	$.get('{{opts.nginxlocation}}api/pages/targetschools', function(response){
     $.each(response, function(index, training){
-      locationLookup[training.location_id] = training;
-      locationLookup[training['location_id']] = training;
+			locationLookup[training['location_id']]['training_venue'] = training.training_venue;
+			locationLookup[training['location_id']]['training_id'] = training.training_id;
     });
 	fetchData();
   });
+}
+
+function getLocationData(){
+	$.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+		getSchoolData();
+	});
 }
 
 function fetchData(){
@@ -101,8 +111,8 @@ function fetchData(){
 		data=response;
 		var counter=0;
 		data.forEach(function(d){
-			d['location_id'] = [d['location_id']];
-      d['location'] = [d['location_id'].slice(0,2), d['location_id']];
+      d['location'] = [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
+			d['location_id'] = [d['location_id'].slice(0,5)];
 			d['training_venue'] = [d['training_venue']];
       counter++;
       if(counter === data.length){ buildFilters(); }
@@ -113,9 +123,6 @@ function fetchData(){
 function buildFilters(){
 	// # get the unique values from the data for all our filter fields
    var schoolArray = [], locationArray = [];
-
-	 console.log(data);
-	 console.log(locationLookup);
 
 	$.each(data, function(i,item){
     item['location_id'].forEach(function(d){
@@ -140,7 +147,7 @@ function buildFilters(){
             municipArray.push(thisMunicip);
             thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
             thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
-                thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].location_id.slice(0,2) + '<strong></label></div><br>';
+                thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
           }
 					if(locationLookup[a] === undefined){
 							thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
@@ -160,7 +167,7 @@ function buildFilters(){
       $('#filter-nav-tabs').append(thisBodyHtml);
 
     }
-    panelHtml('School', null, locationArray, true);
+    panelHtml('Location', null, locationArray, true);
     $('#filter-nav').append(panelTitles);
     Foundation.reInit($('#filter-nav'))
     filteredData = data;
@@ -237,7 +244,13 @@ function drawBars(){
 		.attr("x", function(d) { return schoolBarsX(d.value) + 3; })
 		.text(function(d) { return d.value; });
 
-		// buildList();
+		buildList();
+}
+
+function clearAllCheckboxes(){
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+  filter();
 }
 
 function filter(){
@@ -360,5 +373,5 @@ function buildList(){
 		});
 }
 
-getSchoolData();
+getLocationData();
 </script>
