@@ -36,24 +36,6 @@
 <br>
 
 <div class="row">
-	<div class="small-12 medium-offset-1 medium-10 columns">
-    <h4>Participation breakdown per Gender</h4>
-			<div id="perGenderGraph"></div>
-  </div>
-</div>
-
-<br>
-
-<div class="row">
-	<div class="small-12 medium-offset-1 medium-10 columns">
-    <h4>Participation breakdown per Grade Level</h4>
-    <div id="perGradeGraph"></div>
-  </div>
-</div>
-
-<br>
-
-<div class="row">
   <div class="columns">
       <div id="listTable"></div>
   </div>
@@ -71,7 +53,7 @@
   table.dataTable thead .sorting_asc { background-image: url("{{opts.nginxlocation}}media/sort_asc.png"); }
   table.dataTable thead .sorting_desc { background-image: url("{{opts.nginxlocation}}media/sort_desc.png"); }
 </style>
-
+<script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
 <script>
 
 var data=[], filteredData;
@@ -84,6 +66,19 @@ function adminText(schoolId, type){
   else if (type === "school") {
     return locationLookup[schoolId].training_venue;
   }else { return "error" }
+}
+
+d3.select(window).on("resize", throttle);
+var throttleTimer;
+function throttle() {
+  window.clearTimeout(throttleTimer);
+    throttleTimer = window.setTimeout(function() {
+      resize();
+    }, 200);
+}
+function resize() {
+  d3.select('#schoolBars').select("svg").remove();
+  buildBars();
 }
 
 function getSchoolData(){
@@ -305,7 +300,6 @@ function filter(){
     // # if all filter keys are passed, the project passes the filtering
     return passCount === filterKeyCount;
   })
-  console.log(filteredData.length)
 
   drawBars();
 
