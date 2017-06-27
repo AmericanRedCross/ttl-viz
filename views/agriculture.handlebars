@@ -162,30 +162,13 @@ function fetchData(){
     data = response;
 		var counter = 0;
     data.forEach(function(d){
-      // calculate the value of score change
-      // if( isNaN(parseFloat(d['score_posttest'])) || isNaN(parseFloat(d['score_pretest'])) ) {
-      //   d['score_change'] = 'data missing';
-      // } else {
-      //   d['score_change'] = parseFloat(d['score_posttest']) - parseFloat(d['score_pretest']);
-      // }
-      // // calculate the cateogory of change
-      // if (d['score_change'] === 'data missing') {
-      //   d['knowledge_change'] = ['data missing'];
-      // } else if (d['score_change'] > 0 ) {
-      //   d['knowledge_change'] = ['increase'];
-      // } else if (d['score_change'] < 0 ) {
-      //   d['knowledge_change'] = ['decrease'];
-      // } else if (d['score_change'] === 0 ) {
-      //   d['knowledge_change'] = ['maintain'];
-      // }
       // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
       // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
-      // d['training_name'] = [d['training_name']];
-      // d['training_id'] = [d['training_id']];
       d['type_assistance'] = [d['type_assistance']];
       d['received_assistance'] = [d['received_assistance']];
       d['assistance_received'] = [d['assistance_received']];
-      d['household_id'] = d['household_id'];
+      d['household_id'] = [d['household_id']];
+      d['location_id'] = [d['barangay']];
       d['location'] = (d['barangay'] === null) ? ['data missing','data missing'] : [d['municipality'], d['barangay']];
 			counter++;
       if(counter === data.length){ console.log(data); buildFilters(); }
@@ -199,18 +182,14 @@ function buildFilters(){
       assistancereceivedArray =[],
       locationArray = [];
   $.each(data, function(i,item){
-    // item['training_name'].forEach(function(d){
-    //   if($.inArray(d, trainingnameArray) === -1){ trainingnameArray.push(d) }
-    // });
-    item['type_assistance'].forEach(function(d){
+      item['type_assistance'].forEach(function(d){
       if($.inArray(d, assistancetypeArray) === -1){ assistancetypeArray.push(d) }
     });
-    item['received_assistance'].forEach(function(d){
+    item['assistance_received'].forEach(function(d){
       if($.inArray(d, assistancereceivedArray) === -1){ assistancereceivedArray.push(d) }
     });
-    item['location'].forEach(function(d){
-    if($.inArray(item['barangay'], locationArray) === -1){ locationArray.push(d) }
-    if($.inArray(item['municipality'], locationArray) === -1){ locationArray.push(d) }
+    item['location_id'].forEach(function(d){
+    if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
     });
   });
   // # alphabetize them arrays
@@ -230,7 +209,7 @@ function buildFilters(){
 		if(geo === true) {
 			var municipArray = [];
 			$.each(array, function(i, a){
-				var thisMunicip = a.slice(0,2);
+				var thisMunicip = a.toString().slice(0,2);
 				if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
 					municipArray.push(thisMunicip);
 					thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
@@ -276,6 +255,8 @@ function filter(){
 				})
 			}
 		}
+
+    console.log(activeFilters);
 	// # reformat the data on checks to make it easier to work with
 	// ? combine this into what's above
 	filterData = d3.nest().key(function(d){ return d.filterKey })
@@ -317,6 +298,7 @@ function filter(){
 	})
 	console.log(filteredData.length)
 
+  drawBars();
 	// drawPies()
 
 }
@@ -358,7 +340,7 @@ function buildBars(){
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-  drawBars()
+  drawBars();
   // buildKnowledgeLine()
 
 }
