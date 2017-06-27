@@ -164,13 +164,12 @@ function fetchData(){
     data.forEach(function(d){
       // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
       // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
+      d['location'] = (d['household_id'] === null) ? ['data missing','data missing'] : [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
+      d['location_id'] = [d['household_id'].slice(0,5)];
       d['type_assistance'] = [d['type_assistance']];
       d['received_assistance'] = [d['received_assistance']];
       d['assistance_received'] = [d['assistance_received']];
-      d['household_id'] = [d['household_id']];
-      d['location_id'] = [d['barangay']];
-      d['location'] = (d['barangay'] === null) ? ['data missing','data missing'] : [d['municipality'], d['barangay']];
-			counter++;
+      counter++;
       if(counter === data.length){ console.log(data); buildFilters(); }
     });
   });
@@ -232,8 +231,8 @@ function buildFilters(){
 
 	}
   // panelHtml('Training name', 'training_name', trainingnameArray);
-  panelHtml('Assistance Type', 'training_id', assistancetypeArray);
-  panelHtml('Assistance Received', 'knowledge_change', assistancereceivedArray);
+  panelHtml('Assistance Type', 'type_assistance', assistancetypeArray);
+  panelHtml('Assistance Received', 'assistance_received', assistancereceivedArray);
   panelHtml('Location', null, locationArray, true);
 	  $('#filter-nav').append(panelTitles);
 	Foundation.reInit($('#filter-nav'))
@@ -615,6 +614,8 @@ function drawBars(){
     .transition().duration(1000).ease(d3.easeLinear)
     .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
     .text(function(d) { return d.value; });
+
+    buildList();
   // drawTimeline();
   // drawKnowLine();
 
@@ -655,70 +656,66 @@ function drawBars(){
 //
 // }
 //
-// function buildList(){
-//
-//   $('#listTable').empty();
-//
-//   $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
-//       '<thead>'+
-//         '<tr><th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Training<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Pre<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Post<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-//         '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th></tr>'+
-//       '</thead>'+
-//       '<tbody></tbody></table>');
-//
-//   var readableTime = d3.timeFormat("%d-%b-%Y");
-//
-//   $.each(filteredData, function(i,d){
-//     var rowHtml = '<tr>' +
-//       '<td>' + d.participant_fname + '</td>' +
-//       '<td>' + d.participant_lname + '</td>' +
-//       '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
-//       '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-//       '<td>' + d.training_name[0] + '</td>' +
-//       '<td>' + d.score_pretest+ '</td>' +
-//       '<td>' + d.score_posttest + '</td>' +
-//       '<td>' + d.score_change + '</td>' +
-//       '<td>' + d.knowledge_change[0] + '</td>' +
-//       '</tr>';
-//     $('#listTable tbody').append(rowHtml);
-//   });
-//
-//   var table = $('#dataTable').DataTable({
-//         // scrollX: true,
-//         "sDom":'lrtip',
-//         "lengthChange": false,
-//         "pageLength": 10,
-//         // "lengthMenu": [ 10, 50, 100 ],
-//         "language": {
-//           "lengthMenu": "Display _MENU_ records",
-//           "info": "Showing _START_ to _END_ of _TOTAL_ records",
-//         }
-//       });
-//
-//       // stop a click in the search input box from triggering a sort on the column
-//       $('.column-search').on('click', function(e){
-//         e.stopPropagation();
-//       });
-//
-//       // initialize column search functionality
-//       table.columns().every( function() {
-//         var that = this;
-//         $('input', this.header() ).on('keyup change', function(){
-//           if( that.search() !== this.value ){
-//             that
-//             .search( this.value )
-//             .draw();
-//           }
-//         });
-//       });
-// }
+function buildList(){
+
+  $('#listTable').empty();
+
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
+      '<thead>'+
+        '<tr><th>Household ID<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Assistance Type<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Assistance Received<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+      '</thead>'+
+      '<tbody></tbody></table>');
+
+  var readableTime = d3.timeFormat("%d-%b-%Y");
+
+  $.each(filteredData, function(i,d){
+    var rowHtml = '<tr>' +
+      '<td>' + d.household_id + '</td>' +
+      '<td>' + d.participant_fname + '</td>' +
+      '<td>' + d.participant_lname + '</td>' +
+      '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
+      '<td>' + adminText(d.location_id, 'muni') + '</td>' +
+      '<td>' + d.type_assistance + '</td>' +
+      '<td>' + d.assistance_received+ '</td>' +
+      '</tr>';
+    $('#listTable tbody').append(rowHtml);
+  });
+
+  var table = $('#dataTable').DataTable({
+        // scrollX: true,
+        "sDom":'lrtip',
+        "lengthChange": false,
+        "pageLength": 10,
+        // "lengthMenu": [ 10, 50, 100 ],
+        "language": {
+          "lengthMenu": "Display _MENU_ records",
+          "info": "Showing _START_ to _END_ of _TOTAL_ records",
+        }
+      });
+
+      // stop a click in the search input box from triggering a sort on the column
+      $('.column-search').on('click', function(e){
+        e.stopPropagation();
+      });
+
+      // initialize column search functionality
+      table.columns().every( function() {
+        var that = this;
+        $('input', this.header() ).on('keyup change', function(){
+          if( that.search() !== this.value ){
+            that
+            .search( this.value )
+            .draw();
+          }
+        });
+      });
+}
 
 getLocationData();
 </script>
