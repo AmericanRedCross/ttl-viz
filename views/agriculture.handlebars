@@ -11,7 +11,7 @@
 
 <div class="row">
 	<div class="columns">
-		<h2>Agriculture Training</h2>
+		<h2>Agriculture Extension</h2>
 	</div>
 </div>
 
@@ -45,7 +45,7 @@
 
 <br>
 
-<div class="row">
+<!-- <div class="row">
 	<div class="small-3 columns">
 		<h4>Knowledge change</h4>
 	  <div id="knowledgechangePie"></div>
@@ -65,7 +65,7 @@
 	  <div id="perTrainingPie"></div>
 	</div>
 	<div class="small-5 columns end"><div id="perTrainingLegend"> </div></div>
-</div>
+</div> -->
 
 <!-- <div class="dashboard-section">
   <h3>completed by date</h3>
@@ -122,7 +122,8 @@ function resize() {
   d3.select('#knowledgechangePie').select("svg").remove();
   d3.select('#perTrainingPie').select("svg").remove();
   d3.select('#knowLine').select("svg").remove();
-  buildPies();
+  // buildPies();
+  buildBars();
 }
 
 function clearAllCheckboxes(){
@@ -162,57 +163,63 @@ function fetchData(){
 		var counter = 0;
     data.forEach(function(d){
       // calculate the value of score change
-      if( isNaN(parseFloat(d['score_posttest'])) || isNaN(parseFloat(d['score_pretest'])) ) {
-        d['score_change'] = 'data missing';
-      } else {
-        d['score_change'] = parseFloat(d['score_posttest']) - parseFloat(d['score_pretest']);
-      }
-      // calculate the cateogory of change
-      if (d['score_change'] === 'data missing') {
-        d['knowledge_change'] = ['data missing'];
-      } else if (d['score_change'] > 0 ) {
-        d['knowledge_change'] = ['increase'];
-      } else if (d['score_change'] < 0 ) {
-        d['knowledge_change'] = ['decrease'];
-      } else if (d['score_change'] === 0 ) {
-        d['knowledge_change'] = ['maintain'];
-      }
+      // if( isNaN(parseFloat(d['score_posttest'])) || isNaN(parseFloat(d['score_pretest'])) ) {
+      //   d['score_change'] = 'data missing';
+      // } else {
+      //   d['score_change'] = parseFloat(d['score_posttest']) - parseFloat(d['score_pretest']);
+      // }
+      // // calculate the cateogory of change
+      // if (d['score_change'] === 'data missing') {
+      //   d['knowledge_change'] = ['data missing'];
+      // } else if (d['score_change'] > 0 ) {
+      //   d['knowledge_change'] = ['increase'];
+      // } else if (d['score_change'] < 0 ) {
+      //   d['knowledge_change'] = ['decrease'];
+      // } else if (d['score_change'] === 0 ) {
+      //   d['knowledge_change'] = ['maintain'];
+      // }
       // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
       // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
-      d['training_name'] = [d['training_name']];
-      d['training_id'] = [d['training_id']];
-      d['location'] = (d['location_id'] === null) ? ['data missing','data missing'] : [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
+      // d['training_name'] = [d['training_name']];
+      // d['training_id'] = [d['training_id']];
+      d['type_assistance'] = [d['type_assistance']];
+      d['received_assistance'] = [d['received_assistance']];
+      d['assistance_received'] = [d['assistance_received']];
+      d['household_id'] = d['household_id'];
+      d['location'] = (d['barangay'] === null) ? ['data missing','data missing'] : [d['municipality'], d['barangay']];
 			counter++;
-      if(counter === data.length){ buildFilters(); }
+      if(counter === data.length){ console.log(data); buildFilters(); }
     });
   });
 }
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-  var trainingnameArray = [],
-      trainingidArray = [],
-      knowledgechangeArray = [],
+  var assistancetypeArray = [],
+      assistancereceivedArray =[],
       locationArray = [];
   $.each(data, function(i,item){
-    item['training_name'].forEach(function(d){
-      if($.inArray(d, trainingnameArray) === -1){ trainingnameArray.push(d) }
+    // item['training_name'].forEach(function(d){
+    //   if($.inArray(d, trainingnameArray) === -1){ trainingnameArray.push(d) }
+    // });
+    item['type_assistance'].forEach(function(d){
+      if($.inArray(d, assistancetypeArray) === -1){ assistancetypeArray.push(d) }
     });
-    item['training_id'].forEach(function(d){
-      if($.inArray(d, trainingidArray) === -1){ trainingidArray.push(d) }
+    item['received_assistance'].forEach(function(d){
+      if($.inArray(d, assistancereceivedArray) === -1){ assistancereceivedArray.push(d) }
     });
-    item['knowledge_change'].forEach(function(d){
-      if($.inArray(d, knowledgechangeArray) === -1){ knowledgechangeArray.push(d) }
+    item['location'].forEach(function(d){
+    if($.inArray(item['barangay'], locationArray) === -1){ locationArray.push(d) }
+    if($.inArray(item['municipality'], locationArray) === -1){ locationArray.push(d) }
     });
-    if($.inArray(item['location_id'], locationArray) === -1){ locationArray.push(item['location_id']) }
-
   });
   // # alphabetize them arrays
-  trainingnameArray.sort(d3.ascending);
-  trainingidArray.sort(d3.ascending);
-  knowledgechangeArray.sort(d3.ascending);
+  // trainingnameArray.sort(d3.ascending);
+  assistancetypeArray.sort(d3.ascending);
+  assistancereceivedArray.sort(d3.ascending);
   locationArray.sort(function(a, b) { return a - b; });
   // # build the html and add it to the page
+  console.log(locationArray);
   var panelTitles = [];
   // var panelBodies = [];
   function panelHtml(title, dataId, array, geo){
@@ -245,16 +252,16 @@ function buildFilters(){
 		$('#filter-nav-tabs').append(thisBodyHtml);
 
 	}
-  panelHtml('Training name', 'training_name', trainingnameArray);
-  panelHtml('Training ID', 'training_id', trainingidArray);
-  panelHtml('Knowledge change', 'knowledge_change', knowledgechangeArray);
+  // panelHtml('Training name', 'training_name', trainingnameArray);
+  panelHtml('Assistance Type', 'training_id', assistancetypeArray);
+  panelHtml('Assistance Received', 'knowledge_change', assistancereceivedArray);
   panelHtml('Location', null, locationArray, true);
 	  $('#filter-nav').append(panelTitles);
 	Foundation.reInit($('#filter-nav'))
   filteredData = data;
   $('#loader').hide();
-  //buildBars();
-  buildPies();
+  buildBars();
+  // buildPies();
 
 }
 
@@ -284,7 +291,6 @@ function filter(){
 	$.each(filterData,function(i,filterKey){
 		var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
 		var valueGroups = [];
-		console.log(filterKey)
 		$.each(filterKey.value, function(j,filterValue){
 			valueGroups.push('<b>' + filterValue + '</b>');
 		})
@@ -311,37 +317,37 @@ function filter(){
 	})
 	console.log(filteredData.length)
 
-	drawPies()
+	// drawPies()
 
 }
 
-var pieRadius, knowledgechangePie, knowledgechangePiePath, perTrainingPie, perTrainingPiePath;
-function buildPies(){
-
-  var widthOnPage = $('#knowledgechangePie').innerWidth();
-  var width = (widthOnPage < 300) ? widthOnPage : 300;
-  var height = width;
-  pieRadius = Math.min(width, height) / 2;
-
-	// build the pie charts
-  knowledgechangePie = d3.select('#knowledgechangePie').append("svg")
-      .attr("width", width)
-      .attr("height", height)
-    .append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  knowledgechangePiePath = knowledgechangePie.selectAll("path");
-
-  perTrainingPie = d3.select('#perTrainingPie').append("svg")
-      .attr("width", width)
-      .attr("height", height)
-    .append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  perTrainingPiePath = perTrainingPie.selectAll("path");
-
-  buildBars();
-};
-
-
+// var pieRadius, knowledgechangePie, knowledgechangePiePath, perTrainingPie, perTrainingPiePath;
+// function buildPies(){
+//
+//   var widthOnPage = $('#knowledgechangePie').innerWidth();
+//   var width = (widthOnPage < 300) ? widthOnPage : 300;
+//   var height = width;
+//   pieRadius = Math.min(width, height) / 2;
+//
+// 	// build the pie charts
+//   knowledgechangePie = d3.select('#knowledgechangePie').append("svg")
+//       .attr("width", width)
+//       .attr("height", height)
+//     .append("g")
+//       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+//   knowledgechangePiePath = knowledgechangePie.selectAll("path");
+//
+//   perTrainingPie = d3.select('#perTrainingPie').append("svg")
+//       .attr("width", width)
+//       .attr("height", height)
+//     .append("g")
+//       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+//   perTrainingPiePath = perTrainingPie.selectAll("path");
+//
+//   buildBars();
+// };
+//
+//
 var brgyBarsMeas, brgyBars, brgyBarsX;
 function buildBars(){
 	// build the bar charts
@@ -352,232 +358,233 @@ function buildBars(){
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-  buildKnowledgeLine()
+  drawBars()
+  // buildKnowledgeLine()
 
 }
-
-var knowLineMeas, knowLineSvg, knowLineY, knowLineX, knowY, knowYaxis;
-function buildKnowledgeLine(){
-		// build the knowledge chart
-    var changeExt = d3.extent(data, function(d){ return d.score_change; });
-    var maxChange = (Math.abs(changeExt[0]) > Math.abs(changeExt[1])) ?  Math.abs(changeExt[0]) : Math.abs(changeExt[1]);
-
-    knowLineMeas = {top: 20, right: 60, bottom: 20, left: 60,
-      height: 250 - 40, width: $('#knowLine').innerWidth() - 60 - 60 };
-    knowLineMeas.barWidth = knowLineMeas.width / (maxChange * 2),
-    knowLineSvg = d3.select('#knowLine').append('svg')
-      .attr("width", knowLineMeas.width + knowLineMeas.left + knowLineMeas.right)
-      .attr("height", knowLineMeas.height + knowLineMeas.top + knowLineMeas.bottom)
-			.attr("fill","rgba(0,124,196,1)")
-      .append('g').attr("transform", "translate(" + knowLineMeas.left + "," + knowLineMeas.top + ")");
-
-    knowLineY = d3.scaleLinear()
-      .range([knowLineMeas.height, 0])
-    knowLineX = d3.scaleLinear()
-      .range([0,knowLineMeas.width])
-      .domain([-maxChange, maxChange])
-
-    var xAxis = d3.axisBottom()
-      .scale(knowLineX)
-    knowLineSvg.append("g")
-      .attr("class", "x kaxis")
-      .attr("transform", "translate(" + (knowLineMeas.barWidth / 2) + "," + knowLineMeas.height + ")")
-      .call(xAxis);
-
-    knowY = d3.axisLeft()
-      .scale(knowLineY).tickFormat(d3.format("d"));
-    knowYaxis = knowLineSvg.append("g")
-      .attr("class", "y kaxis")
-
-    knowYaxis.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Participants");
-
-  drawPies();
-
-}
-
-function drawPies(){
-  /////////////////
-  // PIE HELPERS //
-  // ########### //
-  /////////////////
-	function findNeighborArc(i, data0, data1, key) {
-    var d;
-    return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
-    : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
-    : null;
-  }
-  // # Find the element in data0 that joins the highest preceding element in data1.
-  function findPreceding(i, data0, data1, key) {
-    var m = data0.length;
-    while (--i >= 0) {
-      var k = key(data1[i]);
-      for (var j = 0; j < m; ++j) {
-        if (key(data0[j]) === k) return data0[j];
-      }
-    }
-  }
-  // # Find the element in data0 that joins the lowest following element in data1.
-  function findFollowing(i, data0, data1, key) {
-    var n = data1.length, m = data0.length;
-    while (++i < n) {
-      var k = key(data1[i]);
-      for (var j = 0; j < m; ++j) {
-        if (key(data0[j]) === k) return data0[j];
-      }
-    }
-  }
-  function key(d) {
-    return d.data.key;
-  }
-
-	var pie = d3.pie().sort(null).value(function(d) { return d.value; });
-
-  var path = d3.arc()
-        .outerRadius(pieRadius - 10)
-        .innerRadius(0);
-
-  arcTween = function(d) {
-    var i = d3.interpolate(this._current, d);
-    this._current = i(0);
-    return function(t) { return path(i(t)); };
-  }
-
-  //////////////////
-  // CATEGORY PIE //
-  // ############ //
-  //////////////////
-	// customize knowledgechangeColor colors
-  var knowledgechangeColor = function(key){
-    switch(key) {
-      case "increase":
-        return "#91cf60";
-        break;
-      case "decrease":
-        return "#fc8d59";
-        break;
-      case "maintain":
-        return "#ffffbf";
-        break;
-      default:
-        return "#e0e0e0";
-    }
-
-
-  }
-
-  var knowledgechangePieData = d3.nest()
-    .key(function(d) { return d['knowledge_change'][0]; })
-    .rollup(function(value){
-      return value.length
-    })
-    .entries(filteredData)
-
-  var knowledgechangeData0 = knowledgechangePiePath.data(),
-    knowledgechangeData1 = pie(knowledgechangePieData);
-
-  knowledgechangePiePath = d3.select('#knowledgechangePie').select('svg').select('g').selectAll('path').data(knowledgechangeData1, key);
-
-  knowledgechangePiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, knowledgechangeData0, knowledgechangeData1, key) || d; })
-    .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
-		.attr('d', path)
-  .append("title")
-    .text(function(d) { return d.data.key; });
-
-  knowledgechangePiePath.exit()
-    //  .each(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
-		//  .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
-  	//  .transition()
-    //  .duration(750)
-    //  .attrTween("d", arcTween)
-    .remove();
-
-  knowledgechangePiePath.transition()
-    .duration(750)
-    .attrTween("d", arcTween);
-
-  // Legend
-  var knowledgechangeLegend = d3.select('#knowledgechangeLegend').selectAll('div').data(knowledgechangePieData, function(d) { return d['key']; });
-  // UPDATE
-  knowledgechangeLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // ENTER
-  knowledgechangeLegend.enter().append('div')
-  .attr('class', "legend-item")
-  .html(function(d){
-    return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // REMOVE
-  knowledgechangeLegend.exit().remove();
-  // sort
-  knowledgechangeLegend.sort(function(a, b) {
-    return b.value - a.value;
-  })
-
-  //////////////////////
-  // PER TRAINING PIE //
-  // ################ //
-  //////////////////////
-  var perTrainingColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_name'][0]; }))
-
-  var perTrainingData = d3.nest()
-    .key(function(d) { return d['training_name'][0]; })
-    .rollup(function(value){
-      return value.length
-    })
-    .entries(filteredData)
-
-  var perTrainingData0 = perTrainingPiePath.data(),
-    perTrainingData1 = pie(perTrainingData);
-
-  perTrainingPiePath =  d3.select('#perTrainingPie').select('svg').select('g').selectAll('path').data(perTrainingData1, key);
-
-  perTrainingPiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, perTrainingData0, perTrainingData1, key) || d; })
-    .attr("fill", function(d) { return perTrainingColor(d.data.key); })
-		.attr('d', path)
-  .append("title")
-    .text(function(d) { return d.data.key; });
-
-  perTrainingPiePath.exit()
-  //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
-  // .transition()
-  //   .duration(750)
-  //   .attrTween("d", arcTween)
-    .remove();
-
-  perTrainingPiePath.transition()
-    .duration(750)
-    .attrTween("d", arcTween);
-
-  // Legend
-  var perTrainingLegend = d3.select('#perTrainingLegend').selectAll('div').data(perTrainingData, function(d) { return d['key']; });
-  // UPDATE
-  perTrainingLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // ENTER
-  perTrainingLegend.enter().append('div')
-  .attr('class', "legend-item")
-  .html(function(d){
-    return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // REMOVE
-  perTrainingLegend.exit().remove();
-  // sort
-  perTrainingLegend.sort(function(a, b) {
-    return b.values - a.values;
-  })
-
-  //
-  drawBars();
-}
+//
+// var knowLineMeas, knowLineSvg, knowLineY, knowLineX, knowY, knowYaxis;
+// function buildKnowledgeLine(){
+// 		// build the knowledge chart
+//     var changeExt = d3.extent(data, function(d){ return d.score_change; });
+//     var maxChange = (Math.abs(changeExt[0]) > Math.abs(changeExt[1])) ?  Math.abs(changeExt[0]) : Math.abs(changeExt[1]);
+//
+//     knowLineMeas = {top: 20, right: 60, bottom: 20, left: 60,
+//       height: 250 - 40, width: $('#knowLine').innerWidth() - 60 - 60 };
+//     knowLineMeas.barWidth = knowLineMeas.width / (maxChange * 2),
+//     knowLineSvg = d3.select('#knowLine').append('svg')
+//       .attr("width", knowLineMeas.width + knowLineMeas.left + knowLineMeas.right)
+//       .attr("height", knowLineMeas.height + knowLineMeas.top + knowLineMeas.bottom)
+// 			.attr("fill","rgba(0,124,196,1)")
+//       .append('g').attr("transform", "translate(" + knowLineMeas.left + "," + knowLineMeas.top + ")");
+//
+//     knowLineY = d3.scaleLinear()
+//       .range([knowLineMeas.height, 0])
+//     knowLineX = d3.scaleLinear()
+//       .range([0,knowLineMeas.width])
+//       .domain([-maxChange, maxChange])
+//
+//     var xAxis = d3.axisBottom()
+//       .scale(knowLineX)
+//     knowLineSvg.append("g")
+//       .attr("class", "x kaxis")
+//       .attr("transform", "translate(" + (knowLineMeas.barWidth / 2) + "," + knowLineMeas.height + ")")
+//       .call(xAxis);
+//
+//     knowY = d3.axisLeft()
+//       .scale(knowLineY).tickFormat(d3.format("d"));
+//     knowYaxis = knowLineSvg.append("g")
+//       .attr("class", "y kaxis")
+//
+//     knowYaxis.append("text")
+//       .attr("transform", "rotate(-90)")
+//       .attr("y", 6)
+//       .attr("dy", ".71em")
+//       .style("text-anchor", "end")
+//       .text("Participants");
+//
+//   drawPies();
+//
+// }
+//
+// function drawPies(){
+//   /////////////////
+//   // PIE HELPERS //
+//   // ########### //
+//   /////////////////
+// 	function findNeighborArc(i, data0, data1, key) {
+//     var d;
+//     return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
+//     : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
+//     : null;
+//   }
+//   // # Find the element in data0 that joins the highest preceding element in data1.
+//   function findPreceding(i, data0, data1, key) {
+//     var m = data0.length;
+//     while (--i >= 0) {
+//       var k = key(data1[i]);
+//       for (var j = 0; j < m; ++j) {
+//         if (key(data0[j]) === k) return data0[j];
+//       }
+//     }
+//   }
+//   // # Find the element in data0 that joins the lowest following element in data1.
+//   function findFollowing(i, data0, data1, key) {
+//     var n = data1.length, m = data0.length;
+//     while (++i < n) {
+//       var k = key(data1[i]);
+//       for (var j = 0; j < m; ++j) {
+//         if (key(data0[j]) === k) return data0[j];
+//       }
+//     }
+//   }
+//   function key(d) {
+//     return d.data.key;
+//   }
+//
+// 	var pie = d3.pie().sort(null).value(function(d) { return d.value; });
+//
+//   var path = d3.arc()
+//         .outerRadius(pieRadius - 10)
+//         .innerRadius(0);
+//
+//   arcTween = function(d) {
+//     var i = d3.interpolate(this._current, d);
+//     this._current = i(0);
+//     return function(t) { return path(i(t)); };
+//   }
+//
+//   //////////////////
+//   // CATEGORY PIE //
+//   // ############ //
+//   //////////////////
+// 	// customize knowledgechangeColor colors
+//   var knowledgechangeColor = function(key){
+//     switch(key) {
+//       case "increase":
+//         return "#91cf60";
+//         break;
+//       case "decrease":
+//         return "#fc8d59";
+//         break;
+//       case "maintain":
+//         return "#ffffbf";
+//         break;
+//       default:
+//         return "#e0e0e0";
+//     }
+//
+//
+//   }
+//
+//   var knowledgechangePieData = d3.nest()
+//     .key(function(d) { return d['knowledge_change'][0]; })
+//     .rollup(function(value){
+//       return value.length
+//     })
+//     .entries(filteredData)
+//
+//   var knowledgechangeData0 = knowledgechangePiePath.data(),
+//     knowledgechangeData1 = pie(knowledgechangePieData);
+//
+//   knowledgechangePiePath = d3.select('#knowledgechangePie').select('svg').select('g').selectAll('path').data(knowledgechangeData1, key);
+//
+//   knowledgechangePiePath.enter().append("path")
+//     .each(function(d, i) { this._current = findNeighborArc(i, knowledgechangeData0, knowledgechangeData1, key) || d; })
+//     .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
+// 		.attr('d', path)
+//   .append("title")
+//     .text(function(d) { return d.data.key; });
+//
+//   knowledgechangePiePath.exit()
+//     //  .each(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
+// 		//  .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
+//   	//  .transition()
+//     //  .duration(750)
+//     //  .attrTween("d", arcTween)
+//     .remove();
+//
+//   knowledgechangePiePath.transition()
+//     .duration(750)
+//     .attrTween("d", arcTween);
+//
+//   // Legend
+//   var knowledgechangeLegend = d3.select('#knowledgechangeLegend').selectAll('div').data(knowledgechangePieData, function(d) { return d['key']; });
+//   // UPDATE
+//   knowledgechangeLegend.html(function(d){
+//     return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+//   })
+//   // ENTER
+//   knowledgechangeLegend.enter().append('div')
+//   .attr('class', "legend-item")
+//   .html(function(d){
+//     return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+//   })
+//   // REMOVE
+//   knowledgechangeLegend.exit().remove();
+//   // sort
+//   knowledgechangeLegend.sort(function(a, b) {
+//     return b.value - a.value;
+//   })
+//
+//   //////////////////////
+//   // PER TRAINING PIE //
+//   // ################ //
+//   //////////////////////
+//   var perTrainingColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_name'][0]; }))
+//
+//   var perTrainingData = d3.nest()
+//     .key(function(d) { return d['training_name'][0]; })
+//     .rollup(function(value){
+//       return value.length
+//     })
+//     .entries(filteredData)
+//
+//   var perTrainingData0 = perTrainingPiePath.data(),
+//     perTrainingData1 = pie(perTrainingData);
+//
+//   perTrainingPiePath =  d3.select('#perTrainingPie').select('svg').select('g').selectAll('path').data(perTrainingData1, key);
+//
+//   perTrainingPiePath.enter().append("path")
+//     .each(function(d, i) { this._current = findNeighborArc(i, perTrainingData0, perTrainingData1, key) || d; })
+//     .attr("fill", function(d) { return perTrainingColor(d.data.key); })
+// 		.attr('d', path)
+//   .append("title")
+//     .text(function(d) { return d.data.key; });
+//
+//   perTrainingPiePath.exit()
+//   //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
+//   // .transition()
+//   //   .duration(750)
+//   //   .attrTween("d", arcTween)
+//     .remove();
+//
+//   perTrainingPiePath.transition()
+//     .duration(750)
+//     .attrTween("d", arcTween);
+//
+//   // Legend
+//   var perTrainingLegend = d3.select('#perTrainingLegend').selectAll('div').data(perTrainingData, function(d) { return d['key']; });
+//   // UPDATE
+//   perTrainingLegend.html(function(d){
+//     return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+//   })
+//   // ENTER
+//   perTrainingLegend.enter().append('div')
+//   .attr('class', "legend-item")
+//   .html(function(d){
+//     return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+//   })
+//   // REMOVE
+//   perTrainingLegend.exit().remove();
+//   // sort
+//   perTrainingLegend.sort(function(a, b) {
+//     return b.values - a.values;
+//   })
+//
+//   //
+//   drawBars();
+// }
 
 function drawBars(){
   // get sume of participants per brgy
@@ -627,109 +634,109 @@ function drawBars(){
     .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
     .text(function(d) { return d.value; });
   // drawTimeline();
-  drawKnowLine();
+  // drawKnowLine();
 
 }
 
-function drawKnowLine(){
-
-  var knowLineData = d3.nest()
-      .key(function(d) { return Math.round(parseFloat(d.score_change)); } )
-      .rollup(function(values) { return values.length; })
-      .entries(filteredData.filter(function(d){ return d.score_change !== "data missing"}));
-  knowLineData.forEach(function(d){
-    d.key = parseFloat(d.key);
-  });
-  knowLineData.sort(function(a,b){
-    return a.key - b.key
-  });
-
-  knowLineY.domain(d3.extent(knowLineData, function(d){ return d.value }))
-
-  knowYaxis.call(knowY)
-
-  var g = knowLineSvg.selectAll(".bar")
-        .data(knowLineData, function(d){ return d['key']; })
-
-  g.enter().append("rect").transition().duration(1000).ease(d3.easeSinInOut)
-        .attr("class", "bar")
-        .attr("x", function(d) { return knowLineX(d.key) + 1; })
-        .attr("width", knowLineMeas.barWidth - 2)
-        .attr("y", function(d) {
-					return knowLineY(d.value); })
-        .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.value) + 1; });
-
-  g.exit().remove();
-
-
-  buildList();
-
-}
-
-function buildList(){
-
-  $('#listTable').empty();
-
-  $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
-      '<thead>'+
-        '<tr><th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Training<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Pre<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Post<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th></tr>'+
-      '</thead>'+
-      '<tbody></tbody></table>');
-
-  var readableTime = d3.timeFormat("%d-%b-%Y");
-
-  $.each(filteredData, function(i,d){
-    var rowHtml = '<tr>' +
-      '<td>' + d.participant_fname + '</td>' +
-      '<td>' + d.participant_lname + '</td>' +
-      '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
-      '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-      '<td>' + d.training_name[0] + '</td>' +
-      '<td>' + d.score_pretest+ '</td>' +
-      '<td>' + d.score_posttest + '</td>' +
-      '<td>' + d.score_change + '</td>' +
-      '<td>' + d.knowledge_change[0] + '</td>' +
-      '</tr>';
-    $('#listTable tbody').append(rowHtml);
-  });
-
-  var table = $('#dataTable').DataTable({
-        // scrollX: true,
-        "sDom":'lrtip',
-        "lengthChange": false,
-        "pageLength": 10,
-        // "lengthMenu": [ 10, 50, 100 ],
-        "language": {
-          "lengthMenu": "Display _MENU_ records",
-          "info": "Showing _START_ to _END_ of _TOTAL_ records",
-        }
-      });
-
-      // stop a click in the search input box from triggering a sort on the column
-      $('.column-search').on('click', function(e){
-        e.stopPropagation();
-      });
-
-      // initialize column search functionality
-      table.columns().every( function() {
-        var that = this;
-        $('input', this.header() ).on('keyup change', function(){
-          if( that.search() !== this.value ){
-            that
-            .search( this.value )
-            .draw();
-          }
-        });
-      });
-}
+// function drawKnowLine(){
+//
+//   var knowLineData = d3.nest()
+//       .key(function(d) { return Math.round(parseFloat(d.score_change)); } )
+//       .rollup(function(values) { return values.length; })
+//       .entries(filteredData.filter(function(d){ return d.score_change !== "data missing"}));
+//   knowLineData.forEach(function(d){
+//     d.key = parseFloat(d.key);
+//   });
+//   knowLineData.sort(function(a,b){
+//     return a.key - b.key
+//   });
+//
+//   knowLineY.domain(d3.extent(knowLineData, function(d){ return d.value }))
+//
+//   knowYaxis.call(knowY)
+//
+//   var g = knowLineSvg.selectAll(".bar")
+//         .data(knowLineData, function(d){ return d['key']; })
+//
+//   g.enter().append("rect").transition().duration(1000).ease(d3.easeSinInOut)
+//         .attr("class", "bar")
+//         .attr("x", function(d) { return knowLineX(d.key) + 1; })
+//         .attr("width", knowLineMeas.barWidth - 2)
+//         .attr("y", function(d) {
+// 					return knowLineY(d.value); })
+//         .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.value) + 1; });
+//
+//   g.exit().remove();
+//
+//
+//   buildList();
+//
+// }
+//
+// function buildList(){
+//
+//   $('#listTable').empty();
+//
+//   $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
+//       '<thead>'+
+//         '<tr><th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Training<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Pre<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Post<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+//         '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th></tr>'+
+//       '</thead>'+
+//       '<tbody></tbody></table>');
+//
+//   var readableTime = d3.timeFormat("%d-%b-%Y");
+//
+//   $.each(filteredData, function(i,d){
+//     var rowHtml = '<tr>' +
+//       '<td>' + d.participant_fname + '</td>' +
+//       '<td>' + d.participant_lname + '</td>' +
+//       '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
+//       '<td>' + adminText(d.location_id, 'muni') + '</td>' +
+//       '<td>' + d.training_name[0] + '</td>' +
+//       '<td>' + d.score_pretest+ '</td>' +
+//       '<td>' + d.score_posttest + '</td>' +
+//       '<td>' + d.score_change + '</td>' +
+//       '<td>' + d.knowledge_change[0] + '</td>' +
+//       '</tr>';
+//     $('#listTable tbody').append(rowHtml);
+//   });
+//
+//   var table = $('#dataTable').DataTable({
+//         // scrollX: true,
+//         "sDom":'lrtip',
+//         "lengthChange": false,
+//         "pageLength": 10,
+//         // "lengthMenu": [ 10, 50, 100 ],
+//         "language": {
+//           "lengthMenu": "Display _MENU_ records",
+//           "info": "Showing _START_ to _END_ of _TOTAL_ records",
+//         }
+//       });
+//
+//       // stop a click in the search input box from triggering a sort on the column
+//       $('.column-search').on('click', function(e){
+//         e.stopPropagation();
+//       });
+//
+//       // initialize column search functionality
+//       table.columns().every( function() {
+//         var that = this;
+//         $('input', this.header() ).on('keyup change', function(){
+//           if( that.search() !== this.value ){
+//             that
+//             .search( this.value )
+//             .draw();
+//           }
+//         });
+//       });
+// }
 
 getLocationData();
 </script>
