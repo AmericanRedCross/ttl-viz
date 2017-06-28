@@ -45,20 +45,6 @@
 
 <br>
 
-<!-- <div class="row">
-	<div class="small-3 columns">
-		<h4>Knowledge change</h4>
-	  <div id="knowledgechangePie"></div>
-	</div>
-	<div class="small-3 columns"><div id="knowledgechangeLegend"> </div></div>
-	<div class="small-6 columns">
-			<h4>Number of participants by knowledge change score</h4>
-			<div id="knowLine"></div>
-	</div>
-</div>-->
-
-<br>
-
 <div class="row">
 	<div class="small-3 columns">
 		<h4>Beneficiaries per Assistance Received</h4>
@@ -120,9 +106,6 @@ function throttle() {
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
   d3.select('#perAssistancePie').select("svg").remove();
-  // d3.select('#perTrainingPie').select("svg").remove();
-  // d3.select('#knowLine').select("svg").remove();
-  // buildPies();
   buildBars();
 }
 
@@ -155,7 +138,7 @@ function fetchData(){
       d['received_assistance'] = [d['received_assistance']];
       d['assistance_received'] = [d['assistance_received']];
       counter++;
-      if(counter === data.length){ console.log(data); buildFilters(); }
+      if(counter === data.length){ buildFilters(); }
     });
   });
 }
@@ -238,7 +221,6 @@ function filter(){
 			}
 		}
 
-    console.log(activeFilters);
 	// # reformat the data on checks to make it easier to work with
 	// ? combine this into what's above
 	filterData = d3.nest().key(function(d){ return d.filterKey })
@@ -370,7 +352,6 @@ function drawPies(){
   // ########################### //
   /////////////////////////////////
 
-  console.log(data.length);
   var perAssistanceColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['assistance_received'][0]; }))
 
   var perAssistanceData = d3.nest()
@@ -379,8 +360,6 @@ function drawPies(){
       return value.length
     })
     .entries(filteredData)
-
-    console.log(filteredData.length);
 
   var perAssistanceData0 = perAssistancePiePath.data(),
     perAssistanceData1 = pie(perAssistanceData);
@@ -409,7 +388,6 @@ function drawPies(){
   var perAssistanceLegend = d3.select('#perAssistanceLegend').selectAll('div').data(perAssistanceData, function(d) { return d['key']; });
   // UPDATE
 
-  console.log(perAssistanceData);
   perAssistanceLegend.html(function(d){
     return '<i class="fa fa-square" style="color:' + perAssistanceColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
   })
