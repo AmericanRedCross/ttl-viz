@@ -55,17 +55,17 @@
 			<h4>Number of participants by knowledge change score</h4>
 			<div id="knowLine"></div>
 	</div>
-</div>
+</div>-->
 
 <br>
 
 <div class="row">
 	<div class="small-3 columns">
-		<h4>Participants per training</h4>
-	  <div id="perTrainingPie"></div>
+		<h4>Beneficiaries per Assistance Received</h4>
+	  <div id="perAssistancePie"></div>
 	</div>
-	<div class="small-5 columns end"><div id="perTrainingLegend"> </div></div>
-</div> -->
+	<div class="small-5 columns end"><div id="perAssistanceLegend"> </div></div>
+</div>
 
 <!-- <div class="dashboard-section">
   <h3>completed by date</h3>
@@ -119,9 +119,9 @@ function throttle() {
 }
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
-  d3.select('#knowledgechangePie').select("svg").remove();
-  d3.select('#perTrainingPie').select("svg").remove();
-  d3.select('#knowLine').select("svg").remove();
+  d3.select('#perAssistancePie').select("svg").remove();
+  // d3.select('#perTrainingPie').select("svg").remove();
+  // d3.select('#knowLine').select("svg").remove();
   // buildPies();
   buildBars();
 }
@@ -138,21 +138,6 @@ function getLocationData(){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
     });
-
-// locationLookup = {
-//   "14124": {
-//     "id":"24",
-//     "location_id":"14124",
-//     "barangay_id":"124",
-//     "municipality_id":"14",
-//     "province":"Leyte",
-//     "municipality":"Tacloban",
-//     "barangay":"San Paglaum 103A"
-//   },
-//   "14123": {...},
-//   ...
-// };
-
     fetchData();
   });
 }
@@ -197,7 +182,6 @@ function buildFilters(){
   assistancereceivedArray.sort(d3.ascending);
   locationArray.sort(function(a, b) { return a - b; });
   // # build the html and add it to the page
-  console.log(locationArray);
   var panelTitles = [];
   // var panelBodies = [];
   function panelHtml(title, dataId, array, geo){
@@ -230,7 +214,6 @@ function buildFilters(){
 		$('#filter-nav-tabs').append(thisBodyHtml);
 
 	}
-  // panelHtml('Training name', 'training_name', trainingnameArray);
   panelHtml('Assistance Type', 'type_assistance', assistancetypeArray);
   panelHtml('Assistance Received', 'assistance_received', assistancereceivedArray);
   panelHtml('Location', null, locationArray, true);
@@ -298,37 +281,28 @@ function filter(){
 	console.log(filteredData.length)
 
   drawBars();
-	// drawPies()
-
 }
 
-// var pieRadius, knowledgechangePie, knowledgechangePiePath, perTrainingPie, perTrainingPiePath;
-// function buildPies(){
-//
-//   var widthOnPage = $('#knowledgechangePie').innerWidth();
-//   var width = (widthOnPage < 300) ? widthOnPage : 300;
-//   var height = width;
-//   pieRadius = Math.min(width, height) / 2;
-//
-// 	// build the pie charts
-//   knowledgechangePie = d3.select('#knowledgechangePie').append("svg")
-//       .attr("width", width)
-//       .attr("height", height)
-//     .append("g")
-//       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-//   knowledgechangePiePath = knowledgechangePie.selectAll("path");
-//
-//   perTrainingPie = d3.select('#perTrainingPie').append("svg")
-//       .attr("width", width)
-//       .attr("height", height)
-//     .append("g")
-//       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-//   perTrainingPiePath = perTrainingPie.selectAll("path");
-//
-//   buildBars();
-// };
-//
-//
+var pieRadius, perAssistancePie, perAssistancePiePath;
+function buildPies(){
+
+  var widthOnPage = $('#perAssistancePie').innerWidth();
+  var width = (widthOnPage < 300) ? widthOnPage : 300;
+  var height = width;
+  pieRadius = Math.min(width, height) / 2;
+
+	// build the pie charts
+  perAssistancePie = d3.select('#perAssistancePie').append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  perAssistancePiePath = perAssistancePie.selectAll("path");
+
+drawBars();
+};
+
+
 var brgyBarsMeas, brgyBars, brgyBarsX;
 function buildBars(){
 	// build the bar charts
@@ -339,233 +313,121 @@ function buildBars(){
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-  drawBars();
+  // drawBars();
+  buildPies();
   // buildKnowledgeLine()
 
 }
-//
-// var knowLineMeas, knowLineSvg, knowLineY, knowLineX, knowY, knowYaxis;
-// function buildKnowledgeLine(){
-// 		// build the knowledge chart
-//     var changeExt = d3.extent(data, function(d){ return d.score_change; });
-//     var maxChange = (Math.abs(changeExt[0]) > Math.abs(changeExt[1])) ?  Math.abs(changeExt[0]) : Math.abs(changeExt[1]);
-//
-//     knowLineMeas = {top: 20, right: 60, bottom: 20, left: 60,
-//       height: 250 - 40, width: $('#knowLine').innerWidth() - 60 - 60 };
-//     knowLineMeas.barWidth = knowLineMeas.width / (maxChange * 2),
-//     knowLineSvg = d3.select('#knowLine').append('svg')
-//       .attr("width", knowLineMeas.width + knowLineMeas.left + knowLineMeas.right)
-//       .attr("height", knowLineMeas.height + knowLineMeas.top + knowLineMeas.bottom)
-// 			.attr("fill","rgba(0,124,196,1)")
-//       .append('g').attr("transform", "translate(" + knowLineMeas.left + "," + knowLineMeas.top + ")");
-//
-//     knowLineY = d3.scaleLinear()
-//       .range([knowLineMeas.height, 0])
-//     knowLineX = d3.scaleLinear()
-//       .range([0,knowLineMeas.width])
-//       .domain([-maxChange, maxChange])
-//
-//     var xAxis = d3.axisBottom()
-//       .scale(knowLineX)
-//     knowLineSvg.append("g")
-//       .attr("class", "x kaxis")
-//       .attr("transform", "translate(" + (knowLineMeas.barWidth / 2) + "," + knowLineMeas.height + ")")
-//       .call(xAxis);
-//
-//     knowY = d3.axisLeft()
-//       .scale(knowLineY).tickFormat(d3.format("d"));
-//     knowYaxis = knowLineSvg.append("g")
-//       .attr("class", "y kaxis")
-//
-//     knowYaxis.append("text")
-//       .attr("transform", "rotate(-90)")
-//       .attr("y", 6)
-//       .attr("dy", ".71em")
-//       .style("text-anchor", "end")
-//       .text("Participants");
-//
-//   drawPies();
-//
-// }
-//
-// function drawPies(){
-//   /////////////////
-//   // PIE HELPERS //
-//   // ########### //
-//   /////////////////
-// 	function findNeighborArc(i, data0, data1, key) {
-//     var d;
-//     return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
-//     : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
-//     : null;
-//   }
-//   // # Find the element in data0 that joins the highest preceding element in data1.
-//   function findPreceding(i, data0, data1, key) {
-//     var m = data0.length;
-//     while (--i >= 0) {
-//       var k = key(data1[i]);
-//       for (var j = 0; j < m; ++j) {
-//         if (key(data0[j]) === k) return data0[j];
-//       }
-//     }
-//   }
-//   // # Find the element in data0 that joins the lowest following element in data1.
-//   function findFollowing(i, data0, data1, key) {
-//     var n = data1.length, m = data0.length;
-//     while (++i < n) {
-//       var k = key(data1[i]);
-//       for (var j = 0; j < m; ++j) {
-//         if (key(data0[j]) === k) return data0[j];
-//       }
-//     }
-//   }
-//   function key(d) {
-//     return d.data.key;
-//   }
-//
-// 	var pie = d3.pie().sort(null).value(function(d) { return d.value; });
-//
-//   var path = d3.arc()
-//         .outerRadius(pieRadius - 10)
-//         .innerRadius(0);
-//
-//   arcTween = function(d) {
-//     var i = d3.interpolate(this._current, d);
-//     this._current = i(0);
-//     return function(t) { return path(i(t)); };
-//   }
-//
-//   //////////////////
-//   // CATEGORY PIE //
-//   // ############ //
-//   //////////////////
-// 	// customize knowledgechangeColor colors
-//   var knowledgechangeColor = function(key){
-//     switch(key) {
-//       case "increase":
-//         return "#91cf60";
-//         break;
-//       case "decrease":
-//         return "#fc8d59";
-//         break;
-//       case "maintain":
-//         return "#ffffbf";
-//         break;
-//       default:
-//         return "#e0e0e0";
-//     }
-//
-//
-//   }
-//
-//   var knowledgechangePieData = d3.nest()
-//     .key(function(d) { return d['knowledge_change'][0]; })
-//     .rollup(function(value){
-//       return value.length
-//     })
-//     .entries(filteredData)
-//
-//   var knowledgechangeData0 = knowledgechangePiePath.data(),
-//     knowledgechangeData1 = pie(knowledgechangePieData);
-//
-//   knowledgechangePiePath = d3.select('#knowledgechangePie').select('svg').select('g').selectAll('path').data(knowledgechangeData1, key);
-//
-//   knowledgechangePiePath.enter().append("path")
-//     .each(function(d, i) { this._current = findNeighborArc(i, knowledgechangeData0, knowledgechangeData1, key) || d; })
-//     .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
-// 		.attr('d', path)
-//   .append("title")
-//     .text(function(d) { return d.data.key; });
-//
-//   knowledgechangePiePath.exit()
-//     //  .each(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
-// 		//  .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
-//   	//  .transition()
-//     //  .duration(750)
-//     //  .attrTween("d", arcTween)
-//     .remove();
-//
-//   knowledgechangePiePath.transition()
-//     .duration(750)
-//     .attrTween("d", arcTween);
-//
-//   // Legend
-//   var knowledgechangeLegend = d3.select('#knowledgechangeLegend').selectAll('div').data(knowledgechangePieData, function(d) { return d['key']; });
-//   // UPDATE
-//   knowledgechangeLegend.html(function(d){
-//     return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-//   })
-//   // ENTER
-//   knowledgechangeLegend.enter().append('div')
-//   .attr('class', "legend-item")
-//   .html(function(d){
-//     return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-//   })
-//   // REMOVE
-//   knowledgechangeLegend.exit().remove();
-//   // sort
-//   knowledgechangeLegend.sort(function(a, b) {
-//     return b.value - a.value;
-//   })
-//
-//   //////////////////////
-//   // PER TRAINING PIE //
-//   // ################ //
-//   //////////////////////
-//   var perTrainingColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_name'][0]; }))
-//
-//   var perTrainingData = d3.nest()
-//     .key(function(d) { return d['training_name'][0]; })
-//     .rollup(function(value){
-//       return value.length
-//     })
-//     .entries(filteredData)
-//
-//   var perTrainingData0 = perTrainingPiePath.data(),
-//     perTrainingData1 = pie(perTrainingData);
-//
-//   perTrainingPiePath =  d3.select('#perTrainingPie').select('svg').select('g').selectAll('path').data(perTrainingData1, key);
-//
-//   perTrainingPiePath.enter().append("path")
-//     .each(function(d, i) { this._current = findNeighborArc(i, perTrainingData0, perTrainingData1, key) || d; })
-//     .attr("fill", function(d) { return perTrainingColor(d.data.key); })
-// 		.attr('d', path)
-//   .append("title")
-//     .text(function(d) { return d.data.key; });
-//
-//   perTrainingPiePath.exit()
-//   //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
-//   // .transition()
-//   //   .duration(750)
-//   //   .attrTween("d", arcTween)
-//     .remove();
-//
-//   perTrainingPiePath.transition()
-//     .duration(750)
-//     .attrTween("d", arcTween);
-//
-//   // Legend
-//   var perTrainingLegend = d3.select('#perTrainingLegend').selectAll('div').data(perTrainingData, function(d) { return d['key']; });
-//   // UPDATE
-//   perTrainingLegend.html(function(d){
-//     return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-//   })
-//   // ENTER
-//   perTrainingLegend.enter().append('div')
-//   .attr('class', "legend-item")
-//   .html(function(d){
-//     return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-//   })
-//   // REMOVE
-//   perTrainingLegend.exit().remove();
-//   // sort
-//   perTrainingLegend.sort(function(a, b) {
-//     return b.values - a.values;
-//   })
-//
-//   //
-//   drawBars();
-// }
+function drawPies(){
+  /////////////////
+  // PIE HELPERS //
+  // ########### //
+  /////////////////
+	function findNeighborArc(i, data0, data1, key) {
+    var d;
+    return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
+    : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
+    : null;
+  }
+  // # Find the element in data0 that joins the highest preceding element in data1.
+  function findPreceding(i, data0, data1, key) {
+    var m = data0.length;
+    while (--i >= 0) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+  // # Find the element in data0 that joins the lowest following element in data1.
+  function findFollowing(i, data0, data1, key) {
+    var n = data1.length, m = data0.length;
+    while (++i < n) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+  function key(d) {
+    return d.data.key;
+  }
+
+	var pie = d3.pie().sort(null).value(function(d) { return d.value; });
+
+  var path = d3.arc()
+        .outerRadius(pieRadius - 10)
+        .innerRadius(0);
+
+  arcTween = function(d) {
+    var i = d3.interpolate(this._current, d);
+    this._current = i(0);
+    return function(t) { return path(i(t)); };
+  }
+
+  /////////////////////////////////
+  // PER Assistance Received PIE //
+  // ########################### //
+  /////////////////////////////////
+
+  console.log(data.length);
+  var perAssistanceColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['assistance_received'][0]; }))
+
+  var perAssistanceData = d3.nest()
+    .key(function(d) { return d['assistance_received'][0]; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+    console.log(filteredData.length);
+
+  var perAssistanceData0 = perAssistancePiePath.data(),
+    perAssistanceData1 = pie(perAssistanceData);
+
+  perAssistancePiePath =  d3.select('#perAssistancePie').select('svg').select('g').selectAll('path').data(perAssistanceData1, key);
+
+  perAssistancePiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, perAssistanceData0, perAssistanceData1, key) || d; })
+    .attr("fill", function(d) { return perAssistanceColor(d.data.key); })
+		.attr('d', path)
+  .append("title")
+    .text(function(d) { return d.data.key; });
+
+  perAssistancePiePath.exit()
+  //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
+  // .transition()
+  //   .duration(750)
+  //   .attrTween("d", arcTween)
+    .remove();
+
+  perAssistancePiePath.transition()
+    .duration(750)
+    .attrTween("d", arcTween);
+
+  // Legend
+  var perAssistanceLegend = d3.select('#perAssistanceLegend').selectAll('div').data(perAssistanceData, function(d) { return d['key']; });
+  // UPDATE
+
+  console.log(perAssistanceData);
+  perAssistanceLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + perAssistanceColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // ENTER
+  perAssistanceLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + perAssistanceColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // REMOVE
+  perAssistanceLegend.exit().remove();
+  // sort
+  perAssistanceLegend.sort(function(a, b) {
+    return b.values - a.values;
+  })
+
+  buildList();
+}
 
 function drawBars(){
   // get sume of participants per brgy
@@ -615,47 +477,9 @@ function drawBars(){
     .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
     .text(function(d) { return d.value; });
 
-    buildList();
-  // drawTimeline();
-  // drawKnowLine();
+    drawPies();
+  }
 
-}
-
-// function drawKnowLine(){
-//
-//   var knowLineData = d3.nest()
-//       .key(function(d) { return Math.round(parseFloat(d.score_change)); } )
-//       .rollup(function(values) { return values.length; })
-//       .entries(filteredData.filter(function(d){ return d.score_change !== "data missing"}));
-//   knowLineData.forEach(function(d){
-//     d.key = parseFloat(d.key);
-//   });
-//   knowLineData.sort(function(a,b){
-//     return a.key - b.key
-//   });
-//
-//   knowLineY.domain(d3.extent(knowLineData, function(d){ return d.value }))
-//
-//   knowYaxis.call(knowY)
-//
-//   var g = knowLineSvg.selectAll(".bar")
-//         .data(knowLineData, function(d){ return d['key']; })
-//
-//   g.enter().append("rect").transition().duration(1000).ease(d3.easeSinInOut)
-//         .attr("class", "bar")
-//         .attr("x", function(d) { return knowLineX(d.key) + 1; })
-//         .attr("width", knowLineMeas.barWidth - 2)
-//         .attr("y", function(d) {
-// 					return knowLineY(d.value); })
-//         .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.value) + 1; });
-//
-//   g.exit().remove();
-//
-//
-//   buildList();
-//
-// }
-//
 function buildList(){
 
   $('#listTable').empty();
