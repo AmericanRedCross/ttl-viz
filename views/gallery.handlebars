@@ -32,23 +32,15 @@
         <div id="blueimp-image-carousel" class="blueimp-gallery blueimp-gallery-controls blueimp-gallery-carousel">
             <div class="slides"></div>
             <h3 class="title"></h3>
-            <!-- <a class="prev">‹</a>
-            <a class="next">›</a> -->
             <ol class="indicator"></ol>
         </div>
       </div>
 
       <div id="article-list" class="small-12 medium-4 columns">
-        <div class="button-group">
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story1.pdf')">Nilda's Second Choice</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story2.pdf')">Rosario's Garden</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story3.pdf')">Herminigilda's Red House</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story4.pdf')">Michell's New Job</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story5.pdf')">Talisay's Baker King</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story6.pdf')">From Homemaker to Homebaker</button>
-        </div>
+        <div class="button-group" id="article-group"></div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -115,10 +107,22 @@ function buildGallery(data){
 
 }
 
-var photoId = ['1.jpg','2.jpg','3.jpg','4.jpg', '5.jpg', '6.jpg'];
 var photos = [];
+var successstories=[{photo:'1.jpg', pdf:'story1.pdf', title:"Nilda's Second Choice"},
+                    {photo:'2.jpg', pdf:'story2.pdf', title:"Rosario's Garden"},
+                    {photo:'3.jpg', pdf:'story3.pdf', title:"Herminigilda's Red House"},
+                    {photo:'4.jpg', pdf:'story4.pdf', title:"Michell's New Job"},
+                    {photo:'5.jpg', pdf:'story5.pdf', title:"Talisay's Baker King"},
+                    {photo:'6.jpg', pdf:'story6.pdf', title:"From Homemaker to Homebaker"}];
 
-photoId.forEach(function (d){ photos.push('{{opts.nginxlocation}}media/pics/'+d); });
+successstories.forEach(function (d){
+  photos.push('{{opts.nginxlocation}}media/pics/'+d.photo);
+  d3.select('#article-group').append("button")
+    .attr("type","button")
+    .attr("class","button expanded secondary hollow")
+    .attr("onclick","getPreview('/"+d.pdf+"')")
+    .text(d.title);
+})
 
 var videoId = ['WF3N0ULnuC8','uP5X8cKhZUY','tAZulxGrbDs','H7MMRgzTjkk','WQnS62wFI8k','7HZvAp5Gsjo','kz0_cWf0d8Q','l-9k1DDLb4g','ALdLynQAvTI','Vm8E1sqSL6c','NoWhnqbxFco',
 'YK8ZYnGPcsg','o2MPz6xreoU','swSg6UasEaQ','ktn5xafEbis','kZBKLzAFRfs','4iVYAlvIq5U','Zu9tvqHip1E','rPF6M-vIcXM','4qp4z97HXHI',
@@ -136,8 +140,6 @@ videoId.forEach(function (d){
     poster: 'https://img.youtube.com/vi/'+d+'/maxresdefault.jpg'
   })
 });
-
-console.log(videos);
 
 function getPreview(article){
   PDFObject.embed("pdf"+article, "#pdf-viewer");
