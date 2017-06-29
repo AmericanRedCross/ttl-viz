@@ -46,20 +46,17 @@
 <br>
 
 <div class="row">
+  <div class="small-3 columns">
+		<h4>Beneficiaries per Type of Assistance</h4>
+	  <div id="perTypePie"></div>
+	</div>
+	<div class="small-3 columns end"><div id="perTypeLegend"> </div></div>
 	<div class="small-3 columns">
 		<h4>Beneficiaries per Assistance Received</h4>
 	  <div id="perAssistancePie"></div>
 	</div>
-	<div class="small-5 columns end"><div id="perAssistanceLegend"> </div></div>
+	<div class="small-3 columns end"><div id="perAssistanceLegend"> </div></div>
 </div>
-
-<!-- <div class="dashboard-section">
-  <h3>completed by date</h3>
-	<div id="progressGraph"></div>
-</div> -->
-
-<!--
-<hr style="margin:0;"> -->
 
 <br>
 
@@ -106,6 +103,7 @@ function throttle() {
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
   d3.select('#perAssistancePie').select("svg").remove();
+  d3.select('#perTypePie').select("svg").remove();
   buildBars();
 }
 
@@ -205,8 +203,6 @@ function buildFilters(){
   filteredData = data;
   $('#loader').hide();
   buildBars();
-  // buildPies();
-
 }
 
 function filter(){
@@ -281,6 +277,13 @@ function buildPies(){
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
   perAssistancePiePath = perAssistancePie.selectAll("path");
 
+  perTypePie = d3.select('#perTypePie').append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  perTypePiePath = perTypePie.selectAll("path");
+
 drawBars();
 };
 
@@ -295,10 +298,7 @@ function buildBars(){
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-  // drawBars();
   buildPies();
-  // buildKnowledgeLine()
-
 }
 function drawPies(){
   /////////////////
@@ -346,6 +346,63 @@ function drawPies(){
     this._current = i(0);
     return function(t) { return path(i(t)); };
   }
+
+  /////////////////////////////////
+  // PER Assistance Type PIE     //
+  // ########################### //
+  /////////////////////////////////
+
+  var perTypeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['type_assistance'][0]; }))
+
+  var perTypeData = d3.nest()
+    .key(function(d) { return d['type_assistance'][0]; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var perTypeData0 = perTypePiePath.data(),
+    perTypeData1 = pie(perTypeData);
+
+  perTypePiePath =  d3.select('#perTypePie').select('svg').select('g').selectAll('path').data(perTypeData1, key);
+
+  perTypePiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, perTypeData0, perTypeData1, key) || d; })
+    .attr("fill", function(d) { return perTypeColor(d.data.key); })
+		.attr('d', path)
+  .append("title")
+    .text(function(d) { return d.data.key; });
+
+  perTypePiePath.exit()
+  //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
+  // .transition()
+  //   .duration(750)
+  //   .attrTween("d", arcTween)
+    .remove();
+
+  perTypePiePath.transition()
+    .duration(750)
+    .attrTween("d", arcTween);
+
+  // Legend
+  var perTypeLegend = d3.select('#perTypeLegend').selectAll('div').data(perTypeData, function(d) { return d['key']; });
+  // UPDATE
+
+  perTypeLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // ENTER
+  perTypeLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // REMOVE
+  perTypeLegend.exit().remove();
+  // sort
+  perTypeLegend.sort(function(a, b) {
+    return b.values - a.values;
+  })
 
   /////////////////////////////////
   // PER Assistance Received PIE //
