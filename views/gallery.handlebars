@@ -44,6 +44,8 @@
           <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story2.pdf')">Rosario's Garden</button>
           <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story3.pdf')">Herminigilda's Red House</button>
           <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story4.pdf')">Michell's New Job</button>
+          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story5.pdf')">Talisay's Baker King</button>
+          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story6.pdf')">From Homemaker to Homebaker</button>
         </div>
       </div>
     </div>
@@ -113,7 +115,7 @@ function buildGallery(data){
 
 }
 
-var photoId = ['1.jpg','2.jpg','3.jpg','4.jpg'];
+var photoId = ['1.jpg','2.jpg','3.jpg','4.jpg', '5.jpg', '6.jpg'];
 var photos = [];
 
 photoId.forEach(function (d){ photos.push('{{opts.nginxlocation}}media/pics/'+d); });
