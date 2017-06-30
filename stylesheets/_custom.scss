@@ -226,7 +226,7 @@
   }
 }
 
-#brgyBars {
+#brgyBars, #schoolBars{
   rect {
     fill: #c11b2b;
   }
@@ -234,11 +234,11 @@
     font-size: 11px;
     font-family: inherit;
   }
-  text.brgy-label {
+  text.brgy-label, text.school-label{
     text-anchor: end;
     fill: black;
   }
-  text.brgy-total {
+  text.brgy-total, text.school-total{
     text-anchor: start;
     fill: black;
   }
