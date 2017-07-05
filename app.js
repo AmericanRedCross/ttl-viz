@@ -817,7 +817,7 @@ app.get('/api/pages/phast', function(req, res) {
 
 app.get('/rc143',function(req, res) {
 	if (req.user) {
-    res.render('phast', {
+    res.render('drr-143', {
       user:req.user,
 			opts:settings.page
     });
@@ -828,7 +828,7 @@ app.get('/rc143',function(req, res) {
 
 app.get('/api/pages/rc143', function(req, res) {
 	if (req.user) {
-    // var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION";';
+    var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'DRR' AND participant_type='143 Volunteer'";
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
