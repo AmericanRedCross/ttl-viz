@@ -98,8 +98,6 @@ function throttle() {
 }
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
-  d3.select('#perModuleGraph').select("svg").remove();
-  d3.select('#modulesAttendedGraph').select("svg").remove();
 
   buildBars();
 }
@@ -137,17 +135,16 @@ function fetchData(){
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-   var civilArray = [],
-      genderArray = [],
-      trainingArray = [],
+   var trainingArray = [],
       locationArray = [];
   $.each(data, function(i,item){
-    item['location_id'].forEach(function(d){
-      if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
-    });
+    item['location_id'].forEach(function(d){ if($.inArray(d, locationArray) === -1){ locationArray.push(d) }});
+		item['training_attended'].forEach(function(d){ if($.inArray(d, trainingArray) === -1){ trainingArray.push(d) }});
   });
   // # alphabetize them arrays
-  locationArray.sort(function(a, b) { return a - b; });
+	trainingArray.sort(d3.ascending);
+	locationArray.sort(function(a, b) { return a - b; });
+
   // # build the html and add it to the page
   var panelTitles = [];
     // var panelBodies = [];
@@ -181,7 +178,8 @@ function buildFilters(){
       $('#filter-nav-tabs').append(thisBodyHtml);
 
     }
-    panelHtml('Location', null, locationArray, true);
+    panelHtml('Workshop', 'training_attended', trainingArray,false);
+		panelHtml('Location', 'location', locationArray, true);
     $('#filter-nav').append(panelTitles);
     Foundation.reInit($('#filter-nav'))
     filteredData = data;
@@ -255,8 +253,6 @@ function buildBars(){
 
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
-
-  // buildGraphs();
 	drawBars();
 }
 
