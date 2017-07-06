@@ -259,7 +259,6 @@ function filter(){
   $.each(filterData,function(i,filterKey){
     var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
     var valueGroups = [];
-    console.log(filterKey)
     $.each(filterKey.value, function(j,filterValue){
       valueGroups.push('<b>' + filterValue + '</b>');
     })

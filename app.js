@@ -678,7 +678,7 @@ app.get('/agriculture',function(req,res) {
 
 app.get('/api/pages/agriculture', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'" + 'Livelihood' + "'" + ';';
+			var queryStr = 'SELECT * FROM "LIVELIHOOD_AGRI_EXTENSION" WHERE "received_assistance"='+"'yes';";
 			pghelper.query(queryStr, function(err, data) {
 				res.json(data);
 			})
@@ -808,6 +808,7 @@ app.get('/phast',function(req, res) {
 
 app.get('/api/pages/phast', function(req, res) {
 	if (req.user) {
+    // var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE training_name='+"'PHAST';";
     var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE "TRAINING_MODULE_PARTICIPATION".training_name='+"'PHAST';";
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);

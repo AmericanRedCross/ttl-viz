@@ -83,6 +83,8 @@ function resize() {
 
 function getSchoolData(){
 	$.get('{{opts.nginxlocation}}api/pages/targetschools', function(response){
+		console.log("heyo")
+		console.log(response)
     $.each(response, function(index, training){
 			locationLookup[training['location_id']]['training_venue'] = training.training_venue;
 			locationLookup[training['location_id']]['training_id'] = training.training_id;
