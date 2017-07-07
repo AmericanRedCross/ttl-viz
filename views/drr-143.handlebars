@@ -35,16 +35,16 @@
 
 <br>
 
-<!-- <div class="row">
+<div class="row">
 	<div class="small-12 medium-offset-1 medium-10 columns">
-    <h4>Percentage of participants completing each module</h4>
-			<div id="perModuleGraph"></div>
+    <h4>Participants per topic</h4>
+			<div id="perTopicBarGraph"></div>
   </div>
 </div>
 
 <br>
 
-<div class="row">
+<!-- <div class="row">
 	<div class="small-12 medium-offset-1 medium-10 columns">
     <h4>Number of modules completed</h4>
     <div id="modulesAttendedGraph"></div>
@@ -98,6 +98,7 @@ function throttle() {
 }
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
+	d3.select('#perTopicBarGraph').select("svg").remove();
 
   buildBars();
 }
@@ -118,17 +119,24 @@ function getLocationData(){
   });
 }
 
+var topicsList=[];
+
 function fetchData(){
   $.get('{{opts.nginxlocation}}api/pages/rc143', function(response){
     data = response;
     var counter = 0;
+
+		topicsList['CMDRR'] = {title:"Community-Managed DRR", key:"CMDRR"};
+		topicsList['CP'] = {title:"Contingency Planning", key:"CP"};
+		topicsList['HP'] = {title:"Household-Level DP", key:"HP"};
+
     data.forEach(function(d){
 			d['location_id'] = [d['participant_id'].slice(0,5)];
       d['location'] = [d['participant_id'].slice(0,2), d['participant_id'].slice(0,5)];
 			d['training_attended'] = [d['training_name']];
 			d['designation'] = [d['participant_type']];
       counter++;
-      if(counter === data.length){ console.log(data); buildFilters(); }
+      if(counter === data.length){ buildFilters(); }
     });
   });
 }
@@ -242,7 +250,8 @@ function filter(){
   })
   console.log(filteredData.length)
 
-  drawBars();
+  // drawBars();
+	drawGraphs();
 }
 
 var brgyBarsMeas, brgyBars, brgyBarsX;
@@ -253,6 +262,17 @@ function buildBars(){
 
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
+	// drawBars();
+	buildGraphs();
+}
+
+var topicBarsMeas, topicBars, topicBarsX;
+function buildGraphs(){
+
+	topicBarsMeas = {top: 20, right: 50, bottom: 20, left: 170, barHeight: 20, width: $('#perTopicBarGraph').innerWidth()};
+  topicBars = d3.select('#perTopicBarGraph').append('svg').attr("width", topicBarsMeas.width)
+  topicBarsX = d3.scaleLinear().range([0, topicBarsMeas.width - topicBarsMeas.left - topicBarsMeas.right])
+
 	drawBars();
 }
 
@@ -303,7 +323,72 @@ function drawBars(){
     .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
     .text(function(d) { return d.value; });
 
-  buildList();
+		drawGraphs();
+  // buildList();
+}
+
+function drawGraphs(){
+	// get sum of participants per topic
+	var topicBarsData = d3.nest()
+    .key(function(d) { if(d['training_attended'] === null){ return 'data missing'} else { return d['training_attended']; } })
+    .rollup(function(value) { return value.length; }).entries(filteredData);
+
+		console.log(topicBarsData);
+
+  topicBarsX.domain([0, d3.max(topicBarsData, function(d) { return d.value; })]);
+
+  topicBars.attr("height", topicBarsMeas.barHeight * topicBarsData.length)
+
+	var barEnter = d3.select('#perTopicBarGraph').select('svg').selectAll("g").data(topicBarsData, function(d){ return d['key']; })
+
+  barEnter.exit().remove();
+
+  barEnter.enter().append("g").each(function(d){
+    d3.select(this).append('rect')
+			 .attr("height", topicBarsMeas.barHeight - 1)
+			 .attr("fill", "#c11b2b")
+
+		d3.select(this).append("text")
+			.attr("class","topic-label")
+			.attr("font-size","11px").attr("font-family","inherit")
+      .attr("x", -5)
+      .attr("y", topicBarsMeas.barHeight / 2)
+      .attr("dy", ".35em")
+			.attr("text-anchor","end")
+			.attr("fill","black")
+
+		d3.select(this).append("text")
+      .attr("class","topic-total")
+			.attr("font-size","11px").attr("font-family","inherit")
+      .attr("y", topicBarsMeas.barHeight / 2)
+      .attr("dy", ".35em")
+			.attr("text-anchor","start")
+			.attr("fill","black")
+
+  });
+
+  var barUpdate = d3.select('#perTopicBarGraph').select('svg').selectAll("g");
+
+	barUpdate.sort(function(a, b) { return b.value - a.value; })
+    .transition().duration(1000).ease(d3.easeLinear)
+    .attr("transform", function(d, i) { return "translate(" + topicBarsMeas.left + "," + i * topicBarsMeas.barHeight + ")"; });
+
+	barUpdate.select("rect")
+    .transition().duration(1000).ease(d3.easeLinear)
+    .attr("width", function(d) { return topicBarsX(d.value); })
+
+	barUpdate.select(".topic-label")
+    .text(function(d) {
+      if(topicsList[d.key] === undefined){ return d.key; }
+      else { return topicsList[d.key].title; }
+    });
+
+	barUpdate.select(".topic-total")
+    .transition().duration(1000).ease(d3.easeLinear)
+    .attr("x", function(d) { return topicBarsX(d.value) + 3; })
+    .text(function(d) { return d.value; });
+
+		buildList();
 }
 
 function buildList(){

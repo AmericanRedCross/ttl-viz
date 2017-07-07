@@ -137,21 +137,6 @@ function getLocationData(){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
     });
-
-// locationLookup = {
-//   "14124": {
-//     "id":"24",
-//     "location_id":"14124",
-//     "barangay_id":"124",
-//     "municipality_id":"14",
-//     "province":"Leyte",
-//     "municipality":"Tacloban",
-//     "barangay":"San Paglaum 103A"
-//   },
-//   "14123": {...},
-//   ...
-// };
-
     fetchData();
   });
 }
