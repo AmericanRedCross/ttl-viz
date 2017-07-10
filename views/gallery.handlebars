@@ -11,6 +11,7 @@
 
 <div class="row">
   <div class="medium-offset-1 medium-10 columns">
+    <h2>Most Significant Change Videos</h2>
     <div id="blueimp-video-carousel" class="blueimp-gallery blueimp-gallery-controls blueimp-gallery-carousel">
         <div class="slides"></div>
         <h3 class="title"></h3>
@@ -26,25 +27,17 @@
 
 <div class="row">
   <div class="medium-offset-1 medium-10 columns">
+    <h2>Success Stories</h2>
     <div class="row collapse">
-
       <div id="ss-carousel" class="small-12 medium-8 columns">
         <div id="blueimp-image-carousel" class="blueimp-gallery blueimp-gallery-controls blueimp-gallery-carousel">
             <div class="slides"></div>
             <h3 class="title"></h3>
-            <!-- <a class="prev">‹</a>
-            <a class="next">›</a> -->
             <ol class="indicator"></ol>
         </div>
       </div>
-
       <div id="article-list" class="small-12 medium-4 columns">
-        <div class="button-group">
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story1.pdf')">Nilda's Second Choice</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story2.pdf')">Rosario's Garden</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story3.pdf')">Herminigilda's Red House</button>
-          <button type="button" class="button expanded secondary hollow" onclick="getPreview('/story4.pdf')">Michell's New Job</button>
-        </div>
+        <div class="button-group" id="article-group"></div>
       </div>
     </div>
   </div>
@@ -54,6 +47,7 @@
 
 <div class="row">
   <div id="gallery-links" class="medium-offset-1 medium-10 columns">
+    <h2>Photos</h2>
     <div class="text-center"><img src="img/loading.gif" alt="loading..."></div>
   </div>
 </div>
@@ -113,12 +107,24 @@ function buildGallery(data){
 
 }
 
-var photoId = ['1.jpg','2.jpg','3.jpg','4.jpg'];
 var photos = [];
+var successstories=[{photo:'1.jpg', pdf:'story1.pdf', title:"Nilda's Second Choice"},
+                    {photo:'2.jpg', pdf:'story2.pdf', title:"Rosario's Garden"},
+                    {photo:'3.jpg', pdf:'story3.pdf', title:"Herminigilda's Red House"},
+                    {photo:'4.jpg', pdf:'story4.pdf', title:"Michell's New Job"},
+                    {photo:'5.jpg', pdf:'story5.pdf', title:"Talisay's Baker King"},
+                    {photo:'6.jpg', pdf:'story6.pdf', title:"From Homemaker to Homebaker"}];
 
-photoId.forEach(function (d){ photos.push('{{opts.nginxlocation}}media/pics/'+d); });
+successstories.forEach(function (d){
+  photos.push('{{opts.nginxlocation}}media/pics/'+d.photo);
+  d3.select('#article-group').append("button")
+    .attr("type","button")
+    .attr("class","button expanded secondary hollow")
+    .attr("onclick","getPreview('/"+d.pdf+"')")
+    .text(d.title);
+})
 
-var videoId = ['WF3N0ULnuC8','uP5X8cKhZUY','tAZulxGrbDs','H7MMRgzTjkk','WQnS62wFI8k','7HZvAp5Gsjo','kz0_cWf0d8Q','l-9k1DDLb4g','ALdLynQAvTI','Vm8E1sqSL6c','NoWhnqbxFco',
+var videoId = ['C3sVudVbr8A','g8hxwrF-ACw','bigtlDYt6rY','WF3N0ULnuC8','uP5X8cKhZUY','tAZulxGrbDs','H7MMRgzTjkk','WQnS62wFI8k','7HZvAp5Gsjo','kz0_cWf0d8Q','l-9k1DDLb4g','ALdLynQAvTI','Vm8E1sqSL6c','NoWhnqbxFco',
 'YK8ZYnGPcsg','o2MPz6xreoU','swSg6UasEaQ','ktn5xafEbis','kZBKLzAFRfs','4iVYAlvIq5U','Zu9tvqHip1E','rPF6M-vIcXM','4qp4z97HXHI',
 'kv--VZhBw6E','fPGx4IYrYiw','GcK7xrA9TRk','B10I_iRzI84','S8ZUmpqT9pE','BDn1-MNb9mc','5n2fZisRbqc','FpyqAir5LEU',
 'G8J-1ll8fXA','hM_z3xWvR58','S6SaMu-FUkA','0Uk_OPBHtoU', '7rpeZv0_t_k','78hevWNhRm8','GfeX45lMM3A']
@@ -134,8 +140,6 @@ videoId.forEach(function (d){
     poster: 'https://img.youtube.com/vi/'+d+'/maxresdefault.jpg'
   })
 });
-
-console.log(videos);
 
 function getPreview(article){
   PDFObject.embed("pdf"+article, "#pdf-viewer");
