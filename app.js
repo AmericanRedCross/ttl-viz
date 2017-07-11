@@ -678,7 +678,7 @@ app.get('/agriculture',function(req,res) {
 
 app.get('/api/pages/agriculture', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'" + 'Livelihood' + "'" + ';';
+			var queryStr = 'SELECT * FROM "LIVELIHOOD_AGRI_EXTENSION" WHERE "received_assistance"='+"'yes';";
 			pghelper.query(queryStr, function(err, data) {
 				res.json(data);
 			})
@@ -808,7 +808,37 @@ app.get('/phast',function(req, res) {
 
 app.get('/api/pages/phast', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION";';
+    // var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE training_name='+"'PHAST';";
+    var queryStr = 'SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE "TRAINING_MODULE_PARTICIPATION".training_name='+"'PHAST';";
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
+app.get('/chast',function(req, res) {
+	if (req.user) {
+    res.render('chast', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/chast', function(req, res) {
+	if (req.user) {
+    var queryStr ='SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE "TRAINING_MODULE_PARTICIPATION".training_name='+"'CHAST';";
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
+app.get('/api/pages/targetschools', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "TRAINING_COURSE" WHERE "TRAINING_COURSE".training_name = '+"'CHAST';";
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
@@ -864,8 +894,10 @@ app.get('/community-infrastructure',function(req,res) {
 
 app.get('/api/pages/commmunity-infrastructure', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat  FROM community_works_tool_v2 WHERE sector_intervention=' + "'hand pump' AND ws_shed='y' OR sector_intervention="+"'water system';";
-		pghelper.query(queryStr, function(err, data) {
+
+    var queryStr = 'SELECT *, ST_X(geom) AS lng, ST_Y(geom) AS lat FROM community_works_tool_v3 WHERE sector_intervention='+"'water system'"+ ' OR sector_intervention='+"'hand pump'"+' OR sector_intervention='+"'streetlight';";
+
+    pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
 	}

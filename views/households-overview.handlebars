@@ -13,7 +13,7 @@
       <h5>Assistance Received</h5>
       <span><p id="modal-hh-core" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Core Shelter</p></span>
       <span><p id="modal-hh-sra" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Shelter Retrofitting Assistance</p></span>
-      <span><p id="modal-hh-hla" style="margin: 0px"><i class="fa fa-fw fa-money"></i>&nbsp;Household Level Assistance</p></span>
+      <span><p id="modal-hh-hla" style="margin: 0px"><i class="fa fa-fw fa-money"></i>&nbsp;Conditional Cash Grant</p></span>
       <br>
       <h5>Trainings Attended</h5>
       <span><p id="modal-hh-sst" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Safer Shelter Construction Techniques</p></span>
@@ -52,6 +52,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
 <script>
+
+$('.filter-panel.panel-group').hide();
 
 var height = $(window).height();
 $('#map').height(height);
@@ -118,7 +120,7 @@ function drawPoints(){
 
 function createFilterPageElement() {
   buildFilterHTML('Shelter','shelter',['Core','SRA'],false);
-  buildFilterHTML('Livelihood','livelihood',['HLA','STED'],false);
+  buildFilterHTML('Livelihood','livelihood',['CCG','STED'],false);
   $('.filter-panel ul').append(panelTitles);
   Foundation.reInit($('.filter-panel ul'));
   $('.filter-panel.panel-group').hide();
@@ -272,7 +274,7 @@ function filter(){
   else if(activeFilters.length > 0 && activeFilters[0].filterValue === "STED"){
     points.classed("hide", true).filter(function(d){ return d.sted !== null }).classed("hide", false);
   }
-  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "HLA"){
+  else if(activeFilters.length > 0 && activeFilters[0].filterValue === "CCG"){
     points.classed("hide", true).filter(function(d){ return d.ccg !== null }).classed("hide", false);
   }
   else{

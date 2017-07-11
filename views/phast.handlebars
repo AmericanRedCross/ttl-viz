@@ -208,7 +208,7 @@ function filter(){
     }
   // # reformat the data on checks to make it easier to work with
   // ? combine this into what's above
-  filterData = d3.nest().key(function(d){ return d.filterKey })
+	filterData = d3.nest().key(function(d){ return d.filterKey })
     .rollup(function(value){
       var valuesArray = [];
       value.forEach(function(d){
@@ -221,7 +221,6 @@ function filter(){
   $.each(filterData,function(i,filterKey){
     var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
     var valueGroups = [];
-    console.log(filterKey)
     $.each(filterKey.value, function(j,filterValue){
       valueGroups.push('<b>' + filterValue + '</b>');
     })
