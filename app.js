@@ -828,7 +828,12 @@ app.get('/rc143',function(req, res) {
 
 app.get('/api/pages/rc143', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'DRR' AND participant_type='143 Volunteer'";
+    // var queryStr = 'SELECT * FROM "TRAINING_PARTICIPANT" WHERE "sector"=' + "'DRR' AND participant_type='143 Volunteer'";
+    var queryStr = 'SELECT cm.household_id,cm.member_fname, cm.member_lname, cm.status, tp.participant_fname, tp.participant_lname, tp.training_name as cmdrr, ta.participant_fname, ta.participant_lname, ta.training_name as cp '+
+                   'FROM public."COMMITTEE_MEMBER" cm '+
+                   'LEFT JOIN public."TRAINING_PARTICIPANT" tp ON cm.household_id=CAST(tp.participant_id as integer) AND tp.training_name='+"'CMDRR' "+
+                   'LEFT JOIN public."TRAINING_PARTICIPANT" ta ON cm.household_id=CAST(ta.participant_id as integer) AND ta.training_name='+"'CP' "+
+                   'WHERE cm.committee_id = '+"'RC11101' AND cm.location_id = 11101;";
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
