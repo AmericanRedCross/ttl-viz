@@ -945,6 +945,19 @@ app.get('/api/pages/targetlocations', function(req,res) {
 	}
 });
 
+app.get('/data-collection-viewer', function(req,res) {
+  if (req.user) {
+		res.render('data-collection-viewer',{
+			user:req.user,
+			opts:settings.page
+		});
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+});
+
+
+
 app.listen(settings.app.port, function() {
   console.log('app listening on port ' + settings.app.port);
 });

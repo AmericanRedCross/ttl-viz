@@ -1,5 +1,4 @@
-# user-auth
-express, handlebars, sqlite, passport, foundation
+# ttl-viz
 
 
 ### permission levels
@@ -12,6 +11,9 @@ express, handlebars, sqlite, passport, foundation
 
 
 ### deployment
+- suggested to use Node Version Manager ([NVM](https://github.com/creationix/nvm))
+- `nvm install 0.12.7`
+- `nvm use`
 - `npm install` to install node dependencies
 - `gulp` to build stylesheets
   - if developing, you can run `gulp dev` and it will watch for changes and rebuild it changes are detected
