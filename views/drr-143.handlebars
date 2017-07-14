@@ -48,8 +48,9 @@
 <div class="row">
 	<div class="small-12 medium-offset-1 medium-10 columns">
     <h4>Participants per topic</h4>
-			<div id="perTopicBarGraph"></div>
-  </div>
+		<div id="perTopicLegend"></div>
+		<div id="perTopicBarGraph"></div>
+	 </div>
 </div>
 
 <br>
@@ -368,6 +369,26 @@ function drawGraphs(){
 
 	barUpdate.select(".topic-total").transition().duration(1000).ease(d3.easeLinear).attr("x", function(d) { return topicBarsX(d.value) + 3; }).text(function(d) { return d.value; });
 
+	// Legend
+  var perTopicLegend = d3.select('#perTopicLegend').selectAll('div').data(topicsList, function(d) { return d['key']; });
+
+	console.log(perTopicLegend.data);
+	// UPDATE
+  perTopicLegend.html(function(d){
+    return '<i class="fa fa-square"></i> &nbsp;' + d.key + ' <small>,' + d.title + '</small>';
+  })
+  // ENTER
+  perTopicLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square"></i> &nbsp;' + d.key + ' <small>,' + d.title + ',</small>';
+  })
+  // REMOVE
+  perTopicLegend.exit().remove();
+  // sort
+  perTopicLegend.sort(function(a, b) {
+    return b.values - a.values;
+  })
 	// drawBars();
 	buildList();
 }
