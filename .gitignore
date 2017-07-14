@@ -10,7 +10,6 @@ sessions.db
 public/fonts/*
 !public/fonts/README.md
 public/css/gulp.css
-.nvmrc
 
 # OS generated files #
 ######################

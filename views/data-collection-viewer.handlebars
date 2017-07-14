@@ -2,23 +2,32 @@
 <style>
 </style>
 <div id="data-collection-viewer">
-  <!-- Header -->
-  <div class="row">
-  	<div class="columns">
-  		<h2>Data Collection Viewer</h2>
-      <p>Select a mapillary image in the map above</p>
-  	</div>
-    <div class="columns">
-      <!-- Map -->
-      <div id="viz" class="row">
-        <div id='map' class="small-12 columns"></div>
-        <div id='layers'></div>
-        <div id='mly' class="small-12 columns"></div>
-      </div>
-    </div>
+
+
+<div class="row">
+  <div class="medium-offset-1 medium-10 columns">
+  	<h2>Drone Imagery Viewer</h2>
   </div>
+</div>
+
+<br>
+
+<div class="row">
+  <div class="medium-offset-1 medium-3 small-4 columns">
+    <select id='brgy-select'></select>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+  <div class="medium-offset-1 medium-10 columns">
+    <div id='map'></div>
+  </div>
+</div>
 
 </div>
+
 <!-- mapboxGL/mapillary css -->
 <link href='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.css' rel='stylesheet' />
 <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
@@ -29,153 +38,203 @@
 
 mapboxgl.accessToken = "pk.eyJ1IjoiYW1lcmljYW5yZWRjcm9zcyIsImEiOiJzdHVRWjA4In0.bnfdwZhKX8tQeMkwY-kknQ"
 
-// mapboxgl //
+var selectedLayer = "";
 
 var map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v9',
-  center: [121.1274,14.1],
-  zoom: 14
-})
-
-// add layers
-
-map.on('load', function(e){
-  initLayers();
-})
-
-function initLayers() {
-  // add mapillary vecotr tile source
-  var mapillaryCoverage = {
-    "type": "vector",
-    "tiles": ["http://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt"],
-    "minzoom": 2,
-    "maxzoom": 22
-  };
-  map.addSource("mapillaryCoverage", mapillaryCoverage)
-  var oam =  {
-    "type": "raster",
-    "tiles": ["http://tiles.openaerialmap.org/9/0/55c4f20f2b67227a79b4f4e8/{z}/{x}/{y}.png"],
-    "tileSize": 256
-  };
-  map.addSource("oam",oam)
-  // create layers for different zoom levels
-  var mapillaryCoverageLine = {
-    "id": "mapillary-sequences",
-    "type": "line",
-    "source": "mapillaryCoverage",
-    "source-layer": "mapillary-sequences",
-    "paint": {
-      "line-color": '#2e870a',
-      "line-width": {
-        "stops": [
-          [8,1],
-          [15,3]
-        ]
-      },
-      "line-opacity": {
-        "stops": [
-          [8,0.2],
-          [17,1]
-        ]
-      }
-    },
-    "layout": {'visibility':'visible'}
-  };
-  var mapillaryCoveragePoints = {
-    "id": "mapillary-images",
-    "type": "circle",
-    "source": "mapillaryCoverage",
-    "source-layer": "mapillary-images",
-    "paint": {
-      "circle-radius": 8,
-      "circle-color": "#2e870a",
-      "circle-opacity": 0.7,
-      "circle-stroke-width": 1,
-      "circle-stroke-color": "#2e870a"
-    },
-    "layout":{'visibility':'visible'}
-  }
-  var oamLayer = {
-    "id": "oam-layer",
-    "type": "raster",
-    "source": "oam",
-    "minzoom":0,
-    "maxzoom":22,
-    "layout":{'visibility':'visible'}
-  }
-  // add mapillary Layers
-  map.addLayer(mapillaryCoverageLine)
-  map.addLayer(mapillaryCoveragePoints)
-  map.addLayer(oamLayer)
-  var layers = ['mapillaryCoverageLine', 'mapillaryCoveragePoints', 'oamLayer']
-};
-
-// add interactivity
-
-map.on('click', 'mapillary-images', function(evt) {
-  var feature = map.queryRenderedFeatures(evt.point)
-  console.log(feature)
-  // move mapillary viewer to image key of clicked
-  mly.moveToKey(feature[0].properties.key)
-         .then(
-           function(node){console.log(node.key)},
-           function(error){console.error(error)});
-})
-
-map.on('mouseenter', 'mapillary-images', function () {
-  map.getCanvas().style.cursor = 'pointer';
+  center: [124.9935, 11.1318],
+  zoom: 12
 });
 
+map.on('load', function(e){
+  d3.csv("{{opts.nginxlocation}}data/data-viewer-points.csv", function(error, data){
+    initLayers(data);
+  })
+})
+
+function initLayers(data) {
+  for(var i=0; i<data.length; i++){
+    var sourceId = "src-" + data[i].id;
+    var layerId = "brgy-" + data[i].id;
+    var oamSource = {
+      "type": "raster",
+      "tiles": [ data[i].oam ],
+      "tileSize": 256
+    };
+    map.addSource(sourceId, oamSource);
+    var oamLayer = {
+      "id": layerId,
+      "type": "raster",
+      "source": sourceId,
+      "minzoom":0,
+      "maxzoom":22,
+      "layout":{'visibility':'none'}
+    };
+    map.addLayer(oamLayer);
+  }
+  var options = d3.select("#brgy-select").selectAll('option').data(data.filter(function(d){ return d.oam.length > 1; })).enter()
+    .append('option')
+      .attr("id", function(d){ return "brgy"+ d.id; })
+      .attr("value", function(d){ return d.id; })
+      .text(function(d){ return d.brgy + ", " + d.muni; });
+  d3.select("#brgy-select")
+    .on('change', function(){
+      options.each(function(){ d3.select(this).classed('active', false); })
+      $(this).find("option:selected").addClass('active')
+      var selection = d3.select("#brgy-select .active").data()[0];
+      var target = [ parseFloat(selection.x), parseFloat(selection.y) ]
+      map.flyTo({
+          // These options control the ending camera position: centered at
+          // the target, at zoom level 9, and north up.
+          center: target,
+          zoom: 16,
+          bearing: 0,
+          // These options control the flight curve, making it move
+          // slowly and zoom out almost completely before starting to pan.
+          speed: 0.8, // make the flying slow
+          curve: 1, // change the speed at which it zooms out
+          // This can be any easing function: it takes a number between
+          // 0 and 1 and returns another number between 0 and 1.
+          easing: function (t){ return t; }
+      });
+      map.setLayoutProperty(selectedLayer, 'visibility', 'none');
+      selectedLayer = "brgy-" + selection.id;
+      map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
+    })
+    // set initial map state to the first item in the dropdown select
+    selectedLayer = "brgy-" + data[0].id;
+    map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
+    var target = [ parseFloat(data[0].x), parseFloat(data[0].y) ]
+    map.flyTo({
+        center: target,
+        zoom: 16,
+        bearing: 0,
+        speed: 0.8,
+        curve: 1,
+        easing: function (t) { return t; }
+    });
+
+  // // add mapillary vecotr tile source
+  // var mapillaryCoverage = {
+  //   "type": "vector",
+  //   "tiles": ["http://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt"],
+  //   "minzoom": 2,
+  //   "maxzoom": 22
+  // };
+  // map.addSource("mapillaryCoverage", mapillaryCoverage)
+  // // create layers for different zoom levels
+  // var mapillaryCoverageLine = {
+  //   "id": "mapillary-sequences",
+  //   "type": "line",
+  //   "source": "mapillaryCoverage",
+  //   "source-layer": "mapillary-sequences",
+  //   "paint": {
+  //     "line-color": '#2e870a',
+  //     "line-width": {
+  //       "stops": [
+  //         [8,1],
+  //         [15,3]
+  //       ]
+  //     },
+  //     "line-opacity": {
+  //       "stops": [
+  //         [8,0.2],
+  //         [17,1]
+  //       ]
+  //     }
+  //   },
+  //   "layout": {'visibility':'visible'}
+  // };
+  // var mapillaryCoveragePoints = {
+  //   "id": "mapillary-images",
+  //   "type": "circle",
+  //   "source": "mapillaryCoverage",
+  //   "source-layer": "mapillary-images",
+  //   "paint": {
+  //     "circle-radius": 8,
+  //     "circle-color": "#2e870a",
+  //     "circle-opacity": 0.7,
+  //     "circle-stroke-width": 1,
+  //     "circle-stroke-color": "#2e870a"
+  //   },
+  //   "layout":{'visibility':'visible'}
+  // }
+  // var oamLayer = {
+  //   "id": "oam-layer",
+  //   "type": "raster",
+  //   "source": "oam",
+  //   "minzoom":0,
+  //   "maxzoom":22,
+  //   "layout":{'visibility':'visible'}
+  // }
+  // // add mapillary Layers
+  // map.addLayer(mapillaryCoverageLine);
+  // map.addLayer(mapillaryCoveragePoints);
+
+};
+
+// // add interactivity
+// map.on('click', 'mapillary-images', function(evt) {
+//   var feature = map.queryRenderedFeatures(evt.point)
+//   console.log(feature)
+//   // move mapillary viewer to image key of clicked
+//   mly.moveToKey(feature[0].properties.key)
+//          .then(
+//            function(node){console.log(node.key)},
+//            function(error){console.error(error)});
+// })
+//
+// map.on('mouseenter', 'mapillary-images', function () {
+//   map.getCanvas().style.cursor = 'pointer';
+// });
 
 // controls
 
-map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+// map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-function layerControl() {
-  var controlLayers = [
-    'mapillary-sequences',
-    'mapillary-images',
-    'oam-layer'
-  ];
-  for(var i=0; i < controlLayers.length; i++) {
-      var id = controlLayers[i]
-      var link = document.createElement('a');
-        link.href = '#';
-        link.className = 'active';
-        link.textContent = id;
-
-        link.onclick = function (e) {
-            var clickedLayer = this.textContent;
-            e.preventDefault();
-            e.stopPropagation();
-
-            var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
-
-            if (visibility === 'visible') {
-                map.setLayoutProperty(clickedLayer, 'visibility', 'none');
-                this.className = '';
-            } else {
-                this.className = 'active';
-                map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
-            }
-        };
-
-        var layers = document.getElementById('layers');
-        layers.appendChild(link);
-      }
-    }
-layerControl();
+// function layerControl() {
+//   var controlLayers = [
+//     // 'mapillary-sequences',
+//     // 'mapillary-images',
+//     'oam-layer'
+//   ];
+//   for(var i=0; i < controlLayers.length; i++) {
+//       var id = controlLayers[i]
+//       var link = document.createElement('a');
+//         link.href = '#';
+//         link.className = 'active';
+//         link.textContent = id;
+//
+//         link.onclick = function (e) {
+//             var clickedLayer = this.textContent;
+//             e.preventDefault();
+//             e.stopPropagation();
+//
+//             var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+//
+//             if (visibility === 'visible') {
+//                 map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+//                 this.className = '';
+//             } else {
+//                 this.className = 'active';
+//                 map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+//             }
+//         };
+//
+//         var layers = document.getElementById('layers');
+//         layers.appendChild(link);
+//       }
+//     }
+// layerControl();
 
 
 // mapillary //
 
-var mly = new Mapillary.Viewer(
-  'mly',
-  'a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy',
-  null
-)
-
-
+// var mly = new Mapillary.Viewer(
+//   'mly',
+//   'a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy',
+//   null
+// )
 
 </script>
