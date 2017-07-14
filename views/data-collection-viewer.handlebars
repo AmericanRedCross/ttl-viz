@@ -44,7 +44,7 @@ var map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v9',
   center: [124.9935, 11.1318],
-  zoom: 12
+  zoom: 10
 });
 
 map.on('load', function(e){
@@ -78,6 +78,7 @@ function initLayers(data) {
       .attr("id", function(d){ return "brgy"+ d.id; })
       .attr("value", function(d){ return d.id; })
       .text(function(d){ return d.brgy + ", " + d.muni; });
+  $("#brgy-select").prepend('<option selected disabled hidden style="display: none" value="">Select a barangay...</option>')
   d3.select("#brgy-select")
     .on('change', function(){
       options.each(function(){ d3.select(this).classed('active', false); })
@@ -102,18 +103,6 @@ function initLayers(data) {
       selectedLayer = "brgy-" + selection.id;
       map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
     })
-    // set initial map state to the first item in the dropdown select
-    selectedLayer = "brgy-" + data[0].id;
-    map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
-    var target = [ parseFloat(data[0].x), parseFloat(data[0].y) ]
-    map.flyTo({
-        center: target,
-        zoom: 16,
-        bearing: 0,
-        speed: 0.8,
-        curve: 1,
-        easing: function (t) { return t; }
-    });
 
   // // add mapillary vecotr tile source
   // var mapillaryCoverage = {
