@@ -334,6 +334,7 @@ function drawGraphs(){
   // TOPIC BAR GRAPH //
   // ############### //
   /////////////////////
+
 	var topicBarsData = d3.nest().key(function(d){return d['training_attended'];}).rollup(function(d){ return d.length;}).entries(filteredData);
 
   topicBarsX.domain([0, d3.max(topicBarsData, function(d) { return d.value; })]);
@@ -369,27 +370,6 @@ function drawGraphs(){
 
 	barUpdate.select(".topic-total").transition().duration(1000).ease(d3.easeLinear).attr("x", function(d) { return topicBarsX(d.value) + 3; }).text(function(d) { return d.value; });
 
-	// Legend
-  var perTopicLegend = d3.select('#perTopicLegend').selectAll('div').data(topicsList, function(d) { return d['key']; });
-
-	console.log(perTopicLegend.data);
-	// UPDATE
-  perTopicLegend.html(function(d){
-    return '<i class="fa fa-square"></i> &nbsp;' + d.key + ' <small>,' + d.title + '</small>';
-  })
-  // ENTER
-  perTopicLegend.enter().append('div')
-  .attr('class', "legend-item")
-  .html(function(d){
-    return '<i class="fa fa-square"></i> &nbsp;' + d.key + ' <small>,' + d.title + ',</small>';
-  })
-  // REMOVE
-  perTopicLegend.exit().remove();
-  // sort
-  perTopicLegend.sort(function(a, b) {
-    return b.values - a.values;
-  })
-	// drawBars();
 	buildList();
 }
 
