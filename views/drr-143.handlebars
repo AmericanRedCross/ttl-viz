@@ -46,8 +46,8 @@
 <br>
 
 <div class="row">
-	<div class="small-12 medium-offset-1 medium-10 columns">
-    <h4>Participants per topic</h4>
+	<div class="columns">
+    <h4>RC 143 Volunteer Participation Summary</h4>
 		<div id="perTopicLegend"></div>
 		<div id="perTopicBarGraph"></div>
 	 </div>
@@ -136,24 +136,25 @@ function fetchData(){
     data.forEach(function(d){
 			d['location_id'] = [d['household_id'].slice(0,5)];
       d['location'] = [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
-			d['training_attended'] = [d['cmdrr'], d['cp']];
+			d['training_attended'] = [d['cmdrr'], d['cp'], d['hp']];
 			d['status'] = [d['status']];
       counter++;
-      if(counter === data.length){ console.log(data); buildFilters(); }
+      if(counter === data.length){ buildFilters(); }
     });
   });
 }
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-   var trainingArray = [],
-      locationArray = [];
+   var trainingArray = [], locationArray = [], statusArray = [];
   $.each(data, function(i,item){
     item['location_id'].forEach(function(d){ if($.inArray(d, locationArray) === -1){ locationArray.push(d) }});
 		item['training_attended'].forEach(function(d){ if($.inArray(d, trainingArray) === -1 && d != null){ trainingArray.push(d) }});
+		item['status'].forEach(function(d){ if($.inArray(d, statusArray) === -1 && d != null){ statusArray.push(d) }});
   });
   // # alphabetize them arrays
 	trainingArray.sort(d3.ascending);
+	// statusArray.sort(d3.ascending);
 	locationArray.sort(function(a, b) { return a - b; });
 
   // # build the html and add it to the page
@@ -191,6 +192,7 @@ function buildFilters(){
     }
     panelHtml('Workshop', 'training_attended', trainingArray,false);
 		panelHtml('Location', 'location', locationArray, true);
+		panelHtml('Status', 'status', statusArray, false);
     $('#filter-nav').append(panelTitles);
     Foundation.reInit($('#filter-nav'))
     filteredData = data;
@@ -252,8 +254,7 @@ function filter(){
   })
   console.log(filteredData.length)
 
-  // drawBars();
-	// drawGraphs();
+  drawBars();
 }
 
 var brgyBarsMeas, brgyBars, brgyBarsX;
@@ -509,7 +510,7 @@ function buildList(){
       '<td>' + adminText(d.location_id, 'muni') + '</td>';
 			d['training_attended'].indexOf("CMDRR")>-1 ? rowHtml += '<td>Yes</td>' : rowHtml += '<td>No</td>';
 			d['training_attended'].indexOf("CP")>-1 ? rowHtml += '<td>Yes</td>' : rowHtml += '<td>No</td>';
-			d['training_attended'].indexOf("HHP")>-1 ? rowHtml += '<td>Yes</td>' : rowHtml += '<td>No</td>';
+			d['training_attended'].indexOf("HP")>-1 ? rowHtml += '<td>Yes</td>' : rowHtml += '<td>No</td>';
 			rowHtml += '</tr>';
     	$('#listTable tbody').append(rowHtml);
   });
