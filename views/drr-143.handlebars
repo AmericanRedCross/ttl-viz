@@ -140,44 +140,37 @@ function fetchData(){
 		topicsList['HP'] = {title:"Household-Level DP", key:"HP"};
 
     data.forEach(function(d){
+
 			d['location_id'] = [d['household_id'].slice(0,5)];
       d['location'] = [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
 			d['training_attended'] = [d['cmdrr'], d['cp'], d['hp']];
 			d['status'] = [d['status']];
-      counter++;
-      if(counter === data.length){ console.log(data); buildFilters(); }
+
+			d['training_count']=0;
+			d['training_attended'].forEach(function(a){ if(a != null){ d['training_count']++; }});
+
+			counter++;
+      if(counter === data.length){ buildFilters(); }
     });
   });
 }
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-   var trainingArray = [], locationArray = [], statusArray = [], trainingcountArray = [0,0,0,0];
-	 var tc=0, pass=0;
+   var trainingArray = [], locationArray = [], statusArray = [], trainingcountArray = [];
 
   $.each(data, function(i,item){
-		tc=0;
-		pass=0;
-
     item['location_id'].forEach(function(d){ if($.inArray(d, locationArray) === -1){ locationArray.push(d) }});
 		item['training_attended'].forEach(function(d){ if($.inArray(d, trainingArray) === -1 && d != null){ trainingArray.push(d) }});
 		item['status'].forEach(function(d){ if($.inArray(d, statusArray) === -1 && d != null){ statusArray.push(d) }});
-		item['training_attended'].forEach(function(d){
-			if(pass != 3){
-				if(d != null){
-					tc++;
-				}
-				pass++;
-			}
-			trainingcountArray[tc]++;
-		});
+		if($.inArray(item['training_count'], trainingcountArray) === -1 && item['training_count'] != null){ trainingcountArray.push(item['training_count']); };
   });
   // # alphabetize them arrays
 	trainingArray.sort(d3.ascending);
 	statusArray.sort(d3.ascending);
+	trainingcountArray.sort(d3.ascending);
 	locationArray.sort(function(a, b) { return a - b; });
 
-	console.log(trainingcountArray);
   // # build the html and add it to the page
   var panelTitles = [];
     // var panelBodies = [];
@@ -516,11 +509,10 @@ function drawPies(){
 	  // ################### //
 	  /////////////////////////
 
-		console.log(trainingcountArray);
-	  var trainingAttendedColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_attended'].length; }))
+	  var trainingAttendedColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_count']; }))
 
 	  var trainingAttendedPieData = d3.nest()
-	    .key(function(d) { return d['training_attended'].length; })
+	    .key(function(d) { return d['training_count']; })
 	    .rollup(function(value){
 	      return value.length
 	    })
