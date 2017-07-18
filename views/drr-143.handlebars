@@ -36,11 +36,16 @@
 <br>
 
 <div class="row">
-	<div class="small-5 columns">
+	<div class="small-6 columns">
     <h4>Volunteer Status</h4>
 	 	<div class="small-8 columns"> <div id="statusPie"></div></div>
 		<div class="small-4 columns"> <div id="statusLegend"></div></div>
-</div>
+	</div>
+	<div class="small-6 columns">
+    <h4>Number of trainings attended</h4>
+	 	<div class="small-8 columns"> <div id="trainingAttendedPie"></div></div>
+		<div class="small-4 columns"> <div id="trainingAttendedLegend"></div></div>
+	</div>
 </div>
 
 <br>
@@ -101,6 +106,7 @@ function throttle() {
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
 	d3.select('#statusPie').select("svg").remove();
+	d3.select('#trainingAttendedPie').select("svg").remove();
 	d3.select('#perTopicBarGraph').select("svg").remove();
 
   buildBars();
@@ -139,24 +145,39 @@ function fetchData(){
 			d['training_attended'] = [d['cmdrr'], d['cp'], d['hp']];
 			d['status'] = [d['status']];
       counter++;
-      if(counter === data.length){ buildFilters(); }
+      if(counter === data.length){ console.log(data); buildFilters(); }
     });
   });
 }
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-   var trainingArray = [], locationArray = [], statusArray = [];
+   var trainingArray = [], locationArray = [], statusArray = [], trainingcountArray = [0,0,0,0];
+	 var tc=0, pass=0;
+
   $.each(data, function(i,item){
+		tc=0;
+		pass=0;
+
     item['location_id'].forEach(function(d){ if($.inArray(d, locationArray) === -1){ locationArray.push(d) }});
 		item['training_attended'].forEach(function(d){ if($.inArray(d, trainingArray) === -1 && d != null){ trainingArray.push(d) }});
 		item['status'].forEach(function(d){ if($.inArray(d, statusArray) === -1 && d != null){ statusArray.push(d) }});
+		item['training_attended'].forEach(function(d){
+			if(pass != 3){
+				if(d != null){
+					tc++;
+				}
+				pass++;
+			}
+			trainingcountArray[tc]++;
+		});
   });
   // # alphabetize them arrays
 	trainingArray.sort(d3.ascending);
-	// statusArray.sort(d3.ascending);
+	statusArray.sort(d3.ascending);
 	locationArray.sort(function(a, b) { return a - b; });
 
+	console.log(trainingcountArray);
   // # build the html and add it to the page
   var panelTitles = [];
     // var panelBodies = [];
@@ -190,7 +211,7 @@ function buildFilters(){
       $('#filter-nav-tabs').append(thisBodyHtml);
 
     }
-    panelHtml('Workshop', 'training_attended', trainingArray,false);
+    panelHtml('Training', 'training_attended', trainingArray,false);
 		panelHtml('Location', 'location', locationArray, true);
 		panelHtml('Status', 'status', statusArray, false);
     $('#filter-nav').append(panelTitles);
@@ -374,7 +395,7 @@ function drawGraphs(){
 	buildList();
 }
 
-var pieRadius, statusPie, statusPiePath;
+var pieRadius, statusPie, statusPiePath, trainingAttendedPie, trainingAttendedPiePath;
 function buildPies(){
 
   var widthOnPage = $('#statusPie').innerWidth();
@@ -388,6 +409,13 @@ function buildPies(){
     .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
   statusPiePath = statusPie.selectAll("path");
+
+	trainingAttendedPie = d3.select('#trainingAttendedPie').append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  trainingAttendedPiePath = trainingAttendedPie.selectAll("path");
 
 	buildGraphs();
 };
@@ -482,6 +510,50 @@ function drawPies(){
 	  statusLegend.exit().remove();
 	  // sort
 	  statusLegend.sort(function(a, b) { return b.value - a.value; })
+
+		/////////////////////////
+	  // TRAINING COUNT PIE //
+	  // ################### //
+	  /////////////////////////
+
+		console.log(trainingcountArray);
+	  var trainingAttendedColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_attended'].length; }))
+
+	  var trainingAttendedPieData = d3.nest()
+	    .key(function(d) { return d['training_attended'].length; })
+	    .rollup(function(value){
+	      return value.length
+	    })
+	    .entries(filteredData)
+
+	  var trainingAttendedData0 = trainingAttendedPiePath.data(),
+	    trainingAttendedData1 = pie(trainingAttendedPieData);
+
+	  trainingAttendedPiePath = d3.select('#trainingAttendedPie').select('svg').select('g').selectAll('path').data(trainingAttendedData1, key);
+
+	  trainingAttendedPiePath.enter().append("path")
+	    .each(function(d, i) { this._current = findNeighborArc(i, trainingAttendedData0, trainingAttendedData1, key) || d; })
+	    .attr("fill", function(d) { return trainingAttendedColor(d.data.key); })
+	    .attr('d', path)
+	  .append("title")
+	    .text(function(d) { return d.data.key; });
+
+
+			trainingAttendedPiePath.exit().remove();
+
+		  trainingAttendedPiePath.transition().duration(750).attrTween("d", arcTween);
+
+		  // Legend
+		  var trainingAttendedLegend = d3.select('#trainingAttendedLegend').selectAll('div').data(trainingAttendedPieData, function(d) { return d['key']; });
+		  // UPDATE
+		  trainingAttendedLegend.html(function(d){ return '<i class="fa fa-square" style="color:' + trainingAttendedColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>'; })
+		  // ENTER
+		  trainingAttendedLegend.enter().append('div').attr('class', "legend-item")
+		  .html(function(d){ return '<i class="fa fa-square" style="color:' + trainingAttendedColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>'; })
+		  // REMOVE
+		  trainingAttendedLegend.exit().remove();
+		  // sort
+		  trainingAttendedLegend.sort(function(a, b) { return b.value - a.value; })
 
 	drawGraphs();
 }
