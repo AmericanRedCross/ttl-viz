@@ -14,11 +14,12 @@
       <span><p id="modal-hh-core" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Core Shelter</p></span>
       <span><p id="modal-hh-sra" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Shelter Retrofitting Assistance</p></span>
       <span><p id="modal-hh-hla" style="margin: 0px"><i class="fa fa-fw fa-money"></i>&nbsp;Conditional Cash Grant</p></span>
+      <span><p id="modal-hh-agex" style="margin: 0px"><i class="fa fa-fw fa-leaf"></i>&nbsp;Agriculture Extension</p></span>
       <br>
       <h5>Trainings Attended</h5>
       <span><p id="modal-hh-sst" style="margin: 0px"><i class="fa fa-fw fa-home"></i>&nbsp;Safer Shelter Construction Techniques</p></span>
       <span><p id="modal-hh-sted" style="margin: 0px"><i class="fa fa-fw fa-briefcase"></i>&nbsp;Skills Training and Enterprise Development</p></span>
-      <span><p id="modal-hh-agri" style="margin: 0px"><i class="fa fa-fw fa-leaf"></i>&nbsp;Agricultural Extension Training</p></span>
+      <span><p id="modal-hh-agri" style="margin: 0px"><i class="fa fa-fw fa-leaf"></i>&nbsp;Agriculture Extension Training</p></span>
       <span><p id="modal-hh-phast" style="margin: 0px"><i class="fa fa-fw fa-tint"></i>&nbsp;Participatory Hygiene and Sanitation Transformation</p></span>
 
     </div>
@@ -143,7 +144,9 @@ var hhtraining = [];
 var phFilter;
 
 function filterHouseholdTrainings(id, arraySource, callback){
-  var a = arraySource.filter(function(d){ if (d.participant_id === id){ return d; } });
+  var a = arraySource.filter(function(d){
+    if (d.participant_id === id || d.household_id === id){ return d; }
+  });
   callback(null,a);
 }
 
@@ -152,7 +155,6 @@ function getHouseholdTrainings(error, result){
 }
 
 function clickedHousehold(data, target){
-
   d3.queue()
     .defer(filterHouseholdTrainings, data.id, trainingData[0])
     .defer(filterHouseholdTrainings, data.id, trainingData[2])
@@ -180,9 +182,10 @@ function clickedHousehold(data, target){
       data.ccg !== null ?  $("#modal-hh-ccg").show() : $("#modal-hh-ccg").hide();
       data.core !== null ?  $("#modal-hh-core").show() : $("#modal-hh-core").hide();
       data.sted !== null ?  $("#modal-hh-sted").show() : $("#modal-hh-sted").hide();
+      hhtraining !== null && hhtraining.filter(function(a){ return a.received_assistance==="yes" }).length > 0 ?  $("#modal-hh-agex").show() : $("#modal-hh-agex").hide();
 
       hhtraining !== null && hhtraining.filter(function(a){ return a.sector==="Shelter" }).length > 0 ? $("#modal-hh-sst").show() : $("#modal-hh-sst").hide();
-      hhtraining !== null && hhtraining.filter(function(a){ return a.sector==="Livelihood" }).length > 0 ?  $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
+      hhtraining !== null && hhtraining.filter(function(a){ return a.received_assistance==="yes" }).length > 0 ?  $("#modal-hh-agri").show() : $("#modal-hh-agri").hide();
       phFilter.length > 0 ?  $("#modal-hh-phast").show() : $("#modal-hh-phast").hide();
 
       hhtraining = [];
