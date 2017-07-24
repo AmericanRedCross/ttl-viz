@@ -5,6 +5,8 @@ backups/*
 !backups/note.txt
 tmp/*
 !tmp/note.txt
+db/*
+!db/note.txt
 site.db
 sessions.db
 public/fonts/*

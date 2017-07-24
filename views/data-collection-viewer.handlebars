@@ -1,5 +1,11 @@
 <!--a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy-->
 <style>
+
+#mly {
+  height: 400px;
+  width: 100%;
+}
+
 </style>
 <div id="data-collection-viewer">
 
@@ -20,32 +26,55 @@
 
 <br>
 
-<div class="row">
-  <div class="medium-offset-1 medium-10 columns">
+<div class="row collapse">
+  <div class="large-12 columns">
     <div id='map'></div>
+    <div id='mly'></div>
+  </div>
+  <!-- <div class="large-6 columns">
+    <div id='mly'></div>
   </div>
 </div>
+<div class="row collapse"> -->
+
+<!-- INLINE BLOCK AND DIV % SIZES????  -->
+
+</div>
+<br>
 
 </div>
 
 <!-- mapboxGL/mapillary css -->
-<link href='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.css' rel='stylesheet' />
-<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+<link href='https://unpkg.com/mapillary-js@2.6.0/dist/mapillary.min.css' rel='stylesheet' />
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.38.0/mapbox-gl.css' rel='stylesheet' />
 <!-- mapboxGL/mapillary js -->
-<script src='https://unpkg.com/mapillary-js@2.5.0/dist/mapillary.min.js'></script>
-<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
+<script src='https://unpkg.com/mapillary-js@2.6.0/dist/mapillary.min.js'></script>
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.38.0/mapbox-gl.js'></script>
 <script>
 
+
 mapboxgl.accessToken = "pk.eyJ1IjoiYW1lcmljYW5yZWRjcm9zcyIsImEiOiJzdHVRWjA4In0.bnfdwZhKX8tQeMkwY-kknQ"
+var selectedLayer = ""; // variable to store OAM layer being currently viewed
 
-var selectedLayer = "";
-
+// initialize map container
 var map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/streets-v9',
   center: [124.9935, 11.1318],
-  zoom: 12
+  zoom: 10
 });
+
+// initialize mapillary container
+var mly = new Mapillary.Viewer(
+  'mly', // container ID
+  'S1FUamFnYXBpN2NDSWplbDRtRUJoUToyZjIyYjEyMjJkNTU4ZWZj', //client ID
+  null, // starting image
+  { component: {
+    // cache: false,
+    // cover: false,
+    // direction: false
+    }
+  });
 
 map.on('load', function(e){
   d3.csv("{{opts.nginxlocation}}data/data-viewer-points.csv", function(error, data){
@@ -54,30 +83,36 @@ map.on('load', function(e){
 })
 
 function initLayers(data) {
+  // add a map layer for each data row (barangay) that has a value in the OAM url column
   for(var i=0; i<data.length; i++){
-    var sourceId = "src-" + data[i].id;
-    var layerId = "brgy-" + data[i].id;
-    var oamSource = {
-      "type": "raster",
-      "tiles": [ data[i].oam ],
-      "tileSize": 256
-    };
-    map.addSource(sourceId, oamSource);
-    var oamLayer = {
-      "id": layerId,
-      "type": "raster",
-      "source": sourceId,
-      "minzoom":0,
-      "maxzoom":22,
-      "layout":{'visibility':'none'}
-    };
-    map.addLayer(oamLayer);
+    if(data[i].oam.length > 1){
+      var sourceId = "src-" + data[i].id;
+      var layerId = "brgy-" + data[i].id;
+      var oamSource = {
+        "type": "raster",
+        "tiles": [ data[i].oam ],
+        "tileSize": 256
+      };
+      map.addSource(sourceId, oamSource);
+      var oamLayer = {
+        "id": layerId,
+        "type": "raster",
+        "source": sourceId,
+        "minzoom":0,
+        "maxzoom":22,
+        "layout":{'visibility':'none'}
+      };
+      map.addLayer(oamLayer);
+    }
   }
+
+  // build dropdown for OAM imagery selection
   var options = d3.select("#brgy-select").selectAll('option').data(data.filter(function(d){ return d.oam.length > 1; })).enter()
     .append('option')
       .attr("id", function(d){ return "brgy"+ d.id; })
       .attr("value", function(d){ return d.id; })
       .text(function(d){ return d.brgy + ", " + d.muni; });
+  $("#brgy-select").prepend('<option selected disabled hidden style="display: none" value="">Select a barangay...</option>');
   d3.select("#brgy-select")
     .on('change', function(){
       options.each(function(){ d3.select(this).classed('active', false); })
@@ -85,148 +120,131 @@ function initLayers(data) {
       var selection = d3.select("#brgy-select .active").data()[0];
       var target = [ parseFloat(selection.x), parseFloat(selection.y) ]
       map.flyTo({
-          // These options control the ending camera position: centered at
-          // the target, at zoom level 9, and north up.
           center: target,
           zoom: 16,
           bearing: 0,
-          // These options control the flight curve, making it move
-          // slowly and zoom out almost completely before starting to pan.
           speed: 0.8, // make the flying slow
           curve: 1, // change the speed at which it zooms out
-          // This can be any easing function: it takes a number between
-          // 0 and 1 and returns another number between 0 and 1.
-          easing: function (t){ return t; }
+          easing: function (t){ return t; } // can be any easing function: it takes a number between 0 and 1 and returns another number between 0 and 1.
       });
       map.setLayoutProperty(selectedLayer, 'visibility', 'none');
       selectedLayer = "brgy-" + selection.id;
       map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
-    })
-    // set initial map state to the first item in the dropdown select
-    selectedLayer = "brgy-" + data[0].id;
-    map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
-    var target = [ parseFloat(data[0].x), parseFloat(data[0].y) ]
-    map.flyTo({
-        center: target,
-        zoom: 16,
-        bearing: 0,
-        speed: 0.8,
-        curve: 1,
-        easing: function (t) { return t; }
     });
 
-  // // add mapillary vecotr tile source
-  // var mapillaryCoverage = {
-  //   "type": "vector",
-  //   "tiles": ["http://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt"],
-  //   "minzoom": 2,
-  //   "maxzoom": 22
-  // };
-  // map.addSource("mapillaryCoverage", mapillaryCoverage)
-  // // create layers for different zoom levels
-  // var mapillaryCoverageLine = {
-  //   "id": "mapillary-sequences",
-  //   "type": "line",
-  //   "source": "mapillaryCoverage",
-  //   "source-layer": "mapillary-sequences",
-  //   "paint": {
-  //     "line-color": '#2e870a',
-  //     "line-width": {
-  //       "stops": [
-  //         [8,1],
-  //         [15,3]
-  //       ]
-  //     },
-  //     "line-opacity": {
-  //       "stops": [
-  //         [8,0.2],
-  //         [17,1]
-  //       ]
-  //     }
-  //   },
-  //   "layout": {'visibility':'visible'}
-  // };
-  // var mapillaryCoveragePoints = {
-  //   "id": "mapillary-images",
-  //   "type": "circle",
-  //   "source": "mapillaryCoverage",
-  //   "source-layer": "mapillary-images",
-  //   "paint": {
-  //     "circle-radius": 8,
-  //     "circle-color": "#2e870a",
-  //     "circle-opacity": 0.7,
-  //     "circle-stroke-width": 1,
-  //     "circle-stroke-color": "#2e870a"
-  //   },
-  //   "layout":{'visibility':'visible'}
-  // }
-  // var oamLayer = {
-  //   "id": "oam-layer",
-  //   "type": "raster",
-  //   "source": "oam",
-  //   "minzoom":0,
-  //   "maxzoom":22,
-  //   "layout":{'visibility':'visible'}
-  // }
-  // // add mapillary Layers
-  // map.addLayer(mapillaryCoverageLine);
-  // map.addLayer(mapillaryCoveragePoints);
+  // add mapillary vector tile source
+  var mapillarySource = {
+    "type": "vector",
+    "tiles": ["https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt"],
+    "minzoom": 0,
+    "maxzoom": 14
+  };
+  map.addSource("mapillary", mapillarySource)
+
+  map.loadImage('{{opts.nginxlocation}}img/view.png', (error, image) => {
+    if(error) console.log(error);
+    map.addImage('viewAngle', image);
+  });
+
+  map.addLayer({
+      'id': 'mapillary',
+      'type': 'line',
+      'source': 'mapillary',
+      'source-layer': 'mapillary-sequences',
+      'layout': {
+          'line-cap': 'round',
+          'line-join': 'round'
+      },
+      'paint': {
+          'line-opacity': 0.6,
+          'line-color': 'rgb(53, 175, 109)',
+          'line-width': 2
+      }
+  });
+
+
+  map.addLayer({
+    "id": "mapillary-images",
+    "type": "circle",
+    "source": "mapillary",
+    "source-layer": "mapillary-images",
+    "paint": {
+      "circle-radius": 8,
+      "circle-color": "#2e870a",
+      "circle-opacity": 0.3,
+      "circle-stroke-width": 1,
+      "circle-stroke-color": "#2e870a"
+    },
+    "layout":{ }
+  });
+
+  map.addLayer({
+    "id": "mapillary-images-angle",
+    "type": "symbol",
+    "source": "mapillary",
+    "source-layer": "mapillary-images",
+    "layout": {
+      "icon-image": "viewAngle",
+      "icon-rotation-alignment": "map",
+    },
+    "filter": ["==", "key", ""]
+  });
+
+  // viewer size is dynamic so resize should be called every time the window size changes
+  window.addEventListener("resize", function() { mly.resize(); });
+
+  // Change the cursor to a pointer when the mouse is over the mapillary images layer.
+  map.on('mouseenter', 'mapillary-images', function () {
+    map.getCanvas().style.cursor = 'pointer';
+  });
+  // Change it back to a pointer when it leaves.
+  map.on('mouseleave', 'mapillary-images', function () {
+    map.getCanvas().style.cursor = '';
+  });
+
+  map.on('click', 'mapillary-images', function(evt) {
+    var feature = map.queryRenderedFeatures(evt.point);
+    // console.log(evt.features[0])
+    console.log("vector tile click...")
+    console.log("features[0].properties.key = ", evt.features[0].properties.key)
+    // console.log("features[0].geometry.coordinates = ", evt.features[0].geometry.coordinates)
+    // var point = {
+    //   "type": "Point",
+    //   "coordinates": evt.features[0].geometry.coordinates
+    // };
+    // map.getSource('mapillary-angle').setData(point);
+    // map.setLayoutProperty('mapillary-angle', 'icon-rotate', evt.features[0].properties.ca);
+    // move mapillary viewer to image key of clicked
+    mly.moveToKey(feature[0].properties.key).then(
+      function(node){
+        console.log("mly.moveToKey ==>> ", node.key);
+      },
+      function(error){
+        console.error(error);
+      });
+  });
+
+  mly.on(Mapillary.Viewer.bearingchanged, function(bearing) {
+    map.setLayoutProperty('mapillary-images-angle', 'icon-rotate', bearing);
+  });
+
+  mly.on(Mapillary.Viewer.moveend, function() {
+    mly.getBearing().then(function(bearing) {
+      map.setLayoutProperty('mapillary-images-angle', 'icon-rotate', bearing);
+    });
+  });
+
+  mly.on(Mapillary.Viewer.nodechanged, function(node) {
+    console.log("Mapillary.Viewer.nodechanged...")
+    // console.log('node.key: ', node.key);
+    // console.log('node.latLon: ', node.latLon);
+    // console.log('node.originalLatLon: ', node.originalLatLon);
+    // console.log('node.computedLatLon: ', node.computedLatLon);
+    map.setFilter("mapillary-images-angle", ["==", "key", node.key]);
+    map.setLayoutProperty('mapillary-images-angle', 'icon-rotate', node.ca);
+  });
 
 };
-
-// // add interactivity
-// map.on('click', 'mapillary-images', function(evt) {
-//   var feature = map.queryRenderedFeatures(evt.point)
-//   console.log(feature)
-//   // move mapillary viewer to image key of clicked
-//   mly.moveToKey(feature[0].properties.key)
-//          .then(
-//            function(node){console.log(node.key)},
-//            function(error){console.error(error)});
-// })
-//
-// map.on('mouseenter', 'mapillary-images', function () {
-//   map.getCanvas().style.cursor = 'pointer';
-// });
-
-// controls
-
-// map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-// function layerControl() {
-//   var controlLayers = [
-//     // 'mapillary-sequences',
-//     // 'mapillary-images',
-//     'oam-layer'
-//   ];
-//   for(var i=0; i < controlLayers.length; i++) {
-//       var id = controlLayers[i]
-//       var link = document.createElement('a');
-//         link.href = '#';
-//         link.className = 'active';
-//         link.textContent = id;
-//
-//         link.onclick = function (e) {
-//             var clickedLayer = this.textContent;
-//             e.preventDefault();
-//             e.stopPropagation();
-//
-//             var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
-//
-//             if (visibility === 'visible') {
-//                 map.setLayoutProperty(clickedLayer, 'visibility', 'none');
-//                 this.className = '';
-//             } else {
-//                 this.className = 'active';
-//                 map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
-//             }
-//         };
-//
-//         var layers = document.getElementById('layers');
-//         layers.appendChild(link);
-//       }
-//     }
-// layerControl();
 
 
 // mapillary //
