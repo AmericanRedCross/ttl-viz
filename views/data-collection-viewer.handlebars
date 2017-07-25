@@ -1,10 +1,33 @@
-<!--a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy-->
 <style>
 
 #mly {
   height: 400px;
   width: 100%;
 }
+#map {
+  height: 400px;
+  width: 100%;
+}
+.layer-btn-img {
+  width: 30px;
+}
+.layer-button {
+  cursor: pointer !important;
+}
+#control-row {
+  visibility: hidden;
+}
+#map-container {
+  position: relative;
+}
+#loader {
+  position: absolute;
+  top:12px;
+  right:6px;
+  z-index: 99;
+  display: none;
+}
+
 
 </style>
 <div id="data-collection-viewer">
@@ -12,34 +35,50 @@
 
 <div class="row">
   <div class="medium-offset-1 medium-10 columns">
-  	<h2>Drone Imagery Viewer</h2>
+  	<h2>Imagery Viewer</h2>
   </div>
 </div>
 
 <br>
 
-<div class="row">
-  <div class="medium-offset-1 medium-3 small-4 columns">
+<!-- <div class="row column">
+  <div class="callout" data-closable>
+    <h5>This a friendly message.</h5>
+    <p>And when you're done with me, I can be closed.</p>
+    <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+</div> -->
+
+<div id="control-row" class="row">
+  <div class="medium-3 small-6 columns">
     <select id='brgy-select'></select>
+  </div>
+  <div class="medium-9 small-6 columns end">
+    <button type="button" onClick="toggleOam(this);" class="hollow button secondary layer-oam layer-button"><img class="layer-btn-img" alt="Drone icon - Created by Peter Van Criel from Noun Project" src="{{opts.nginxlocation}}img/drone.png"> Aerial imagery</button>
+    <button type="button" onClick="toggleMapillary(this);" class="hollow button secondary layer-button disabled"><img class="layer-btn-img"  src="{{opts.nginxlocation}}img/mapillary.png"> Mapillary</button>
+    <button type="button" onClick="toggleOsm(this);" class="hollow button secondary layer-button disabled"><img class="layer-btn-img" src="{{opts.nginxlocation}}img/house.png"> OSM buildings</button>
   </div>
 </div>
 
 <br>
 
 <div class="row collapse">
-  <div class="large-12 columns">
+  <div id="map-container" class="small-12 columns">
+    <div id="loader"><i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i></div>
     <div id='map'></div>
-    <div id='mly'></div>
   </div>
-  <!-- <div class="large-6 columns">
+  <div id="mly-container" style="display:none;" class="medium-6 columns">
     <div id='mly'></div>
+    <div style="padding:12px;">
+      <button type="button" onClick="zoomToMly();" class="hollow button secondary tiny">
+        Zoom map to viewer image</button>
+    </div>
   </div>
-</div>
-<div class="row collapse"> -->
-
-<!-- INLINE BLOCK AND DIV % SIZES????  -->
 
 </div>
+
 <br>
 
 </div>
@@ -55,7 +94,7 @@
 
 mapboxgl.accessToken = "pk.eyJ1IjoiYW1lcmljYW5yZWRjcm9zcyIsImEiOiJzdHVRWjA4In0.bnfdwZhKX8tQeMkwY-kknQ"
 var selectedLayer = ""; // variable to store OAM layer being currently viewed
-
+var selectedMly = null; // variable to store mapillary image being currently viewed
 // initialize map container
 var map = new mapboxgl.Map({
   container: 'map',
@@ -63,6 +102,62 @@ var map = new mapboxgl.Map({
   center: [124.9935, 11.1318],
   zoom: 10
 });
+
+function toggleOam(btn){
+ if($(btn).hasClass("disabled")){
+   $(btn).removeClass("disabled");
+   map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
+ } else {
+   $(btn).addClass("disabled");
+   map.setLayoutProperty(selectedLayer, 'visibility', 'none');
+ }
+}
+
+function toggleMapillary(btn){
+ if($(btn).hasClass("disabled")){
+   $(btn).removeClass("disabled");
+   $("#mly-container").show();
+   $("#map-container").addClass("medium-6");
+   $("#map-container").removeClass("small-12");
+   mly.resize();
+   map.setLayoutProperty("mapillary", 'visibility', 'visible');
+   map.setLayoutProperty("mapillary-images", 'visibility', 'visible');
+   map.resize();
+   if(selectedMly !== null) {
+     map.setFilter("mapillary-images-angle", ["==", "key", selectedMly.key]);
+   }
+ } else {
+   $(btn).addClass("disabled");
+   $("#mly-container").hide();
+   $("#map-container").addClass("small-12");
+   $("#map-container").removeClass("medium-6");
+   map.setLayoutProperty("mapillary", 'visibility', 'none');
+   map.setLayoutProperty("mapillary-images", 'visibility', 'none');
+   map.setFilter("mapillary-images-angle", ["==", "key", ""]);
+   map.resize();
+ }
+}
+
+function toggleOsm(btn){
+  if($(btn).hasClass("disabled")){
+    $(btn).removeClass("disabled");
+    map.setLayoutProperty("buildings", 'visibility', 'visible');
+  } else {
+    $(btn).addClass("disabled");
+    map.setLayoutProperty("buildings", 'visibility', 'none');
+  }
+}
+
+function zoomToMly(){
+  map.flyTo({
+      center: [selectedMly.latLon.lon, selectedMly.latLon.lat],
+      zoom: 18,
+      bearing: 0,
+      speed: 0.8, // make the flying slow
+      curve: 1, // change the speed at which it zooms out
+      easing: function (t){ return t; } // can be any easing function: it takes a number between 0 and 1 and returns another number between 0 and 1.
+  });
+}
 
 // initialize mapillary container
 var mly = new Mapillary.Viewer(
@@ -127,25 +222,47 @@ function initLayers(data) {
           curve: 1, // change the speed at which it zooms out
           easing: function (t){ return t; } // can be any easing function: it takes a number between 0 and 1 and returns another number between 0 and 1.
       });
+      if($(".layer-oam.layer-button").hasClass("disabled")) {
+        $(".layer-oam.layer-button").removeClass("disabled");
+      }
       map.setLayoutProperty(selectedLayer, 'visibility', 'none');
       selectedLayer = "brgy-" + selection.id;
       map.setLayoutProperty(selectedLayer, 'visibility', 'visible');
     });
 
-  // add mapillary vector tile source
+  map.addLayer({
+    "id": "buildings",
+    "type": "line",
+    "source": {
+      type: 'vector',
+      url: 'mapbox://mapbox.mapbox-streets-v7'
+    },
+    "source-layer": "building",
+    "layout": {
+      "line-join": "round",
+      "line-cap": "round"
+    },
+    "paint": {
+      'line-opacity': 0.8,
+      'line-color': '#d3d3d3',
+      'line-width': 1.5
+    },
+    "layout":{'visibility':'none'}
+  });
+
+
+  // add mapillary vector tile source, icon, and map layers
   var mapillarySource = {
     "type": "vector",
     "tiles": ["https://d25uarhxywzl1j.cloudfront.net/v0.1/{z}/{x}/{y}.mvt"],
     "minzoom": 0,
     "maxzoom": 14
   };
-  map.addSource("mapillary", mapillarySource)
-
+  map.addSource("mapillary", mapillarySource);
   map.loadImage('{{opts.nginxlocation}}img/view.png', (error, image) => {
     if(error) console.log(error);
     map.addImage('viewAngle', image);
   });
-
   map.addLayer({
       'id': 'mapillary',
       'type': 'line',
@@ -159,10 +276,9 @@ function initLayers(data) {
           'line-opacity': 0.6,
           'line-color': 'rgb(53, 175, 109)',
           'line-width': 2
-      }
+      },
+      "layout":{'visibility':'none'}
   });
-
-
   map.addLayer({
     "id": "mapillary-images",
     "type": "circle",
@@ -175,9 +291,8 @@ function initLayers(data) {
       "circle-stroke-width": 1,
       "circle-stroke-color": "#2e870a"
     },
-    "layout":{ }
+    "layout":{'visibility':'none'}
   });
-
   map.addLayer({
     "id": "mapillary-images-angle",
     "type": "symbol",
@@ -190,7 +305,7 @@ function initLayers(data) {
     "filter": ["==", "key", ""]
   });
 
-  // viewer size is dynamic so resize should be called every time the window size changes
+  // viewer size is dynamic so mapillary viewer resize should be called every time the window size changes
   window.addEventListener("resize", function() { mly.resize(); });
 
   // Change the cursor to a pointer when the mouse is over the mapillary images layer.
@@ -203,25 +318,15 @@ function initLayers(data) {
   });
 
   map.on('click', 'mapillary-images', function(evt) {
-    var feature = map.queryRenderedFeatures(evt.point);
-    // console.log(evt.features[0])
-    console.log("vector tile click...")
-    console.log("features[0].properties.key = ", evt.features[0].properties.key)
-    // console.log("features[0].geometry.coordinates = ", evt.features[0].geometry.coordinates)
-    // var point = {
-    //   "type": "Point",
-    //   "coordinates": evt.features[0].geometry.coordinates
-    // };
-    // map.getSource('mapillary-angle').setData(point);
-    // map.setLayoutProperty('mapillary-angle', 'icon-rotate', evt.features[0].properties.ca);
-    // move mapillary viewer to image key of clicked
-    mly.moveToKey(feature[0].properties.key).then(
+    $("#loader").fadeIn();
+    mly.moveToKey(evt.features[0].properties.key).then(
       function(node){
-        console.log("mly.moveToKey ==>> ", node.key);
+        console.log("mly.moveToKey : ", node.key);
       },
       function(error){
-        console.error(error);
-      });
+        console.error("mly.moveToKey error: ", error);
+      }
+    );
   });
 
   mly.on(Mapillary.Viewer.bearingchanged, function(bearing) {
@@ -235,24 +340,25 @@ function initLayers(data) {
   });
 
   mly.on(Mapillary.Viewer.nodechanged, function(node) {
-    console.log("Mapillary.Viewer.nodechanged...")
-    // console.log('node.key: ', node.key);
-    // console.log('node.latLon: ', node.latLon);
-    // console.log('node.originalLatLon: ', node.originalLatLon);
-    // console.log('node.computedLatLon: ', node.computedLatLon);
+    console.log("Mapillary.Viewer.nodechanged")
+    selectedMly = node;
     map.setFilter("mapillary-images-angle", ["==", "key", node.key]);
     map.setLayoutProperty('mapillary-images-angle', 'icon-rotate', node.ca);
+    // map.panTo() wasn't working for some reason
+    map.flyTo({
+        center: [node.latLon.lon, node.latLon.lat],
+        zoom: map.getZoom(),
+        bearing: 0,
+        speed: 0.8, // make the flying slow
+        curve: 0, // change the speed at which it zooms out
+        easing: function (t){ return t; } // can be any easing function: it takes a number between 0 and 1 and returns another number between 0 and 1.
+    });
+    $("#loader").fadeOut();
+
   });
 
+$("#control-row").css("visibility", "initial")
+
 };
-
-
-// mapillary //
-
-// var mly = new Mapillary.Viewer(
-//   'mly',
-//   'a1hwSmhvQWpVTlRjRmxJY3VVd1dRUTowZjliZmE3YTAzZmY3MjUy',
-//   null
-// )
 
 </script>

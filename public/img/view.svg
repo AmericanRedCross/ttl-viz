@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 20 20" style="enable-background:new 0 0 20 20;" xml:space="preserve">
+	 viewBox="0 0 40 40" style="enable-background:new 0 0 40 40;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:none;stroke:#FFFFFF;stroke-width:3.2695;stroke-miterlimit:10;}
+	.st1{fill:#FF861B;stroke:#FFFFFF;stroke-width:3;stroke-linecap:round;stroke-miterlimit:10;}
+	.st2{fill:#FFC01B;}
+	.st3{fill:#FF861B;stroke:#FFFFFF;stroke-width:0.75;stroke-miterlimit:10;}
+</style>
 <g>
-	<polygon points="4.9,1.4 4.9,1.4 4.9,1.4 	"/>
-	<path d="M10,0C8.1,0,6.4,0.5,4.9,1.4L10,10l5.1-8.6l0,0C13.6,0.5,11.9,0,10,0z"/>
+	<path class="st0" d="M10.5,4.6L10.5,4.6L10.5,4.6z"/>
+	<path class="st0" d="M20,2.1c-3.5,0-6.7,0.9-9.5,2.5L20,20l9.5-15.4l0,0C26.7,3,23.5,2.1,20,2.1z"/>
 </g>
+<circle class="st1" cx="20" cy="20" r="7"/>
+<g>
+	<path class="st2" d="M10.5,4.6L10.5,4.6L10.5,4.6z"/>
+	<path class="st2" d="M20,2.1c-3.5,0-6.7,0.9-9.5,2.5L20,20l9.5-15.4l0,0C26.7,3,23.5,2.1,20,2.1z"/>
+</g>
+<circle class="st3" cx="20" cy="20" r="7"/>
 </svg>
