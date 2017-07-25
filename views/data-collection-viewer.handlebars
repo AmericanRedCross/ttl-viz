@@ -72,6 +72,7 @@
   <div id="mly-container" style="display:none;" class="medium-6 columns">
     <div id='mly'></div>
     <div style="padding:12px;">
+      <div id="mly-intro-text"><p>Zoom in and click a green circle marker on the map to load a street-level image.</p></option></div>
       <button type="button" onClick="zoomToMly();" class="hollow button secondary tiny">
         Zoom map to viewer image</button>
     </div>
@@ -340,6 +341,7 @@ function initLayers(data) {
   });
 
   mly.on(Mapillary.Viewer.nodechanged, function(node) {
+    if(selectedMly === null) { $("#mly-intro-text").hide(); }
     console.log("Mapillary.Viewer.nodechanged")
     selectedMly = node;
     map.setFilter("mapillary-images-angle", ["==", "key", node.key]);
