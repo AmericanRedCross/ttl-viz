@@ -5,12 +5,13 @@ backups/*
 !backups/note.txt
 tmp/*
 !tmp/note.txt
+db/*
+!db/note.txt
 site.db
 sessions.db
 public/fonts/*
 !public/fonts/README.md
 public/css/gulp.css
-.nvmrc
 
 # OS generated files #
 ######################

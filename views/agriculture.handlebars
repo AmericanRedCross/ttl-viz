@@ -11,7 +11,7 @@
 
 <div class="row">
 	<div class="columns">
-		<h2>Agriculture Training</h2>
+		<h2>Agriculture Extension</h2>
 	</div>
 </div>
 
@@ -46,34 +46,17 @@
 <br>
 
 <div class="row">
+  <div class="small-3 columns">
+		<h4>Beneficiaries per Type of Assistance</h4>
+	  <div id="perTypePie"></div>
+	</div>
+	<div class="small-3 columns end"><div id="perTypeLegend"> </div></div>
 	<div class="small-3 columns">
-		<h4>Knowledge change</h4>
-	  <div id="knowledgechangePie"></div>
+		<h4>Beneficiaries per Assistance Received</h4>
+	  <div id="perAssistancePie"></div>
 	</div>
-	<div class="small-3 columns"><div id="knowledgechangeLegend"> </div></div>
-	<div class="small-6 columns">
-			<h4>Number of participants by knowledge change score</h4>
-			<div id="knowLine"></div>
-	</div>
+	<div class="small-3 columns end"><div id="perAssistanceLegend"> </div></div>
 </div>
-
-<br>
-
-<div class="row">
-	<div class="small-3 columns">
-		<h4>Participants per training</h4>
-	  <div id="perTrainingPie"></div>
-	</div>
-	<div class="small-5 columns end"><div id="perTrainingLegend"> </div></div>
-</div>
-
-<!-- <div class="dashboard-section">
-  <h3>completed by date</h3>
-	<div id="progressGraph"></div>
-</div> -->
-
-<!--
-<hr style="margin:0;"> -->
 
 <br>
 
@@ -119,10 +102,9 @@ function throttle() {
 }
 function resize() {
   d3.select('#brgyBars').select("svg").remove();
-  d3.select('#knowledgechangePie').select("svg").remove();
-  d3.select('#perTrainingPie').select("svg").remove();
-  d3.select('#knowLine').select("svg").remove();
-  buildPies();
+  d3.select('#perAssistancePie').select("svg").remove();
+  d3.select('#perTypePie').select("svg").remove();
+  buildBars();
 }
 
 function clearAllCheckboxes(){
@@ -146,28 +128,14 @@ function fetchData(){
     data = response;
 		var counter = 0;
     data.forEach(function(d){
-      // calculate the value of score change
-      if( isNaN(parseFloat(d['score_posttest'])) || isNaN(parseFloat(d['score_pretest'])) ) {
-        d['score_change'] = 'data missing';
-      } else {
-        d['score_change'] = parseFloat(d['score_posttest']) - parseFloat(d['score_pretest']);
-      }
-      // calculate the cateogory of change
-      if (d['score_change'] === 'data missing') {
-        d['knowledge_change'] = ['data missing'];
-      } else if (d['score_change'] > 0 ) {
-        d['knowledge_change'] = ['increase'];
-      } else if (d['score_change'] < 0 ) {
-        d['knowledge_change'] = ['decrease'];
-      } else if (d['score_change'] === 0 ) {
-        d['knowledge_change'] = ['maintain'];
-      }
       // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
       // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
-      d['training_name'] = [d['training_name']];
-      d['training_id'] = [d['training_id']];
-      d['location'] = (d['location_id'] === null) ? ['data missing','data missing'] : [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
-			counter++;
+      d['location'] = (d['household_id'] === null) ? ['data missing','data missing'] : [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
+      d['location_id'] = [d['household_id'].slice(0,5)];
+      d['type_assistance'] = [d['type_assistance']];
+      d['received_assistance'] = [d['received_assistance']];
+      d['assistance_received'] = [d['assistance_received']];
+      counter++;
       if(counter === data.length){ buildFilters(); }
     });
   });
@@ -175,27 +143,24 @@ function fetchData(){
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-  var trainingnameArray = [],
-      trainingidArray = [],
-      knowledgechangeArray = [],
+  var assistancetypeArray = [],
+      assistancereceivedArray =[],
       locationArray = [];
   $.each(data, function(i,item){
-    item['training_name'].forEach(function(d){
-      if($.inArray(d, trainingnameArray) === -1){ trainingnameArray.push(d) }
+      item['type_assistance'].forEach(function(d){
+      if($.inArray(d, assistancetypeArray) === -1){ assistancetypeArray.push(d) }
     });
-    item['training_id'].forEach(function(d){
-      if($.inArray(d, trainingidArray) === -1){ trainingidArray.push(d) }
+    item['assistance_received'].forEach(function(d){
+      if($.inArray(d, assistancereceivedArray) === -1){ assistancereceivedArray.push(d) }
     });
-    item['knowledge_change'].forEach(function(d){
-      if($.inArray(d, knowledgechangeArray) === -1){ knowledgechangeArray.push(d) }
+    item['location_id'].forEach(function(d){
+    if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
     });
-    if($.inArray(item['location_id'], locationArray) === -1){ locationArray.push(item['location_id']) }
-
   });
   // # alphabetize them arrays
-  trainingnameArray.sort(d3.ascending);
-  trainingidArray.sort(d3.ascending);
-  knowledgechangeArray.sort(d3.ascending);
+  // trainingnameArray.sort(d3.ascending);
+  assistancetypeArray.sort(d3.ascending);
+  assistancereceivedArray.sort(d3.ascending);
   locationArray.sort(function(a, b) { return a - b; });
   // # build the html and add it to the page
   var panelTitles = [];
@@ -208,7 +173,7 @@ function buildFilters(){
 		if(geo === true) {
 			var municipArray = [];
 			$.each(array, function(i, a){
-				var thisMunicip = a.slice(0,2);
+				var thisMunicip = a.toString().slice(0,2);
 				if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
 					municipArray.push(thisMunicip);
 					thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
@@ -230,17 +195,14 @@ function buildFilters(){
 		$('#filter-nav-tabs').append(thisBodyHtml);
 
 	}
-  panelHtml('Training name', 'training_name', trainingnameArray);
-  panelHtml('Training ID', 'training_id', trainingidArray);
-  panelHtml('Knowledge change', 'knowledge_change', knowledgechangeArray);
+  panelHtml('Assistance Type', 'type_assistance', assistancetypeArray);
+  panelHtml('Assistance Received', 'assistance_received', assistancereceivedArray);
   panelHtml('Location', null, locationArray, true);
 	  $('#filter-nav').append(panelTitles);
 	Foundation.reInit($('#filter-nav'))
   filteredData = data;
   $('#loader').hide();
-  //buildBars();
-  buildPies();
-
+  buildBars();
 }
 
 function filter(){
@@ -254,6 +216,7 @@ function filter(){
 				})
 			}
 		}
+
 	// # reformat the data on checks to make it easier to work with
 	// ? combine this into what's above
 	filterData = d3.nest().key(function(d){ return d.filterKey })
@@ -269,7 +232,6 @@ function filter(){
 	$.each(filterData,function(i,filterKey){
 		var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
 		var valueGroups = [];
-		console.log(filterKey)
 		$.each(filterKey.value, function(j,filterValue){
 			valueGroups.push('<b>' + filterValue + '</b>');
 		})
@@ -296,34 +258,33 @@ function filter(){
 	})
 	console.log(filteredData.length)
 
-	drawPies()
-
+  drawBars();
 }
 
-var pieRadius, knowledgechangePie, knowledgechangePiePath, perTrainingPie, perTrainingPiePath;
+var pieRadius, perAssistancePie, perAssistancePiePath;
 function buildPies(){
 
-  var widthOnPage = $('#knowledgechangePie').innerWidth();
+  var widthOnPage = $('#perAssistancePie').innerWidth();
   var width = (widthOnPage < 300) ? widthOnPage : 300;
   var height = width;
   pieRadius = Math.min(width, height) / 2;
 
 	// build the pie charts
-  knowledgechangePie = d3.select('#knowledgechangePie').append("svg")
+  perAssistancePie = d3.select('#perAssistancePie').append("svg")
       .attr("width", width)
       .attr("height", height)
     .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  knowledgechangePiePath = knowledgechangePie.selectAll("path");
+  perAssistancePiePath = perAssistancePie.selectAll("path");
 
-  perTrainingPie = d3.select('#perTrainingPie').append("svg")
+  perTypePie = d3.select('#perTypePie').append("svg")
       .attr("width", width)
       .attr("height", height)
     .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  perTrainingPiePath = perTrainingPie.selectAll("path");
+  perTypePiePath = perTypePie.selectAll("path");
 
-  buildBars();
+drawBars();
 };
 
 
@@ -337,54 +298,8 @@ function buildBars(){
   brgyBarsX = d3.scaleLinear()
       .range([0, brgyBarsMeas.width - brgyBarsMeas.left - brgyBarsMeas.right])
 
-  buildKnowledgeLine()
-
+  buildPies();
 }
-
-var knowLineMeas, knowLineSvg, knowLineY, knowLineX, knowY, knowYaxis;
-function buildKnowledgeLine(){
-		// build the knowledge chart
-    var changeExt = d3.extent(data, function(d){ return d.score_change; });
-    var maxChange = (Math.abs(changeExt[0]) > Math.abs(changeExt[1])) ?  Math.abs(changeExt[0]) : Math.abs(changeExt[1]);
-
-    knowLineMeas = {top: 20, right: 60, bottom: 20, left: 60,
-      height: 250 - 40, width: $('#knowLine').innerWidth() - 60 - 60 };
-    knowLineMeas.barWidth = knowLineMeas.width / (maxChange * 2),
-    knowLineSvg = d3.select('#knowLine').append('svg')
-      .attr("width", knowLineMeas.width + knowLineMeas.left + knowLineMeas.right)
-      .attr("height", knowLineMeas.height + knowLineMeas.top + knowLineMeas.bottom)
-			.attr("fill","rgba(0,124,196,1)")
-      .append('g').attr("transform", "translate(" + knowLineMeas.left + "," + knowLineMeas.top + ")");
-
-    knowLineY = d3.scaleLinear()
-      .range([knowLineMeas.height, 0])
-    knowLineX = d3.scaleLinear()
-      .range([0,knowLineMeas.width])
-      .domain([-maxChange, maxChange])
-
-    var xAxis = d3.axisBottom()
-      .scale(knowLineX)
-    knowLineSvg.append("g")
-      .attr("class", "x kaxis")
-      .attr("transform", "translate(" + (knowLineMeas.barWidth / 2) + "," + knowLineMeas.height + ")")
-      .call(xAxis);
-
-    knowY = d3.axisLeft()
-      .scale(knowLineY).tickFormat(d3.format("d"));
-    knowYaxis = knowLineSvg.append("g")
-      .attr("class", "y kaxis")
-
-    knowYaxis.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Participants");
-
-  drawPies();
-
-}
-
 function drawPies(){
   /////////////////
   // PIE HELPERS //
@@ -432,136 +347,121 @@ function drawPies(){
     return function(t) { return path(i(t)); };
   }
 
-  //////////////////
-  // CATEGORY PIE //
-  // ############ //
-  //////////////////
-	// customize knowledgechangeColor colors
-  var knowledgechangeColor = function(key){
-    switch(key) {
-      case "increase":
-        return "#91cf60";
-        break;
-      case "decrease":
-        return "#fc8d59";
-        break;
-      case "maintain":
-        return "#ffffbf";
-        break;
-      default:
-        return "#e0e0e0";
-    }
+  /////////////////////////////////
+  // PER Assistance Type PIE     //
+  // ########################### //
+  /////////////////////////////////
 
+  var perTypeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['type_assistance'][0]; }))
 
-  }
-
-  var knowledgechangePieData = d3.nest()
-    .key(function(d) { return d['knowledge_change'][0]; })
+  var perTypeData = d3.nest()
+    .key(function(d) { return d['type_assistance'][0]; })
     .rollup(function(value){
       return value.length
     })
     .entries(filteredData)
 
-  var knowledgechangeData0 = knowledgechangePiePath.data(),
-    knowledgechangeData1 = pie(knowledgechangePieData);
+  var perTypeData0 = perTypePiePath.data(),
+    perTypeData1 = pie(perTypeData);
 
-  knowledgechangePiePath = d3.select('#knowledgechangePie').select('svg').select('g').selectAll('path').data(knowledgechangeData1, key);
+  perTypePiePath =  d3.select('#perTypePie').select('svg').select('g').selectAll('path').data(perTypeData1, key);
 
-  knowledgechangePiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, knowledgechangeData0, knowledgechangeData1, key) || d; })
-    .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
+  perTypePiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, perTypeData0, perTypeData1, key) || d; })
+    .attr("fill", function(d) { return perTypeColor(d.data.key); })
 		.attr('d', path)
   .append("title")
     .text(function(d) { return d.data.key; });
 
-  knowledgechangePiePath.exit()
-    //  .each(function(d, i) { return findNeighborArc(i, categoryData1, categoryData0, key) || d; })
-		//  .attr("fill", function(d) { return knowledgechangeColor(d.data.key); })
-  	//  .transition()
-    //  .duration(750)
-    //  .attrTween("d", arcTween)
-    .remove();
-
-  knowledgechangePiePath.transition()
-    .duration(750)
-    .attrTween("d", arcTween);
-
-  // Legend
-  var knowledgechangeLegend = d3.select('#knowledgechangeLegend').selectAll('div').data(knowledgechangePieData, function(d) { return d['key']; });
-  // UPDATE
-  knowledgechangeLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // ENTER
-  knowledgechangeLegend.enter().append('div')
-  .attr('class', "legend-item")
-  .html(function(d){
-    return '<i class="fa fa-square" style="color:' + knowledgechangeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
-  })
-  // REMOVE
-  knowledgechangeLegend.exit().remove();
-  // sort
-  knowledgechangeLegend.sort(function(a, b) {
-    return b.value - a.value;
-  })
-
-  //////////////////////
-  // PER TRAINING PIE //
-  // ################ //
-  //////////////////////
-  var perTrainingColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_name'][0]; }))
-
-  var perTrainingData = d3.nest()
-    .key(function(d) { return d['training_name'][0]; })
-    .rollup(function(value){
-      return value.length
-    })
-    .entries(filteredData)
-
-  var perTrainingData0 = perTrainingPiePath.data(),
-    perTrainingData1 = pie(perTrainingData);
-
-  perTrainingPiePath =  d3.select('#perTrainingPie').select('svg').select('g').selectAll('path').data(perTrainingData1, key);
-
-  perTrainingPiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, perTrainingData0, perTrainingData1, key) || d; })
-    .attr("fill", function(d) { return perTrainingColor(d.data.key); })
-		.attr('d', path)
-  .append("title")
-    .text(function(d) { return d.data.key; });
-
-  perTrainingPiePath.exit()
+  perTypePiePath.exit()
   //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
   // .transition()
   //   .duration(750)
   //   .attrTween("d", arcTween)
     .remove();
 
-  perTrainingPiePath.transition()
+  perTypePiePath.transition()
     .duration(750)
     .attrTween("d", arcTween);
 
   // Legend
-  var perTrainingLegend = d3.select('#perTrainingLegend').selectAll('div').data(perTrainingData, function(d) { return d['key']; });
+  var perTypeLegend = d3.select('#perTypeLegend').selectAll('div').data(perTypeData, function(d) { return d['key']; });
   // UPDATE
-  perTrainingLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+
+  perTypeLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
   })
   // ENTER
-  perTrainingLegend.enter().append('div')
+  perTypeLegend.enter().append('div')
   .attr('class', "legend-item")
   .html(function(d){
-    return '<i class="fa fa-square" style="color:' + perTrainingColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.values + ')</small>';
+    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
   })
   // REMOVE
-  perTrainingLegend.exit().remove();
+  perTypeLegend.exit().remove();
   // sort
-  perTrainingLegend.sort(function(a, b) {
+  perTypeLegend.sort(function(a, b) {
     return b.values - a.values;
   })
 
-  //
-  drawBars();
+  /////////////////////////////////
+  // PER Assistance Received PIE //
+  // ########################### //
+  /////////////////////////////////
+
+  var perAssistanceColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['assistance_received'][0]; }))
+
+  var perAssistanceData = d3.nest()
+    .key(function(d) { return d['assistance_received'][0]; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var perAssistanceData0 = perAssistancePiePath.data(),
+    perAssistanceData1 = pie(perAssistanceData);
+
+  perAssistancePiePath =  d3.select('#perAssistancePie').select('svg').select('g').selectAll('path').data(perAssistanceData1, key);
+
+  perAssistancePiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, perAssistanceData0, perAssistanceData1, key) || d; })
+    .attr("fill", function(d) { return perAssistanceColor(d.data.key); })
+		.attr('d', path)
+  .append("title")
+    .text(function(d) { return d.data.key; });
+
+  perAssistancePiePath.exit()
+  //   .datum(function(d, i) { return findNeighborArc(i, perTrainingData1, perTrainingData0, key) || d; })
+  // .transition()
+  //   .duration(750)
+  //   .attrTween("d", arcTween)
+    .remove();
+
+  perAssistancePiePath.transition()
+    .duration(750)
+    .attrTween("d", arcTween);
+
+  // Legend
+  var perAssistanceLegend = d3.select('#perAssistanceLegend').selectAll('div').data(perAssistanceData, function(d) { return d['key']; });
+  // UPDATE
+
+  perAssistanceLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + perAssistanceColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // ENTER
+  perAssistanceLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + perAssistanceColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // REMOVE
+  perAssistanceLegend.exit().remove();
+  // sort
+  perAssistanceLegend.sort(function(a, b) {
+    return b.values - a.values;
+  })
+
+  buildList();
 }
 
 function drawBars(){
@@ -611,45 +511,9 @@ function drawBars(){
     .transition().duration(1000).ease(d3.easeLinear)
     .attr("x", function(d) { return brgyBarsX(d.value) + 3; })
     .text(function(d) { return d.value; });
-  // drawTimeline();
-  drawKnowLine();
 
-}
-
-function drawKnowLine(){
-
-  var knowLineData = d3.nest()
-      .key(function(d) { return Math.round(parseFloat(d.score_change)); } )
-      .rollup(function(values) { return values.length; })
-      .entries(filteredData.filter(function(d){ return d.score_change !== "data missing"}));
-  knowLineData.forEach(function(d){
-    d.key = parseFloat(d.key);
-  });
-  knowLineData.sort(function(a,b){
-    return a.key - b.key
-  });
-
-  knowLineY.domain(d3.extent(knowLineData, function(d){ return d.value }))
-
-  knowYaxis.call(knowY)
-
-  var g = knowLineSvg.selectAll(".bar")
-        .data(knowLineData, function(d){ return d['key']; })
-
-  g.enter().append("rect").transition().duration(1000).ease(d3.easeSinInOut)
-        .attr("class", "bar")
-        .attr("x", function(d) { return knowLineX(d.key) + 1; })
-        .attr("width", knowLineMeas.barWidth - 2)
-        .attr("y", function(d) {
-					return knowLineY(d.value); })
-        .attr("height", function(d) { return knowLineMeas.height - knowLineY(d.value) + 1; });
-
-  g.exit().remove();
-
-
-  buildList();
-
-}
+    drawPies();
+  }
 
 function buildList(){
 
@@ -657,15 +521,13 @@ function buildList(){
 
   $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
       '<thead>'+
-        '<tr><th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<tr><th>Household ID<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
         '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
         '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
         '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Training<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Pre<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Post<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-        '<th>Change<br><input class="column-search" type="search" placeholder="search..." /></th></tr>'+
+        '<th>Assistance Type<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '<th>Assistance Received<br><input class="column-search" type="search" placeholder="search..." /></th>'+
       '</thead>'+
       '<tbody></tbody></table>');
 
@@ -673,15 +535,13 @@ function buildList(){
 
   $.each(filteredData, function(i,d){
     var rowHtml = '<tr>' +
+      '<td>' + d.household_id + '</td>' +
       '<td>' + d.participant_fname + '</td>' +
       '<td>' + d.participant_lname + '</td>' +
       '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
       '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-      '<td>' + d.training_name[0] + '</td>' +
-      '<td>' + d.score_pretest+ '</td>' +
-      '<td>' + d.score_posttest + '</td>' +
-      '<td>' + d.score_change + '</td>' +
-      '<td>' + d.knowledge_change[0] + '</td>' +
+      '<td>' + d.type_assistance + '</td>' +
+      '<td>' + d.assistance_received+ '</td>' +
       '</tr>';
     $('#listTable tbody').append(rowHtml);
   });

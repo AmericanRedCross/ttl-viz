@@ -226,7 +226,7 @@
   }
 }
 
-#brgyBars {
+#brgyBars, #schoolBars{
   rect {
     fill: #c11b2b;
   }
@@ -234,11 +234,11 @@
     font-size: 11px;
     font-family: inherit;
   }
-  text.brgy-label {
+  text.brgy-label, text.school-label{
     text-anchor: end;
     fill: black;
   }
-  text.brgy-total {
+  text.brgy-total, text.school-total{
     text-anchor: start;
     fill: black;
   }
@@ -366,4 +366,12 @@ rect.graph-bar-2 {
 .card-divider.red-bar {
   padding: rem-calc(4);
   background: #ed1b2e;
+}
+
+
+/* imagery page */
+#data-collection-viewer {
+  #map {
+    height:600px;
+  }
 }
