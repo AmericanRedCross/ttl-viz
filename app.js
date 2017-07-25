@@ -845,6 +845,31 @@ app.get('/api/pages/targetschools', function(req, res) {
 	}
 })
 
+app.get('/rc143',function(req, res) {
+	if (req.user) {
+    res.render('drr-143', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/rc143', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT cm.household_id,cm.member_fname, cm.member_lname, cm.status, tp.participant_fname, tp.participant_lname, tp.training_name as cmdrr, ta.participant_fname, ta.participant_lname, ta.training_name as cp, tb.participant_fname, tb.participant_lname, tb.training_name as hp '+
+                   'FROM public."COMMITTEE_MEMBER" cm '+
+                   'LEFT JOIN public."TRAINING_PARTICIPANT" tp ON cm.household_id=CAST(tp.participant_id as integer) AND TRIM(cm.member_fname)=TRIM(tp.participant_fname) AND tp.training_name='+"'CMDRR' "+
+                   'LEFT JOIN public."TRAINING_PARTICIPANT" ta ON cm.household_id=CAST(ta.participant_id as integer) AND TRIM(cm.member_fname)=TRIM(ta.participant_fname) AND ta.training_name='+"'CP' "+
+                   'LEFT JOIN public."TRAINING_PARTICIPANT" tb ON cm.household_id=CAST(tb.participant_id as integer) AND TRIM(cm.member_fname)=TRIM(tb.participant_fname) AND tb.training_name='+"'HP' "+
+                   'WHERE cm.designation='+"'RC 143 Volunteer';";
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
 app.get('/households-overview',function(req,res) {
 	if (req.user) {
     res.render('households-overview', {
