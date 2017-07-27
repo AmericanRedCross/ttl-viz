@@ -65,6 +65,11 @@
 	  <div id="trainingPie"></div>
 	</div>
 	<div class="small-3 columns end"><div id="trainingLegend"> </div></div>
+  <div class="small-3 columns">
+    <h4>Certification Results</h4>
+	  <div id="certificationPie"></div>
+	</div>
+	<div class="small-3 columns end"><div id="certificationLegend"> </div></div>
 </div>
 
 <br>
@@ -119,6 +124,7 @@ function resize() {
   d3.select("#genderPie").select("svg").remove();
   d3.select('#civilPie').select("svg").remove();
   d3.select('#trainingPie').select("svg").remove();
+  d3.select('#certificationPie').select("svg").remove();
   d3.select('#brgyBars').select("svg").remove();
 
   buildPies();
@@ -136,12 +142,6 @@ function getLocationData(){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
     });
-// locationLookup = {
-//   "14124": {
-//     "id":"24", "location_id":"14124", "barangay_id":"124", "municipality_id":"14", "province":"Leyte",  "municipality":"Tacloban",  "barangay":"San Paglaum 103A"  },
-//   "14123": {...},
-//   ...
-// };
     fetchData();
   });
 }
@@ -165,11 +165,8 @@ function fetchData(){
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-   var civilArray = [],
-      genderArray = [],
-      trainingArray = [],
-      locationArray = [];
-  $.each(data, function(i,item){
+   var civilArray = [], genderArray = [], trainingArray = [], locationArray = [];
+     $.each(data, function(i,item){
     item['civil_status'].forEach(function(d){
       if($.inArray(d, civilArray) === -1){ civilArray.push(d) }
     });
@@ -290,7 +287,7 @@ function filter(){
 }
 
 
-var pieRadius, genderPie, genderPiePath, civilPie, civilPiePath, trainingPie, trainingPiePath;
+var pieRadius, genderPie, genderPiePath, civilPie, civilPiePath, trainingPie, trainingPiePath, certificationPie, certificationPiePath;
 function buildPies(){
 
   var widthOnPage = $('#genderPie').innerWidth();
@@ -318,6 +315,13 @@ function buildPies(){
     .append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
   trainingPiePath = trainingPie.selectAll("path");
+
+  certificationPie = d3.select('#certificationPie').append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  certificationPiePath = certificationPie.selectAll("path");
 
   buildBars();
 };
@@ -519,12 +523,7 @@ function drawPies(){
   .append("title")
     .text(function(d) { return d.data.key; });
 
-  trainingPiePath.exit()
-  //   .datum(function(d, i) { return findNeighborArc(i, trainingData1, trainingData0, key) || d; })
-  // .transition()
-  //   .duration(750)
-  //   .attrTween("d", arcTween)
-    .remove();
+  trainingPiePath.exit().remove();
 
   trainingPiePath.transition()
     .duration(750)
@@ -548,6 +547,49 @@ function drawPies(){
   trainingLegend.sort(function(a, b) {
     return b.value - a.value;
   })
+
+  ///////////////////////
+  // CERTIFICATION PIE //
+  // ################# //
+  ///////////////////////
+  var certificationColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['certification_result']; }))
+
+  var certificationPieData = d3.nest()
+    .key(function(d) { return d['certification_result']; })
+    .rollup(function(value){ return value.length })
+    .entries(filteredData)
+
+  var certificationData0 = certificationPiePath.data(), certificationData1 = pie(certificationPieData);
+
+  certificationPiePath = d3.select('#certificationPie').select('svg').select('g').selectAll('path').data(certificationData1, key);
+
+  certificationPiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, certificationData0, certificationData1, key) || d; })
+    .attr("fill", function(d) { return certificationColor(d.data.key); })
+    .attr('d', path)
+    .append("title")
+    .text(function(d) { return d.data.key; });
+
+  certificationPiePath.exit().remove();
+
+  certificationPiePath.transition().duration(750).attrTween("d", arcTween);
+
+  // Legend
+  var certificationLegend = d3.select('#certificationLegend').selectAll('div').data(certificationPieData, function(d) { return d['key']; });
+  // UPDATE
+  certificationLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + certificationColor(d.key) + '"></i> &nbsp;' + d.key.toLowerCase() + ' <small>(' + d.value + ')</small>';
+  })
+  // ENTER
+  certificationLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + certificationColor(d.key) + '"></i> &nbsp;' + d.key.toLowerCase() + ' <small>(' + d.value + ')</small>';
+  })
+  // REMOVE
+  certificationLegend.exit().remove();
+  // sort
+  certificationLegend.sort(function(a, b) { return b.value - a.value; })
 
   drawBars();
 }
