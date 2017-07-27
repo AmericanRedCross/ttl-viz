@@ -157,6 +157,7 @@ function fetchData(){
       d['sex'] = [d['sex']];
       d['training_applied_for'] = [d['training_applied_for']];
       d['location'] = [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
+      d['certification_result']=[d['certification_result']];
       counter++;
       if(counter === data.length){ buildFilters(); }
     });
@@ -165,7 +166,7 @@ function fetchData(){
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-   var civilArray = [], genderArray = [], trainingArray = [], locationArray = [];
+   var civilArray = [], genderArray = [], trainingArray = [], locationArray = [], certificationArray = [];
      $.each(data, function(i,item){
     item['civil_status'].forEach(function(d){
       if($.inArray(d, civilArray) === -1){ civilArray.push(d) }
@@ -176,13 +177,17 @@ function buildFilters(){
     item['training_applied_for'].forEach(function(d){
       if($.inArray(d, trainingArray) === -1){ trainingArray.push(d) }
     });
+    item['certification_result'].forEach(function(d){
+      if($.inArray(d, certificationArray) === -1){ certificationArray.push(d) }
+    });
     if($.inArray(item['location_id'], locationArray) === -1){ locationArray.push(item['location_id']) }
+    });
 
-  });
   // # alphabetize them arrays
   civilArray.sort(d3.ascending);
   genderArray.sort(d3.ascending);
   trainingArray.sort(d3.ascending);
+  certificationArray.sort(d3.ascending);
   locationArray.sort(function(a, b) { return a - b; });
   // # build the html and add it to the page
   var panelTitles = [];
@@ -220,6 +225,7 @@ function buildFilters(){
     panelHtml('Civil status', 'civil_status', civilArray);
     panelHtml('Gender', 'sex', genderArray);
     panelHtml('Training applied for', 'training_applied_for', trainingArray);
+    panelHtml('Certification Result', 'certification_result', certificationArray);
     panelHtml('Location', null, locationArray, true);
     $('#filter-nav').append(panelTitles);
     Foundation.reInit($('#filter-nav'))
