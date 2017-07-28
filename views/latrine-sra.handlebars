@@ -13,7 +13,7 @@
 
 <div class="row">
 	<div class="columns">
-		<h2>Core Shelter</h2>
+		<h2>SRA Latrines</h2>
 	</div>
 </div>
 
@@ -48,7 +48,7 @@
 
 <div class="row">
   <div class="columns">
-    <h3>Core shelters completed by date</h3>
+    <h3>SRA Latrines completed by date</h3>
     <div id="progressGraph"></div>
   </div>
 </div>
@@ -116,28 +116,19 @@ function getLocationData(){
       locationLookup[location.location_id] = location;
       locationLookup[location['location_id'].slice(0,2)] = location;
     });
-// locationLookup = {
-//   "14124": {
-//     "id":"24", "location_id":"14124", "barangay_id":"124", "municipality_id":"14", "province":"Leyte",  "municipality":"Tacloban",  "barangay":"San Paglaum 103A"  },
-//   "14123": {...},
-//   ...
-// };
     fetchData();
   });
 }
 
 function fetchData(){
-  $.get('{{opts.nginxlocation}}api/pages/core-shelter', function(response){
+  $.get('{{opts.nginxlocation}}api/pages/latrine-sra', function(response){
     data = response;
 		var counter = 0;
     data.forEach(function(d){
       // # for the filter to work all the filtered data values need to be arrays even if all possibilities are just 1 value
       // # this is keeping the option of filtering on 'proposed_items' open which is a comma seperated data field
-      d['hh_type'] = [d['hh_type']];
-      d['hh_relocation'] = [d['hh_relocation']];
-      d['wash_solution'] = [d['wash_solution']];
-      d['location_id'] = (d['hh_id_qr'] === null) ? 'data missing' : d['hh_id_qr'].slice(0,5);
-      d['location'] = (d['hh_id_qr'] === null) ? ['data missing','data missing'] : [d['hh_id_qr'].slice(0,2), d['hh_id_qr'].slice(0,5)];
+      d['location_id'] = (d['hh_id'] === null) ? 'data missing' : d['hh_id'].slice(0,5);
+      d['location'] = (d['hh_id'] === null) ? ['data missing','data missing'] : [d['hh_id'].slice(0,2), d['hh_id'].slice(0,5)];
       counter++;
       if(counter === data.length){ buildFilters(); }
     });
@@ -146,28 +137,14 @@ function fetchData(){
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-  var typeArray = [],
-      relocationArray = [],
-      washArray = [],
-      locationArray = [];
+  var locationArray = [];
   $.each(data, function(i,item){
-    item['hh_type'].forEach(function(d){
-      if($.inArray(d, typeArray) === -1){ typeArray.push(d) }
-    });
-    item['hh_relocation'].forEach(function(d){
-      if($.inArray(d, relocationArray) === -1){ relocationArray.push(d) }
-    });
-    item['wash_solution'].forEach(function(d){
-      if($.inArray(d, washArray) === -1){ washArray.push(d) }
-    });
     if($.inArray(item['location_id'], locationArray) === -1){ locationArray.push(item['location_id']) }
-
   });
+
   // # alphabetize them arrays
-  typeArray.sort(d3.ascending);
-  relocationArray.sort(d3.ascending);
-  washArray.sort(d3.ascending);
   locationArray.sort(function(a, b) { return a - b; });
+
   // # build the html and add it to the page
   var panelTitles = [];
     // var panelBodies = [];
@@ -201,9 +178,6 @@ function buildFilters(){
       $('#filter-nav-tabs').append(thisBodyHtml);
 
     }
-    panelHtml('House type', 'hh_type', typeArray);
-    panelHtml('Relocation', 'hh_relocation', relocationArray);
-    panelHtml('Wash solution', 'wash_solution', washArray);
     panelHtml('Location', null, locationArray, true);
     $('#filter-nav').append(panelTitles);
     Foundation.reInit($('#filter-nav'))
@@ -343,9 +317,9 @@ function buildTimeline(){
     .attr("class", "overlay")
     .attr("width", timelineMeas.containerWidth - timelineMeas.left - timelineMeas.right)
     .attr("height", timelineMeas.height)
-    .on("mouseover", function() { focus.style("display", null); })
-    .on("mouseout", function() { focus.style("display", "none"); })
-    .on("mousemove", mousemove);
+    // .on("mouseover", function() { focus.style("display", null); })
+    // .on("mouseout", function() { focus.style("display", "none"); })
+    // .on("mousemove", mousemove);
 
   function mousemove() {
     var x0 = timelineX.invert(d3.mouse(this)[0]),
@@ -365,7 +339,7 @@ function buildTimeline(){
 function drawBars(){
   // get sume of grants per brgy
   var brgyBarsData = d3.nest()
-    .key(function(d) { return d['hh_id_qr'].slice(0,5); })
+    .key(function(d) { return d['hh_id'].slice(0,5); })
     .rollup(function(value) { return value.length; })
     .entries(filteredData);
 
@@ -420,6 +394,7 @@ function drawTimeline(){
 
   var total = 0;
   $.each(dateData, function(index, date){
+    console.log(date);
     date.key = new Date(date.key);
     total += date.value;
     date['total'] = total;
@@ -454,8 +429,7 @@ function buildList(){
         '<td>' + d.hh_respondent_last_name + '</td>' +
         '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
         '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-        '<td><span class="info-modal-trigger" data-filename="' + d.photo_shelter_one +
-        '" " data-uuid="' + d['_uuid'] + '"><i class="fa fa-info-circle"></i></span></td>' +
+        '<td><span class="info-modal-trigger" data-filename="' + d.photo_latrine_two + '" " data-uuid="' + d['_uuid'] + '" data-first="'+d.photo_latrine_one+'"><i class="fa fa-info-circle"></i></span></td>' +
       '</tr>';
     $('#listTable tbody').append(rowHtml);
   });
@@ -466,23 +440,25 @@ function buildList(){
       var triggerId = $(this).data('uuid').toString();
 
       // var button = $(event.relatedTarget); // Button that triggered the modal
+      var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/";
       var modal = $("#details-modal");
-      modal.find('.modal-body img.img-before').attr("src", "");
-      modal.find('.modal-body img.img-after').attr("src", "");
 
-      var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + $(this).data('filename'); // Extract info from data-* attributes
-      modal.find('.modal-body img.img-after').attr("src", src);
+      modal.find('.modal-body img.img-before').attr("src", src+$(this).data('first'));
+      modal.find('.modal-body img.img-after').attr("src", src+$(this).data('filename'));
+
+      // var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + $(this).data('filename'); // Extract info from data-* attributes
+      // modal.find('.modal-body img.img-after').attr("src", src);
       for(i=0;i<data.length;i++){
         if(triggerId === data[i]['_uuid']){
-          $.get('{{opts.nginxlocation}}api/pages/core-shelter/enumerationhousephoto/' + data[i].hh_id_qr, function(response){
+          $.get('{{opts.nginxlocation}}api/pages/core-shelter/enumerationhousephoto/' + data[i].hh_id, function(response){
             // # response should be an array containing one object
             console.log(response)
             if(response){
-              var beforeSrc = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + response[0]['house_photo'];
-              modal.find('.modal-body img.img-before').attr("src", beforeSrc);
+              // var beforeSrc = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/"+$(this).data.photo_latrine_one;
+              // modal.find('.modal-body img.img-before').attr("src", beforeSrc);
             }
           });
-          var hhId = (data[i].hh_id_qr !== null) ? data[i].hh_id_qr.toString() : "<i>household ID not found</i>";
+          var hhId = (data[i].hh_id !== null) ? data[i].hh_id.toString() : "<i>household ID not found</i>";
           modal.find('#modal-hh-id').html(hhId);
           var benDetailsHtml = "<b>Beneficiary respondent:</b> " + data[i].hh_respondent_first_name + " ";
           if(data[i].hh_respondent_middle_name !== null){
@@ -492,7 +468,6 @@ function buildList(){
             "<b>Location:</b> "
           benDetailsHtml += (data[i].location_id === "data missing") ? "data missing" : locationLookup[data[i].location_id].barangay + ", " + locationLookup[data[i].location_id].municipality;
           benDetailsHtml += "<br>" +
-            "<b>Type:</b> " + data[i].hh_type + "<br>" +
             "<b>Date completed:</b> " + modalReadableTime(new Date(data[i].hh_completed)) + "<br>" +
             "<b>Team leader:</b> " + data[i].team_leader_first_name + " ";
           if(data[i].team_leader_middle_name !== null){
