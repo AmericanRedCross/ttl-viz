@@ -49,7 +49,7 @@
 <div class="row">
   <div class="columns">
     <h3>SRA Latrines completed by date</h3>
-    <div id="progressGraph"></div>
+    <div id="progressGraph" style="width: 100%; font: 10px sans-serif;"></div>
   </div>
 </div>
 
@@ -300,26 +300,36 @@ function buildTimeline(){
 
   timelineGraph.append("path")
     .attr("class", "line")
+    .attr("stroke","#7f181b")
+    .attr("stroke-width","2")
+    .attr("fill", "none");
 
   var focus = timelineGraph.append("g")
     .attr("class", "focus")
     .style("display", "none");
 
   focus.append("circle")
-    .attr("r", 5);
+    .attr("r", 5)
+    .attr("fill", "rgba(237,27,46,0.6)")
+    .attr("stroke", "#ed1b2e")
+    .attr("stroke-width", "1.5px")
+
 
   timelineGraph.append("text")
     .attr("class", "detail")
     .attr("x", 15 + timelineMeas.left)
-    .attr("dy", ".35em");
+    .attr("dy", ".35em")
+    .attr("font-size","14px")
 
   timelineGraph.append("rect")
     .attr("class", "overlay")
     .attr("width", timelineMeas.containerWidth - timelineMeas.left - timelineMeas.right)
     .attr("height", timelineMeas.height)
-    // .on("mouseover", function() { focus.style("display", null); })
-    // .on("mouseout", function() { focus.style("display", "none"); })
-    // .on("mousemove", mousemove);
+    .attr("fill", "none")
+    .attr("pointer-events", "all")
+    .on("mouseover", function() { focus.style("display", null); })
+    .on("mouseout", function() { focus.style("display", "none"); })
+    .on("mousemove", mousemove);
 
   function mousemove() {
     var x0 = timelineX.invert(d3.mouse(this)[0]),
@@ -394,7 +404,6 @@ function drawTimeline(){
 
   var total = 0;
   $.each(dateData, function(index, date){
-    console.log(date);
     date.key = new Date(date.key);
     total += date.value;
     date['total'] = total;
@@ -429,7 +438,7 @@ function buildList(){
         '<td>' + d.hh_respondent_last_name + '</td>' +
         '<td>' + adminText(d.location_id, 'brgy') + '</td>' +
         '<td>' + adminText(d.location_id, 'muni') + '</td>' +
-        '<td><span class="info-modal-trigger" data-filename="' + d.photo_latrine_two + '" " data-uuid="' + d['_uuid'] + '" data-first="'+d.photo_latrine_one+'"><i class="fa fa-info-circle"></i></span></td>' +
+        '<td><span class="info-modal-trigger" data-second="' + d.photo_latrine_two + '" " data-uuid="' + d['_uuid'] + '" data-first="'+d.photo_latrine_one+'"><i class="fa fa-info-circle"></i></span></td>' +
       '</tr>';
     $('#listTable tbody').append(rowHtml);
   });
@@ -439,41 +448,34 @@ function buildList(){
   $('.info-modal-trigger').on('click', function (event) {
       var triggerId = $(this).data('uuid').toString();
 
-      // var button = $(event.relatedTarget); // Button that triggered the modal
       var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/";
       var modal = $("#details-modal");
 
       modal.find('.modal-body img.img-before').attr("src", src+$(this).data('first'));
-      modal.find('.modal-body img.img-after').attr("src", src+$(this).data('filename'));
+      modal.find('.modal-body img.img-after').attr("src", src+$(this).data('second'));
 
-      // var src = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/" + $(this).data('filename'); // Extract info from data-* attributes
-      // modal.find('.modal-body img.img-after').attr("src", src);
       for(i=0;i<data.length;i++){
         if(triggerId === data[i]['_uuid']){
-          $.get('{{opts.nginxlocation}}api/pages/core-shelter/enumerationhousephoto/' + data[i].hh_id, function(response){
-            // # response should be an array containing one object
-            console.log(response)
-            if(response){
-              // var beforeSrc = "http://formhub.redcross.org/attachment/original?media_file=arc_ttl/attachments/"+$(this).data.photo_latrine_one;
-              // modal.find('.modal-body img.img-before').attr("src", beforeSrc);
-            }
-          });
           var hhId = (data[i].hh_id !== null) ? data[i].hh_id.toString() : "<i>household ID not found</i>";
           modal.find('#modal-hh-id').html(hhId);
+
           var benDetailsHtml = "<b>Beneficiary respondent:</b> " + data[i].hh_respondent_first_name + " ";
+
           if(data[i].hh_respondent_middle_name !== null){
             if(data[i].hh_respondent_middle_name.length > 0){ benDetailsHtml += data[i].hh_respondent_middle_name + " " ; }
           }
-          benDetailsHtml += data[i].hh_respondent_last_name + "<br>" +
-            "<b>Location:</b> "
+
+          benDetailsHtml += data[i].hh_respondent_last_name + "<br>" + "<b>Location:</b> "
           benDetailsHtml += (data[i].location_id === "data missing") ? "data missing" : locationLookup[data[i].location_id].barangay + ", " + locationLookup[data[i].location_id].municipality;
-          benDetailsHtml += "<br>" +
-            "<b>Date completed:</b> " + modalReadableTime(new Date(data[i].hh_completed)) + "<br>" +
+          benDetailsHtml += "<br>" + "<b>Date completed:</b> " + modalReadableTime(new Date(data[i].hh_completed)) + "<br>" +
             "<b>Team leader:</b> " + data[i].team_leader_first_name + " ";
+
           if(data[i].team_leader_middle_name !== null){
             if(data[i].team_leader_middle_name.length > 0){ benDetailsHtml += data[i].team_leader_middle_name + " " ; }
           }
+
           benDetailsHtml += data[i].team_leader_last_name;
+
           modal.find('.modal-body p').html(benDetailsHtml);
           break;
         }
