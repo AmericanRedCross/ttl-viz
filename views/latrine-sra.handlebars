@@ -341,7 +341,6 @@ function buildTimeline(){
     timelineGraph.select(".detail").text(readableDate(d.key) + " - " + d.value + " completed, " + d.total + " total");
   }
 
-
   drawBars();
 
 }
@@ -408,6 +407,8 @@ function drawTimeline(){
     total += date.value;
     date['total'] = total;
   });
+
+  console.log(dateData);
 
   timelineX.domain(d3.extent(dateData, function(d) { return d.key; }));
   timelineY.domain(d3.extent(dateData, function(d) { return d.total; }));
