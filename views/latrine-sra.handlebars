@@ -214,7 +214,6 @@ function filter(){
   $.each(filterData,function(i,filterKey){
     var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
     var valueGroups = [];
-    console.log(filterKey)
     $.each(filterKey.value, function(j,filterValue){
       valueGroups.push('<b>' + filterValue + '</b>');
     })
@@ -407,8 +406,6 @@ function drawTimeline(){
     total += date.value;
     date['total'] = total;
   });
-
-  console.log(dateData);
 
   timelineX.domain(d3.extent(dateData, function(d) { return d.key; }));
   timelineY.domain(d3.extent(dateData, function(d) { return d.total; }));
