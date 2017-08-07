@@ -836,6 +836,26 @@ app.get('/api/pages/chast', function(req, res) {
 	}
 })
 
+app.get('/latrine-sra',function(req, res) {
+	if (req.user) {
+    res.render('latrine-sra', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/latrine-sra', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "latrine_960_completion" WHERE hh_id != ' + "''" + ';';
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
 app.get('/api/pages/targetschools', function(req, res) {
 	if (req.user) {
     var queryStr = 'SELECT * FROM "TRAINING_COURSE" WHERE "TRAINING_COURSE".training_name = '+"'CHAST';";
