@@ -11,7 +11,7 @@
 
 <div class="row">
 	<div class="columns">
-		<h2>STED participants</h2>
+		<h2>Skills Training and Enterprise Development</h2>
 	</div>
 </div>
 
@@ -43,15 +43,29 @@
 </div>
 
 <br>
+<div class="row">
+  <div class="small-3 columns">
+    <h4>Implementation</h4>
+	  <div id="locPie"></div>
+	</div>
+	<div class="small-3 columns"><div id="locLegend"> </div></div>
+  <div class="small-3 columns">
+    <h4>Certification Results</h4>
+	  <div id="certificationPie"></div>
+	</div>
+	<div class="small-3 columns end"><div id="certificationLegend"> </div></div>
+</div>
+
+<br>
 
 <div class="row">
-	<div class="small-3 columns">
+  <div class="small-3 columns">
     <h4>Gender</h4>
 	  <div id="genderPie"></div>
 	</div>
 	<div class="small-3 columns"><div id="genderLegend"> </div></div>
 	<div class="small-3 columns">
-    <h4>Civil status</h5>
+    <h4>Civil status</h4>
 	  <div id="civilPie"></div>
 	</div>
 	<div class="small-3 columns"> <div id="civilLegend"> </div> </div>
@@ -60,16 +74,16 @@
 <br>
 
 <div class="row">
-	<div class="small-3 columns">
+  <div class="small-3 columns">
     <h4>Training applied for</h4>
 	  <div id="trainingPie"></div>
 	</div>
 	<div class="small-3 columns end"><div id="trainingLegend"> </div></div>
   <div class="small-3 columns">
-    <h4>Certification Results</h4>
-	  <div id="certificationPie"></div>
+    <h4>Employment Status</h4>
+	  <div id="workPie"></div>
 	</div>
-	<div class="small-3 columns end"><div id="certificationLegend"> </div></div>
+	<div class="small-3 columns end"><div id="workLegend"> </div></div>
 </div>
 
 <br>
@@ -158,6 +172,7 @@ function fetchData(){
       d['training_applied_for'] = [d['training_applied_for']];
       d['location'] = [d['location_id'].slice(0,2), d['location_id'].slice(0,5)];
       d['certification_result']=[d['certification_result']];
+      d['implementation_type']=[d['remarks']];
       counter++;
       if(counter === data.length){ buildFilters(); }
     });
@@ -166,7 +181,7 @@ function fetchData(){
 
 function buildFilters(){
   // # get the unique values from the data for all our filter fields
-   var civilArray = [], genderArray = [], trainingArray = [], locationArray = [], certificationArray = [];
+   var civilArray = [], genderArray = [], trainingArray = [], locationArray = [], certificationArray = [], implementationArray = [];
      $.each(data, function(i,item){
     item['civil_status'].forEach(function(d){
       if($.inArray(d, civilArray) === -1){ civilArray.push(d) }
@@ -180,6 +195,9 @@ function buildFilters(){
     item['certification_result'].forEach(function(d){
       if($.inArray(d, certificationArray) === -1){ certificationArray.push(d) }
     });
+    item['implementation_type'].forEach(function(d){
+      if($.inArray(d, implementationArray) === -1){ implementationArray.push(d) }
+    });
     if($.inArray(item['location_id'], locationArray) === -1){ locationArray.push(item['location_id']) }
     });
 
@@ -188,6 +206,7 @@ function buildFilters(){
   genderArray.sort(d3.ascending);
   trainingArray.sort(d3.ascending);
   certificationArray.sort(d3.ascending);
+  implementationArray.sort(d3.ascending);
   locationArray.sort(function(a, b) { return a - b; });
   // # build the html and add it to the page
   var panelTitles = [];
@@ -222,6 +241,7 @@ function buildFilters(){
       $('#filter-nav-tabs').append(thisBodyHtml);
 
     }
+    panelHtml('Implementation', 'implementation_type', implementationArray);
     panelHtml('Civil status', 'civil_status', civilArray);
     panelHtml('Gender', 'sex', genderArray);
     panelHtml('Training applied for', 'training_applied_for', trainingArray);
@@ -293,13 +313,28 @@ function filter(){
 }
 
 
-var pieRadius, genderPie, genderPiePath, civilPie, civilPiePath, trainingPie, trainingPiePath, certificationPie, certificationPiePath;
+var workPie, workPiePath, implemPie, implemPiePath, pieRadius, genderPie, genderPiePath, civilPie, civilPiePath, trainingPie, trainingPiePath, certificationPie, certificationPiePath;
+
 function buildPies(){
 
   var widthOnPage = $('#genderPie').innerWidth();
   var width = (widthOnPage < 300) ? widthOnPage : 300;
   var height = width;
   pieRadius = Math.min(width, height) / 2;
+
+  implemPie = d3.select('#locPie').append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  implemPiePath = implemPie.selectAll("path");
+
+  workPie = d3.select('#workPie').append("svg")
+      .attr("width", width)
+      .attr("height", height)
+    .append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  workPiePath = implemPie.selectAll("path");
 
   genderPie = d3.select('#genderPie').append("svg")
       .attr("width", width)
@@ -392,6 +427,99 @@ function drawPies(){
     this._current = i(0);
     return function(t) { return path(i(t)); };
   }
+
+  ////////////////////////
+  // EMPLOYMENT PIE //
+  // ################## //
+  ///////////////////////
+  var workColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['employment_status']; }))
+
+  var workPieData = d3.nest()
+    .key(function(d) { return d['employment_status']; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var workData0 = workPiePath.data(), workData1 = pie(workPieData);
+
+  workPiePath = d3.select('#workPie').select('svg').select('g').selectAll('path').data(workData1, key);
+
+  workPiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, workData0, workData1, key) || d; })
+    .attr("fill", function(d) { return workColor(d.data.key); })
+    .attr('d', path)
+  .append("title")
+    .text(function(d) { return d.data.key; });
+
+
+  workPiePath.exit().remove();
+
+  workPiePath.transition().duration(750).attrTween("d", arcTween);
+
+  // Legend
+  var workLegend = d3.select('#workLegend').selectAll('div').data(workPieData, function(d) { return d['key']; });
+  // UPDATE
+  workLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + workColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // ENTER
+  workLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + workColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // REMOVE
+  workLegend.exit().remove();
+  // sort
+  workLegend.sort(function(a, b) { return b.value - a.value; })
+
+  ////////////////////////
+  // IMPLEMENTATION PIE //
+  // ################## //
+  ///////////////////////
+  var implemColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['implementation_type']; }))
+
+  var implemPieData = d3.nest()
+    .key(function(d) { return d['implementation_type']; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var implemData0 = implemPiePath.data(),
+    implemData1 = pie(implemPieData);
+
+  implemPiePath = d3.select('#locPie').select('svg').select('g').selectAll('path').data(implemData1, key);
+
+  implemPiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, implemData0, implemData1, key) || d; })
+    .attr("fill", function(d) { return implemColor(d.data.key); })
+    .attr('d', path)
+  .append("title")
+    .text(function(d) { return d.data.key; });
+
+
+  implemPiePath.exit().remove();
+
+  implemPiePath.transition().duration(750).attrTween("d", arcTween);
+
+  // Legend
+  var implemLegend = d3.select('#locLegend').selectAll('div').data(implemPieData, function(d) { return d['key']; });
+  // UPDATE
+  implemLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + implemColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // ENTER
+  implemLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + implemColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // REMOVE
+  implemLegend.exit().remove();
+  // sort
+  implemLegend.sort(function(a, b) { return b.value - a.value; })
 
   ////////////////
   // GENDER PIE //
