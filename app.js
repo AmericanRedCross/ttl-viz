@@ -726,9 +726,9 @@ app.get('/api/pages/sted', function(req, res) {
 	}
 })
 
-app.get('/sted',function(req, res) {
+app.get('/community-led-groups',function(req,res) {
 	if (req.user) {
-    res.render('sted', {
+    res.render('community-led-groups', {
       user:req.user,
 			opts:settings.page
     });
@@ -737,14 +737,14 @@ app.get('/sted',function(req, res) {
 	}
 })
 
-app.get('/api/pages/sted', function(req, res) {
+app.get('/api/pages/community-led-groups', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT * FROM "LIVELIHOOD_STED_PARTICIPANT";';
+    var queryStr = 'SELECT * FROM public."LIVELIHOOD_CMLP_GROUPS" WHERE public."LIVELIHOOD_CMLP_GROUPS".lng IS NOT NULL;';
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
 	}
-})
+});
 
 app.get('/sra',function(req, res) {
 	if (req.user) {
