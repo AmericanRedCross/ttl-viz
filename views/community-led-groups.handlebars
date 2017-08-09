@@ -1,0 +1,165 @@
+<div id="households-overview-page" class="expanded collapse row">
+  <div class="columns">
+    <div id="info-modal" class="reveal" data-reveal>
+      <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
+      <h4 class="modal-title"><span id="modal-assoc-name" class="subheader"></span></h4>
+      <h5><span id="modal-assoc-brgy"></span>, <span id="modal-assoc-muni"></span></h5>
+      <hr>
+      <p>
+      President: <span id="modal-assoc-head"></span><br>
+      Number of members: <span id="modal-assoc-total"></span> (<span id="modal-assoc-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-assoc-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)<br>
+      </p>
+      <hr>
+      <h5>Proposed Business</h5>
+      <p><span id="modal-assoc-prop"></span></p>
+      <h5>Asisstance Received</h5>
+      <p><span id="modal-assoc-asst"></span></p>
+      </div>
+
+    <div class="small-6" style="position:absolute; z-index: 99; left: 47px; top: 10px;">
+      <h3>Community-Managed Livelihood Program</h3>
+    </div>
+
+    <div id="map"></div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+<script>
+
+var height = $(window).height();
+$('#map').height(height);
+$(window).resize(function(){
+  height = $(window).height();
+  $('#map').height(height);
+})
+
+var data, points, dataGeoJson = { "type": "featureCollection", "features": [] };
+
+var hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  hotAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles from <a href="http://hot.openstreetmap.org/" target="_blank">H.O.T.</a>',
+  hotLayer = L.tileLayer(hotUrl, {attribution: hotAttribution});
+// initialize map w options
+var map = L.map('map', {
+  layers: [hotLayer],
+  center: new L.LatLng(0,0),
+  zoom: 2,
+  minZoom: 2 });
+
+var mapBounds = L.latLngBounds([10.714586690981509,124.71954345703126],[11.321173722096153,126.28509521484375])
+map.fitBounds(mapBounds);
+
+// initialize the SVG layer for D3 drawn markers
+L.svg().addTo(map);
+// pick up the SVG from the map object
+var svg = d3.select('#map').select('svg');
+var pointsGroup = svg.append('g').attr('id', 'markers');
+
+function getPoints(){
+    $.get('{{opts.nginxlocation}}api/pages/cmlp-groups', function(response) {
+    response.forEach(function(d, i) {
+      if(!isNaN(d.lat) && !isNaN(d.lng)) {
+        d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
+        d.municipality = locationLookup[d.location_id].municipality;
+        d.barangay = locationLookup[d.location_id].barangay;
+
+        var latlng = [parseFloat(d.lng), parseFloat(d.lat)];
+        var thisGeoJsonObject = {
+        "type": "Feature",
+        "properties": {
+          "municipality": locationLookup[d.location_id].municipality,
+          "barangay": locationLookup[d.location_id].barangay,
+          "community_group_name": d['community_group_name'],
+          "member_count": d['member_count'],
+          "proposed_business": d['proposed_business'],
+          "assistance_received": d['assistance_received']
+          },
+        "geometry": {
+          "type": "Point",
+          "coordinates": latlng
+          }
+        };
+        dataGeoJson.features.push(thisGeoJsonObject);
+      }
+    });
+		data = response;
+    console.log(data);
+		drawPoints(); 
+  });
+}
+
+var locationLookup = {};
+
+function getLocationData(){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+  });
+
+  getPoints();
+}
+
+function drawPoints(){
+
+  points = pointsGroup.selectAll("circle")
+           .data(data).enter().append("circle")
+           .classed('point', true)
+           .attr('fill', "#ed1b2e")
+           .on('click', function(d){ clickedGroup(d, this); })
+
+  marker = L.geoJson(dataGeoJson, {
+    pointToLayer: function (feature, latlng) {
+      return L.marker(latlng,
+      //   {
+      //     icon: L.divIcon(L.extend({
+      //     html:'<div><i class="fa fa-file-users"></i></div>',
+      //     iconColor: 'red',
+      //     iconSize: [40, 40]
+      //   }))
+      // }
+      );
+    },
+    onEachFeature: function(feature, layer) { layer.on({ click: markerClick })}
+  });
+
+  marker.addTo(map);
+  // when map view changes adjust the locations of the svg circles
+  updatePoint = function() {
+    points.attr('cx',function(d) { return map.latLngToLayerPoint(d.LatLng).x; });
+    points.attr('cy',function(d) { return map.latLngToLayerPoint(d.LatLng).y; });
+	}
+	map.on('zoom move viewreset', updatePoint);
+	updatePoint();
+}
+function markerClick(e) {
+  clickedGroup(e.target.feature.properties);
+}
+
+function clickedGroup(response){
+    if(response != null){
+      $("#modal-assoc-name").empty().text(response.community_group_name);
+      $("#modal-assoc-brgy").empty().text(response.barangay);
+      $("#modal-assoc-muni").empty().text(response.municipality);
+      $("#modal-assoc-head").empty().text("president here");
+      $("#modal-assoc-total").empty().text(response.member_count);
+      $("#modal-assoc-f").empty().text("female count here");
+      $("#modal-assoc-m").empty().text("male count here");
+      $("#modal-assoc-prop").empty().text(response.proposed_business);
+      $("#modal-assoc-asst").empty().text(response.assistance_received);
+    } else {
+      $("#modal-assoc-name").empty();
+      $("#modal-assoc-head").empty();
+      $("#modal-assoc-total").empty();
+      $("#modal-assoc-f").empty();
+      $("#modal-assoc-m").empty();
+      $("#modal-assoc-prop").empty();
+      $("#modal-assoc-asst").empty();
+    }
+    $("#info-modal").foundation('open');
+}
+
+getLocationData()
+</script>

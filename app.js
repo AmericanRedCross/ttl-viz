@@ -726,6 +726,26 @@ app.get('/api/pages/sted', function(req, res) {
 	}
 })
 
+app.get('/sted',function(req, res) {
+	if (req.user) {
+    res.render('sted', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/sted', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM "LIVELIHOOD_STED_PARTICIPANT";';
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
 app.get('/sra',function(req, res) {
 	if (req.user) {
     res.render('sra', {
