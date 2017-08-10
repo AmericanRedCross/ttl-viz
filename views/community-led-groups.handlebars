@@ -15,8 +15,9 @@
       </div>
     </div>
     <div class="row">
-      <div id="map" class="columns small-8" style="height:80%"></div>
+      <div id="map" class="columns small-8" style="height:400px;"></div>
       <div id="brgy-profile" class="columns small-4">
+        <button class="button secondary hollow" style="background:#fff;" onclick="filter('all');">Reset All</button>
         <div id="intro">
           <p>Intro here</p>
         </div>
@@ -65,7 +66,7 @@ $(window).resize(function(){
   $('#map').height(height);
 })
 
-var data, points, dataGeoJson = { "type": "featureCollection", "features": [] };
+var data, points, filteredData, dataGeoJson = { "type": "featureCollection", "features": [] };
 
 var hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
   hotAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles from <a href="http://hot.openstreetmap.org/" target="_blank">H.O.T.</a>',
@@ -103,7 +104,9 @@ function getPoints(){
           "community_group_name": d['community_group_name'],
           "member_count": d['member_count'],
           "proposed_business": d['proposed_business'],
-          "assistance_received": d['assistance_received']
+          "assistance_received": d['assistance_received'],
+          "location_id":d['location_id'],
+          "group_id":d['community_group_id']
           },
         "geometry": {
           "type": "Point",
@@ -114,6 +117,7 @@ function getPoints(){
       }
     });
 		data = response;
+    filteredData = data;
     console.log(data);
 		drawPoints(); 
     buildList();
@@ -129,7 +133,6 @@ function getLocationData(){
       locationLookup[location['location_id'].slice(0,2)] = location;
     });
   });
-
   getPoints();
 }
 
@@ -142,17 +145,7 @@ function drawPoints(){
            .on('click', function(d){ clickedGroup(d, this); })
 
   marker = L.geoJson(dataGeoJson, {
-    pointToLayer: function (feature, latlng) {
-      return L.marker(latlng,
-      //   {
-      //     icon: L.divIcon(L.extend({
-      //     html:'<div><i class="fa fa-file-users"></i></div>',
-      //     iconColor: 'red',
-      //     iconSize: [40, 40]
-      //   }))
-      // }
-      );
-    },
+    pointToLayer: function (feature, latlng) { return L.marker(latlng); },
     onEachFeature: function(feature, layer) { layer.on({ click: markerClick })}
   });
 
@@ -165,22 +158,42 @@ function drawPoints(){
 	map.on('zoom move viewreset', updatePoint);
 
   updatePoint();
-
 }
+
 function markerClick(e) {
   clickedGroup(e.target.feature.properties);
 }
 
 function clickedGroup(response){
   $('#intro').hide();
+  filter(response);
+
     if(response != null){
       $("#modal-assoc-name").empty().text(response.community_group_name);
       $("#modal-assoc-brgy").empty().text(response.barangay);
       $("#modal-assoc-muni").empty().text(response.municipality);
     } else {
       $("#modal-assoc-name").empty();
+      $("#modal-assoc-brgy").empty();
+      $("#modal-assoc-muni").empty();
     }
   $('#content').show();
+}
+
+function filter(response){
+  console.log(response);
+  console.log(data);
+
+  if(response === 'all'){
+    filteredData=data;
+    $('#content').hide();
+    $('#intro').show();
+  }else{
+    filteredData = data.filter(function(d){ return d.location_id===response.location_id; });
+  }
+
+  console.log(filteredData);
+  buildList();
 }
 
 function buildList(){
@@ -193,7 +206,7 @@ function buildList(){
           '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
           '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
           '<th>Details</th>'+'</thead>'+'<tbody></tbody></table>');
-  $.each(data, function(i,d){
+  $.each(filteredData, function(i,d){
     var rowHtml = '<tr>' +
       '<td>' + d.community_group_id + '</td>' +
       '<td>' + d.community_group_name + '</td>' +
@@ -205,30 +218,29 @@ function buildList(){
   });
 
   $('.info-modal-trigger').on('click', function (event) {
-    var triggerId = $(this).data('id').toString(); // data-id attribute for the button that triggered the modal
     var modal = $("#details-modal");
-    // for(i=0;i<filteredData.length;i++){
-    //   if(triggerId === filteredData[i]['id']){
-    //     var hhId = filteredData[i].household_id.toString();
-    //     var name = filteredData[i].participant_fname + " ";
-    //     name += (filteredData[i].participant_mname !== null) ? filteredData[i].participant_mname + " " : "";
-    //     name += filteredData[i].participant_lname;
-    //     modal.find('.modal-title').html(name);
-    //     var location = (locationLookup[filteredData[i].location_id] === undefined) ? "not known" : locationLookup[filteredData[i].location_id].barangay + ", " +
-    //       locationLookup[filteredData[i].location_id].municipality;
-    //     var detailsHtml = "<b>Household location:</b> " + location + "<br>"+
-    //       "<b>Gender:</b> " + filteredData[i].sex + "<br>" +
-    //       "<b>Civil status:</b> " + filteredData[i].civil_status + "<br>" +
-    //       "<b>Birth date:</b> " + filteredData[i].birthdate + "<br>" +
-    //       "<b>Age:</b> " + ageCheck(filteredData[i].birthdate) + "<br>"+
-    //       "<b>Training applied for:</b> " + filteredData[i].training_applied_for + "<br>" +
-    //       "<b>Start date:</b> " + filteredData[i].start_date + "<br>" +
-    //       "<b>National Certification II:</b> " + filteredData[i].certification_result + "<br>"+
-    //       "<b>Job Status:</b> " + filteredData[i].employment_status + "<br>";
-    //     modal.find('.modal-body p').html(detailsHtml);
-    //     break;
-    //   }
-    // }
+
+    for(i=0;i<filteredData.length;i++){
+      if(triggerId === filteredData[i]['community_group_id']){
+        var hhId = filteredData[i].community_group_id;
+        var name = filteredData[i].community_group_name;
+
+        modal.find('.modal-title').html(name);
+
+        var location = (locationLookup[filteredData[i].location_id] === undefined) ? "not known" :
+        locationLookup[filteredData[i].location_id].barangay + ", " +
+        locationLookup[filteredData[i].location_id].municipality;
+
+        var detailsHtml = "<b></b> " + location + "<br><hr>"+
+          "<b>President:</b> " + filteredData[i].head + "<br>" +
+          "<b>Member Count:</b> " + filteredData[i].member_count + "<br><hr>" +
+          "<b>Assistance Received</b> " + "<br>"+
+          "<b>Trainings Attended</b> " + "<br>";
+
+        modal.find('.modal-body p').html(detailsHtml);
+        break;
+      }
+    }
     modal.foundation('open');
   });
 
