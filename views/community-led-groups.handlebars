@@ -1,32 +1,62 @@
-<div id="community-led-groups-page" class="expanded collapse row">
-  <div class="columns">
-    <div id="info-modal" class="reveal" data-reveal>
-      <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
-      <h4 class="modal-title"><span id="modal-assoc-name" class="subheader"></span></h4>
-      <h5><span id="modal-assoc-brgy"></span>, <span id="modal-assoc-muni"></span></h5>
-      <hr>
-      <p>
-      President: <span id="modal-assoc-head"></span><br>
-      Number of members: <span id="modal-assoc-total"></span> (<span id="modal-assoc-f"></span> <i class="fa fa-female" aria-hidden="true"></i> | <span id="modal-assoc-m"></span> <i class="fa fa-male" aria-hidden="true"></i>)<br>
-      </p>
-      <hr>
-      <h5>Proposed Business</h5>
-      <p><span id="modal-assoc-prop"></span></p>
-      <h5>Asisstance Received</h5>
-      <p><span id="modal-assoc-asst"></span></p>
-      </div>
+<div id="community-led-groups-page">
 
-    <div class="small-6" style="position:absolute; z-index: 99; left: 47px; top: 10px;">
-      <h3>Community-Managed Livelihood Program</h3>
+  <div id="details-modal" class="reveal" data-reveal>
+    <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
+    <h5 class="modal-title"></h5>
+    <div class="modal-body">
+      <p></p>
+    </div>
+  </div>
+
+  <div class="columns">
+    <div class="row">
+      <div class="small-6">
+        <h2>Community-Managed Groups</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div id="map" class="columns small-8" style="height:80%"></div>
+      <div id="brgy-profile" class="columns small-4">
+        <div id="intro">
+          <p>Intro here</p>
+        </div>
+        <div id="content">
+          <h3><span id="modal-assoc-brgy"></span>, <span id="modal-assoc-muni"></span></h3>
+          <hr>
+          <h5 id="lh-cmlp-header">Community-Managed Livelihood</h5>
+          <p id="cmlp-list"></p>
+          <hr>
+          <h5 id="lh-ed-header">Enterprise Development</h5>
+          <p id="ed-list"></p>
+          <hr>
+          <h5 id="watsan-header">Water and Sanitation</h5>
+          <p id="bawasa-group"></p>
+        </div>
+
+        </div>
     </div>
 
-    <div id="map"></div>
+    <hr>
+     <div class="row">
+       <div class="columns">
+           <div id="listTable"></div>
+       </div>
+     </div>
   </div>
 </div>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+<style>
+  /* because we want dark grey not blue sort arrows */
+  table.dataTable thead .sorting_asc { background-image: url("{{opts.nginxlocation}}media/sort_asc.png"); }
+  table.dataTable thead .sorting_desc { background-image: url("{{opts.nginxlocation}}media/sort_desc.png"); }
+</style>
+<script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
 <script>
+
+$('#content').hide();
 
 var height = $(window).height();
 $('#map').height(height);
@@ -57,7 +87,7 @@ var svg = d3.select('#map').select('svg');
 var pointsGroup = svg.append('g').attr('id', 'markers');
 
 function getPoints(){
-    $.get('{{opts.nginxlocation}}api/pages/cmlp-groups', function(response) {
+    $.get('{{opts.nginxlocation}}api/pages/community-led-groups', function(response) {
     response.forEach(function(d, i) {
       if(!isNaN(d.lat) && !isNaN(d.lng)) {
         d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
@@ -86,6 +116,7 @@ function getPoints(){
 		data = response;
     console.log(data);
 		drawPoints(); 
+    buildList();
   });
 }
 
@@ -132,33 +163,103 @@ function drawPoints(){
     points.attr('cy',function(d) { return map.latLngToLayerPoint(d.LatLng).y; });
 	}
 	map.on('zoom move viewreset', updatePoint);
-	updatePoint();
+
+  updatePoint();
+
 }
 function markerClick(e) {
   clickedGroup(e.target.feature.properties);
 }
 
 function clickedGroup(response){
+  $('#intro').hide();
     if(response != null){
       $("#modal-assoc-name").empty().text(response.community_group_name);
       $("#modal-assoc-brgy").empty().text(response.barangay);
       $("#modal-assoc-muni").empty().text(response.municipality);
-      $("#modal-assoc-head").empty().text("president here");
-      $("#modal-assoc-total").empty().text(response.member_count);
-      $("#modal-assoc-f").empty().text("female count here");
-      $("#modal-assoc-m").empty().text("male count here");
-      $("#modal-assoc-prop").empty().text(response.proposed_business);
-      $("#modal-assoc-asst").empty().text(response.assistance_received);
     } else {
       $("#modal-assoc-name").empty();
-      $("#modal-assoc-head").empty();
-      $("#modal-assoc-total").empty();
-      $("#modal-assoc-f").empty();
-      $("#modal-assoc-m").empty();
-      $("#modal-assoc-prop").empty();
-      $("#modal-assoc-asst").empty();
     }
-    $("#info-modal").foundation('open');
+  $('#content').show();
+}
+
+function buildList(){
+
+  $('#listTable').empty();
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
+        '<thead>'+
+          '<tr><th>Group Id<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Group Name<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Details</th>'+'</thead>'+'<tbody></tbody></table>');
+  $.each(data, function(i,d){
+    var rowHtml = '<tr>' +
+      '<td>' + d.community_group_id + '</td>' +
+      '<td>' + d.community_group_name + '</td>' +
+      '<td>' + locationLookup[d.location_id].municipality + '</td>' +
+      '<td>' + locationLookup[d.location_id].barangay + '</td>' +
+      '<td><span class="info-modal-trigger" data-id="' + d.community_group_id +
+      '"><i class="fa fa-info-circle"></i></span></td>' + '</tr>';
+    $('#listTable tbody').append(rowHtml);
+  });
+
+  $('.info-modal-trigger').on('click', function (event) {
+    var triggerId = $(this).data('id').toString(); // data-id attribute for the button that triggered the modal
+    var modal = $("#details-modal");
+    // for(i=0;i<filteredData.length;i++){
+    //   if(triggerId === filteredData[i]['id']){
+    //     var hhId = filteredData[i].household_id.toString();
+    //     var name = filteredData[i].participant_fname + " ";
+    //     name += (filteredData[i].participant_mname !== null) ? filteredData[i].participant_mname + " " : "";
+    //     name += filteredData[i].participant_lname;
+    //     modal.find('.modal-title').html(name);
+    //     var location = (locationLookup[filteredData[i].location_id] === undefined) ? "not known" : locationLookup[filteredData[i].location_id].barangay + ", " +
+    //       locationLookup[filteredData[i].location_id].municipality;
+    //     var detailsHtml = "<b>Household location:</b> " + location + "<br>"+
+    //       "<b>Gender:</b> " + filteredData[i].sex + "<br>" +
+    //       "<b>Civil status:</b> " + filteredData[i].civil_status + "<br>" +
+    //       "<b>Birth date:</b> " + filteredData[i].birthdate + "<br>" +
+    //       "<b>Age:</b> " + ageCheck(filteredData[i].birthdate) + "<br>"+
+    //       "<b>Training applied for:</b> " + filteredData[i].training_applied_for + "<br>" +
+    //       "<b>Start date:</b> " + filteredData[i].start_date + "<br>" +
+    //       "<b>National Certification II:</b> " + filteredData[i].certification_result + "<br>"+
+    //       "<b>Job Status:</b> " + filteredData[i].employment_status + "<br>";
+    //     modal.find('.modal-body p').html(detailsHtml);
+    //     break;
+    //   }
+    // }
+    modal.foundation('open');
+  });
+
+  var table = $('#dataTable').DataTable({
+      // scrollX: true,
+      "sDom":'lrtip',
+      "lengthChange": false,
+      "pageLength": 10,
+      // "lengthMenu": [ 10, 50, 100 ],
+      "language": {
+        "lengthMenu": "Display _MENU_ records",
+        "info": "Showing _START_ to _END_ of _TOTAL_ records",
+      }
+    });
+
+    // stop a click in the search input box from triggering a sort on the column
+    $('.column-search').on('click', function(e){
+      e.stopPropagation();
+    });
+
+    // initialize column search functionality
+    table.columns().every( function() {
+      var that = this;
+      $('input', this.header() ).on('keyup change', function(){
+        if( that.search() !== this.value ){
+          that
+          .search( this.value )
+          .draw();
+        }
+      });
+    });
 }
 
 getLocationData()
