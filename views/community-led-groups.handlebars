@@ -66,7 +66,7 @@ $(window).resize(function(){
   $('#map').height(height);
 })
 
-var data, points, filteredData, dataGeoJson = { "type": "featureCollection", "features": [] };
+var data, points, locationData, filteredData, dataGeoJson = { "type": "featureCollection", "features": [] };
 
 var hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
   hotAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles from <a href="http://hot.openstreetmap.org/" target="_blank">H.O.T.</a>',
@@ -87,13 +87,20 @@ L.svg().addTo(map);
 var svg = d3.select('#map').select('svg');
 var pointsGroup = svg.append('g').attr('id', 'markers');
 
-function getPoints(){
-    $.get('{{opts.nginxlocation}}api/pages/community-led-groups', function(response) {
+var locationLookup = {};
+
+function getLocationData(){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
+    console.log(response);
     response.forEach(function(d, i) {
       if(!isNaN(d.lat) && !isNaN(d.lng)) {
         d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
-        d.municipality = locationLookup[d.location_id].municipality;
-        d.barangay = locationLookup[d.location_id].barangay;
+
+        locationLookup[d.location_id] = location;
+        // locationLookup[location['location_id'].slice(0,2)] = location;
+
+        // d.municipality = locationLookup[location.location_id].municipality;
+        // d.barangay = locationLookup[location.location_id].barangay;
 
         var latlng = [parseFloat(d.lng), parseFloat(d.lat)];
         var thisGeoJsonObject = {
@@ -101,12 +108,7 @@ function getPoints(){
         "properties": {
           "municipality": locationLookup[d.location_id].municipality,
           "barangay": locationLookup[d.location_id].barangay,
-          "community_group_name": d['community_group_name'],
-          "member_count": d['member_count'],
-          "proposed_business": d['proposed_business'],
-          "assistance_received": d['assistance_received'],
-          "location_id":d['location_id'],
-          "group_id":d['community_group_id']
+          "location_id": d.location_id
           },
         "geometry": {
           "type": "Point",
@@ -116,30 +118,29 @@ function getPoints(){
         dataGeoJson.features.push(thisGeoJsonObject);
       }
     });
-		data = response;
-    filteredData = data;
-    console.log(data);
-		drawPoints(); 
-    buildList();
+    locationData=response;
+		fetchData();
   });
 }
 
-var locationLookup = {};
-
-function getLocationData(){
-  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
-    $.each(response, function(index, location){
-      locationLookup[location.location_id] = location;
-      locationLookup[location['location_id'].slice(0,2)] = location;
-    });
+function fetchData(){
+  $.get('{{opts.nginxlocation}}api/pages/community-led-groups', function(response){
+    // $.each(response, function(index, location){
+      // locationLookup[location.location_id] = location;
+      // locationLookup[location['location_id'].slice(0,2)] = location;
+    // });
+    data = response;
+    filteredData = data;
+    console.log(data);
+    drawPoints(); 
+    buildList();
   });
-  getPoints();
 }
 
 function drawPoints(){
 
   points = pointsGroup.selectAll("circle")
-           .data(data).enter().append("circle")
+           .data(locationData).enter().append("circle")
            .classed('point', true)
            .attr('fill', "#ed1b2e")
            .on('click', function(d){ clickedGroup(d, this); })
@@ -166,6 +167,9 @@ function markerClick(e) {
 
 function clickedGroup(response){
   $('#intro').hide();
+
+  console.log(response);
+
   filter(response);
 
     if(response != null){

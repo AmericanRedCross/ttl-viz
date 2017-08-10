@@ -1003,7 +1003,7 @@ app.get('/analytics', function(req, res) {
 
 app.get('/api/pages/targetlocations', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT * FROM "TARGET_LOCATION";';
+			var queryStr = 'SELECT * FROM "TARGET_LOCATION" WHERE "TARGET_LOCATION".lng IS NOT NULL;';
 			pghelper.query(queryStr, function(err, data) {
 				res.json(data);
 			})
