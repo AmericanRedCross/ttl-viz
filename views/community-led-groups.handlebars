@@ -20,16 +20,6 @@
         <button class="button secondary hollow" style="background:#fff;" onclick="filter('all');">Reset All</button>
         <div id="intro">
           <p>Summary graphs here</p>
-          <!-- <div class="small-3 columns">
-            <h4>Sector</h4>
-        	  <div id="sectorPie"></div>
-        	</div>
-        	<div class="small-3 columns"><div id="sectorLegend"> </div></div>
-          <div class="small-3 columns">
-            <h4>Type</h4>
-        	  <div id="typePie"></div>
-        	</div>
-        	<div class="small-3 columns"><div id="typeLegend"> </div></div> -->
         </div>
         <div id="content">
           <h3><span id="modal-assoc-brgy"></span>, <span id="modal-assoc-muni"></span></h3>
@@ -46,6 +36,19 @@
         </div>
 
         </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="small-3 columns">
+          <h4>Sector</h4>
+          <div id="sectorPie"></div>
+        </div>
+        <div class="small-3 columns"><div id="sectorLegend"> </div></div>
+        <div class="small-3 columns">
+          <h4>Type</h4>
+          <div id="typePie"></div>
+        </div>
+        <div class="small-3 columns"><div id="typeLegend"> </div></div>
     </div>
 
     <hr>
@@ -140,7 +143,7 @@ function fetchData(){
     data = response;
     filteredData = data;
     drawPoints(); 
-    buildList();
+    buildPies();
   });
 }
 
@@ -207,11 +210,169 @@ function filter(response){
 
   if(response === 'all'){
     filteredData=data;
-    $('#content').hide();
     $('#intro').show();
+    $('#content').hide();
   }else{
     filteredData = data.filter(function(d){ return d.location_id===response.location_id; });
   }
+
+  drawPies();
+  buildList();
+}
+
+var pieRadius, sectorPie, sectorPiePath, typePie, typePiePath;
+function buildPies(){
+
+  var widthOnPage = $('#sectorPie').innerWidth();
+  var width = (widthOnPage < 300) ? widthOnPage : 300;
+  var height = width;
+  pieRadius = Math.min(width, height) / 2;
+
+  sectorPie = d3.select('#sectorPie').append("svg")
+      .attr("width", width).attr("height", height)
+      .append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+  sectorPiePath = sectorPie.selectAll("path");
+
+  typePie = d3.select('#typePie').append("svg")
+      .attr("width", width).attr("height", height)
+      .append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  typePiePath = sectorPie.selectAll("path");
+
+  drawPies();
+}
+
+function drawPies(){
+  /////////////////
+  // PIE HELPERS //
+  // ########### //
+  /////////////////
+  function findNeighborArc(i, data0, data1, key) {
+    var d;
+    return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
+    : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
+    : null;
+  }
+  // # Find the element in data0 that joins the highest preceding element in data1.
+  function findPreceding(i, data0, data1, key) {
+    var m = data0.length;
+    while (--i >= 0) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+  // # Find the element in data0 that joins the lowest following element in data1.
+  function findFollowing(i, data0, data1, key) {
+    var n = data1.length, m = data0.length;
+    while (++i < n) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+
+  function key(d) { return d.data.key }
+
+  var pie = d3.pie().sort(null).value(function(d) { return d.value; });
+
+  var path = d3.arc().outerRadius(pieRadius - 10).innerRadius(0);
+
+  arcTween = function(d) {
+    var i = d3.interpolate(this._current, d);
+    this._current = i(0);
+    return function(t) { return path(i(t)); };
+  }
+
+  ////////////////
+  // sector PIE //
+  // ########## //
+  ////////////////
+  var sectorColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['sector']; }))
+
+  var sectorPieData = d3.nest()
+    .key(function(d) { return d['sector']; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var sectorData0 = sectorPiePath.data(),
+    sectorData1 = pie(sectorPieData);
+
+  sectorPiePath = d3.select('#sectorPie').select('svg').select('g').selectAll('path').data(sectorData1, key);
+
+  sectorPiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, sectorData0, sectorData1, key) || d; })
+    .attr("fill", function(d) { return sectorColor(d.data.key); })
+    .attr('d', path).append("title").text(function(d) { return d.data.key; });
+
+
+  sectorPiePath.exit().remove();
+  sectorPiePath.transition().duration(750).attrTween("d", arcTween);
+
+  // Legend
+  var sectorLegend = d3.select('#sectorLegend').selectAll('div').data(sectorPieData, function(d) { return d['key']; });
+  // UPDATE
+  sectorLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + sectorColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // ENTER
+  sectorLegend.enter().append('div')
+  .attr('class', "legend-item").html(function(d){
+    return '<i class="fa fa-square" style="color:' + sectorColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // REMOVE
+  sectorLegend.exit().remove();
+  // sort
+  sectorLegend.sort(function(a, b) { return b.value - a.value; })
+
+  //////////////////////
+  // type STATUS PIE //
+  // ################ //
+  //////////////////////
+  var typeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['description']; }))
+
+  var typePieData = d3.nest()
+    .key(function(d) { return d['description']; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var typeData0 = typePiePath.data(),
+    typeData1 = pie(typePieData);
+
+  typePiePath = d3.select('#typePie').select('svg').select('g').selectAll('path').data(typeData1, key);
+
+  typePiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, typeData0, typeData1, key) || d; })
+    .attr("fill", function(d) { return typeColor(d.data.key); })
+    .attr('d', path).append("title")
+    .text(function(d) { return d.data.key; });
+
+  typePiePath.exit().remove();
+
+  typePiePath.transition().duration(750).attrTween("d", arcTween);
+
+  // Legend
+  var typeLegend = d3.select('#typeLegend').selectAll('div').data(typePieData, function(d) { return d['key']; });
+  // UPDATE
+  typeLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + typeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // ENTER
+  typeLegend.enter().append('div')
+  .attr('class', "legend-item").html(function(d){
+    return '<i class="fa fa-square" style="color:' + typeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // REMOVE
+  typeLegend.exit().remove();
+  // sort
+  typeLegend.sort(function(a, b) { return b.value - a.value; });
+
   buildList();
 }
 
