@@ -19,18 +19,29 @@
       <div id="brgy-profile" class="columns small-4">
         <button class="button secondary hollow" style="background:#fff;" onclick="filter('all');">Reset All</button>
         <div id="intro">
-          <p>Intro here</p>
+          <p>Summary graphs here</p>
+          <!-- <div class="small-3 columns">
+            <h4>Sector</h4>
+        	  <div id="sectorPie"></div>
+        	</div>
+        	<div class="small-3 columns"><div id="sectorLegend"> </div></div>
+          <div class="small-3 columns">
+            <h4>Type</h4>
+        	  <div id="typePie"></div>
+        	</div>
+        	<div class="small-3 columns"><div id="typeLegend"> </div></div> -->
         </div>
         <div id="content">
           <h3><span id="modal-assoc-brgy"></span>, <span id="modal-assoc-muni"></span></h3>
           <hr>
-          <h5 id="lh-cmlp-header">Community-Managed Livelihood</h5>
-          <p id="cmlp-list"></p>
+          <h5 id="lh-cmlp-header"><i class="fa fa-fw fa-users"></i>&nbsp; Community-Managed Livelihood</h5>
+          <p><span id="cmlp-list"></span></p>
+
           <hr>
-          <h5 id="lh-ed-header">Enterprise Development</h5>
+          <h5 id="lh-ed-header"><i class="fa fa-fw fa-users"></i>&nbsp; Enterprise Development</h5>
           <p id="ed-list"></p>
           <hr>
-          <h5 id="watsan-header">Water and Sanitation</h5>
+          <h5 id="watsan-header"><i class="fa fa-fw fa-tint"></i>&nbsp; Water and Sanitation</h5>
           <p id="bawasa-group"></p>
         </div>
 
@@ -91,7 +102,6 @@ var locationLookup = {};
 
 function getLocationData(){
   $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
-    console.log(response);
     response.forEach(function(d, i) {
       if(!isNaN(d.lat) && !isNaN(d.lng)) {
         d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
@@ -122,8 +132,6 @@ function getLocationData(){
 
 function fetchData(){
 
-  console.log(locationLookup);
-
   $.get('{{opts.nginxlocation}}api/pages/community-led-groups', function(response){
     $.each(response, function(index, group){
       group['municipality'] =  locationLookup[group.location_id.slice(0,2)].municipality;
@@ -131,7 +139,6 @@ function fetchData(){
     });
     data = response;
     filteredData = data;
-    console.log(data);
     drawPoints(); 
     buildList();
   });
@@ -173,9 +180,21 @@ function clickedGroup(response){
   filter(response);
 
     if(response != null){
+
+    var brgyData = data.filter(function(d){ return d.location_id===response.location_id; });
+    var brgyHTML = ["","",""];
+
+    console.log(brgyData);
+
       $("#modal-assoc-name").empty().text(response.community_group_name);
       $("#modal-assoc-brgy").empty().text(response.barangay);
       $("#modal-assoc-muni").empty().text(response.municipality);
+
+      brgyData.forEach(function(d){
+        brgyHTML[0] += d.community_group_name+"<br>";
+      })
+
+      $('#cmlp-list').empty().html(brgyHTML[0]);
     } else {
       $("#modal-assoc-name").empty();
       $("#modal-assoc-brgy").empty();
@@ -185,7 +204,6 @@ function clickedGroup(response){
 }
 
 function filter(response){
-  console.log(response);
 
   if(response === 'all'){
     filteredData=data;
@@ -194,8 +212,6 @@ function filter(response){
   }else{
     filteredData = data.filter(function(d){ return d.location_id===response.location_id; });
   }
-
-  console.log(filteredData);
   buildList();
 }
 
