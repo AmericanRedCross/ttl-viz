@@ -96,18 +96,15 @@ function getLocationData(){
       if(!isNaN(d.lat) && !isNaN(d.lng)) {
         d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
 
-        locationLookup[d.location_id] = location;
-        // locationLookup[location['location_id'].slice(0,2)] = location;
-
-        // d.municipality = locationLookup[location.location_id].municipality;
-        // d.barangay = locationLookup[location.location_id].barangay;
+        locationLookup[d.location_id] = d;
+        locationLookup[d.location_id.slice(0,2)] = d;
 
         var latlng = [parseFloat(d.lng), parseFloat(d.lat)];
         var thisGeoJsonObject = {
         "type": "Feature",
         "properties": {
-          "municipality": locationLookup[d.location_id].municipality,
-          "barangay": locationLookup[d.location_id].barangay,
+          "municipality": d.municipality,
+          "barangay": d.barangay,
           "location_id": d.location_id
           },
         "geometry": {
@@ -124,11 +121,14 @@ function getLocationData(){
 }
 
 function fetchData(){
+
+  console.log(locationLookup);
+
   $.get('{{opts.nginxlocation}}api/pages/community-led-groups', function(response){
-    // $.each(response, function(index, location){
-      // locationLookup[location.location_id] = location;
-      // locationLookup[location['location_id'].slice(0,2)] = location;
-    // });
+    $.each(response, function(index, group){
+      group['municipality'] =  locationLookup[group.location_id.slice(0,2)].municipality;
+      group['barangay'] = locationLookup[group.location_id].barangay;
+    });
     data = response;
     filteredData = data;
     console.log(data);
@@ -186,7 +186,6 @@ function clickedGroup(response){
 
 function filter(response){
   console.log(response);
-  console.log(data);
 
   if(response === 'all'){
     filteredData=data;
@@ -216,8 +215,8 @@ function buildList(){
       '<td>' + d.community_group_name + '</td>' +
       '<td>' + locationLookup[d.location_id].municipality + '</td>' +
       '<td>' + locationLookup[d.location_id].barangay + '</td>' +
-      '<td><span class="info-modal-trigger" data-id="' + d.community_group_id +
-      '"><i class="fa fa-info-circle"></i></span></td>' + '</tr>';
+      '<td><span class="info-modal-trigger" data-id=' + d.community_group_id +
+      '><i class="fa fa-info-circle"></i></span></td>' + '</tr>';
     $('#listTable tbody').append(rowHtml);
   });
 
@@ -225,7 +224,7 @@ function buildList(){
     var modal = $("#details-modal");
 
     for(i=0;i<filteredData.length;i++){
-      if(triggerId === filteredData[i]['community_group_id']){
+      if(filteredData[i].community_group_id != null){
         var hhId = filteredData[i].community_group_id;
         var name = filteredData[i].community_group_name;
 
