@@ -32,7 +32,7 @@
           <p id="ed-list"></p>
           <hr>
           <h5 id="watsan-header"><i class="fa fa-fw fa-tint"></i>&nbsp; Water and Sanitation</h5>
-          <p id="bawasa-group"></p>
+          <p id="bawasa-list"></p>
         </div>
 
         </div>
@@ -105,6 +105,7 @@ var locationLookup = {};
 
 function getLocationData(){
   $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
+
     response.forEach(function(d, i) {
       if(!isNaN(d.lat) && !isNaN(d.lng)) {
         d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
@@ -137,8 +138,10 @@ function fetchData(){
 
   $.get('{{opts.nginxlocation}}api/pages/community-led-groups', function(response){
     $.each(response, function(index, group){
-      group['municipality'] =  locationLookup[group.location_id.slice(0,2)].municipality;
-      group['barangay'] = locationLookup[group.location_id].barangay;
+      if(locationLookup[group['location_id']] != null){
+        group['municipality'] =  locationLookup[group['location_id'].slice(0,2)].municipality;
+        group['barangay'] = locationLookup[group['location_id']].barangay;
+      }
     });
     data = response;
     filteredData = data;
@@ -178,8 +181,6 @@ function markerClick(e) {
 function clickedGroup(response){
   $('#intro').hide();
 
-  console.log(response);
-
   filter(response);
 
     if(response != null){
@@ -187,17 +188,19 @@ function clickedGroup(response){
     var brgyData = data.filter(function(d){ return d.location_id===response.location_id; });
     var brgyHTML = ["","",""];
 
-    console.log(brgyData);
-
       $("#modal-assoc-name").empty().text(response.community_group_name);
       $("#modal-assoc-brgy").empty().text(response.barangay);
       $("#modal-assoc-muni").empty().text(response.municipality);
 
       brgyData.forEach(function(d){
-        brgyHTML[0] += d.community_group_name+"<br>";
+        if(d.description === "CMLP"){ brgyHTML[0] += d.community_group_name+"<br>"; }
+        if(d.description === "ED"){ brgyHTML[1] += d.community_group_name+"<br>"; }
+        if(d.description === "BAWASA"){ brgyHTML[2] += d.community_group_name+"<br>"; }
       })
 
       $('#cmlp-list').empty().html(brgyHTML[0]);
+      $('#ed-list').empty().html(brgyHTML[1]);
+      $('#bawasa-list').empty().html(brgyHTML[2]);
     } else {
       $("#modal-assoc-name").empty();
       $("#modal-assoc-brgy").empty();
@@ -399,28 +402,35 @@ function buildList(){
 
   $('.info-modal-trigger').on('click', function (event) {
     var modal = $("#details-modal");
+    var triggerId = $(this).data('id').toString();
 
-    for(i=0;i<filteredData.length;i++){
-      if(filteredData[i].community_group_id != null){
-        var hhId = filteredData[i].community_group_id;
-        var name = filteredData[i].community_group_name;
+    var selectedGroup = filteredData.filter(function(d){ return d.community_group_id===triggerId; });
+
+      if(selectedGroup != null){
+
+        var hhId = selectedGroup[0].community_group_id;
+        var name = selectedGroup[0].community_group_name;
 
         modal.find('.modal-title').html(name);
 
-        var location = (locationLookup[filteredData[i].location_id] === undefined) ? "not known" :
-        locationLookup[filteredData[i].location_id].barangay + ", " +
-        locationLookup[filteredData[i].location_id].municipality;
+        var location = (locationLookup[selectedGroup[0].location_id] === undefined) ? "not known" :
+        locationLookup[selectedGroup[0].location_id].barangay + ", " +
+        locationLookup[selectedGroup[0].location_id].municipality;
 
         var detailsHtml = "<b></b> " + location + "<br><hr>"+
-          "<b>President:</b> " + filteredData[i].head + "<br>" +
-          "<b>Member Count:</b> " + filteredData[i].member_count + "<br><hr>" +
-          "<b>Assistance Received</b> " + "<br>"+
-          "<b>Trainings Attended</b> " + "<br>";
+          "<b>President:</b> " + selectedGroup[0].head + "<br>" +
+          "<b>Member Count:</b> " + selectedGroup[0].member_count + "<br><hr>";
 
+        if(selectedGroup[0].sector === 'Livelihood'){
+          detailsHtml += "<b>Proposed Business:</b> " + selectedGroup[0].proposed_business + "<br><br>"
+          + "<b>Assistance Received</b><br>";
+          if(selectedGroup[0].assistance_cash != null){ detailsHtml += " Cash Assistance<br>"; }
+          if(selectedGroup[0].assistance_input != null){ detailsHtml += " Inputs Assistance<br>"; }
+        }
+        // detailsHtml += "<b>Trainings Attended</b> " + "<br>";
         modal.find('.modal-body p').html(detailsHtml);
-        break;
       }
-    }
+
     modal.foundation('open');
   });
 

@@ -739,7 +739,7 @@ app.get('/community-led-groups',function(req,res) {
 
 app.get('/api/pages/community-led-groups', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT * FROM public."LIVELIHOOD_CMLP_GROUPS" WHERE public."LIVELIHOOD_CMLP_GROUPS".lng IS NOT NULL;';
+    var queryStr = 'SELECT * FROM public."COMMUNITY_MANAGED_GROUPS";';
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
