@@ -849,7 +849,7 @@ app.get('/latrine-sra',function(req, res) {
 
 app.get('/api/pages/latrine-sra', function(req, res) {
 	if (req.user) {
-    var queryStr = 'SELECT * FROM "latrine_960_completion" WHERE hh_id != ' + "''" + ';';
+    var queryStr = 'SELECT * FROM "latrine_960_completion" WHERE hh_id IS NOT NULL AND cast(hh_id as integer)>1000000000;';
     pghelper.query(queryStr, function(err, data) {
 			res.json(data);
 		})
