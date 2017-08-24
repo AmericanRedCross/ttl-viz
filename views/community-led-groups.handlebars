@@ -1,0 +1,457 @@
+<div id="community-led-groups-page">
+
+  <div id="details-modal" class="reveal" data-reveal>
+    <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
+    <h5 class="modal-title"></h5>
+    <div class="modal-body">
+      <p></p>
+    </div>
+  </div>
+
+  <div class="columns">
+    <div class="row">
+      <div class="small-6">
+        <h2>Community-Managed Groups</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div id="map" class="columns small-8" style="height:400px;"></div>
+      <div id="brgy-profile" class="columns small-4">
+        <button class="button secondary hollow" style="background:#fff;" onclick="filter('all');">Clear All</button>
+        <div id="intro">
+          <!-- <h4>Outlined in this page are all of the community-managed groups supported by the TTL Program.</h4> -->
+        </div>
+        <div id="content">
+          <h3><span id="modal-assoc-brgy"></span>, <span id="modal-assoc-muni"></span></h3>
+          <hr>
+          <h5 id="lh-cmlp-header"><i class="fa fa-fw fa-users"></i>&nbsp; Community-Managed Livelihood</h5>
+          <p><span id="cmlp-list"></span></p>
+
+          <hr>
+          <h5 id="lh-ed-header"><i class="fa fa-fw fa-users"></i>&nbsp; Enterprise Development</h5>
+          <p id="ed-list"></p>
+          <hr>
+          <h5 id="watsan-header"><i class="fa fa-fw fa-tint"></i>&nbsp; Water and Sanitation</h5>
+          <p id="bawasa-list"></p>
+        </div>
+
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="small-3 columns">
+          <h4>Sector</h4>
+          <div id="sectorPie"></div>
+        </div>
+        <div class="small-3 columns"><div id="sectorLegend"> </div></div>
+        <div class="small-3 columns">
+          <h4>Type</h4>
+          <div id="typePie"></div>
+        </div>
+        <div class="small-3 columns"><div id="typeLegend"> </div></div>
+    </div>
+
+    <hr>
+     <div class="row">
+       <div class="columns">
+           <div id="listTable"></div>
+       </div>
+     </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+<style>
+  /* because we want dark grey not blue sort arrows */
+  table.dataTable thead .sorting_asc { background-image: url("{{opts.nginxlocation}}media/sort_asc.png"); }
+  table.dataTable thead .sorting_desc { background-image: url("{{opts.nginxlocation}}media/sort_desc.png"); }
+</style>
+<script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+<script>
+
+$('#content').hide();
+
+var height = $(window).height();
+$('#map').height(height);
+$(window).resize(function(){
+  height = $(window).height();
+  $('#map').height(height);
+})
+
+var data, points, locationData, filteredData, dataGeoJson = { "type": "featureCollection", "features": [] };
+
+var hotUrl = 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  hotAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, Tiles from <a href="http://hot.openstreetmap.org/" target="_blank">H.O.T.</a>',
+  hotLayer = L.tileLayer(hotUrl, {attribution: hotAttribution});
+// initialize map w options
+var map = L.map('map', {
+  layers: [hotLayer],
+  center: new L.LatLng(0,0),
+  zoom: 2,
+  minZoom: 2 });
+
+var mapBounds = L.latLngBounds([10.714586690981509,124.71954345703126],[11.321173722096153,126.28509521484375])
+map.fitBounds(mapBounds);
+
+// initialize the SVG layer for D3 drawn markers
+L.svg().addTo(map);
+// pick up the SVG from the map object
+var svg = d3.select('#map').select('svg');
+var pointsGroup = svg.append('g').attr('id', 'markers');
+
+var locationLookup = {};
+
+function getLocationData(){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
+
+    response.forEach(function(d, i) {
+      if(!isNaN(d.lat) && !isNaN(d.lng)) {
+        d.LatLng = new L.LatLng(parseFloat(d.lat), parseFloat(d.lng));
+
+        locationLookup[d.location_id] = d;
+        locationLookup[d.location_id.slice(0,2)] = d;
+
+        var latlng = [parseFloat(d.lng), parseFloat(d.lat)];
+        var thisGeoJsonObject = {
+        "type": "Feature",
+        "properties": {
+          "municipality": d.municipality,
+          "barangay": d.barangay,
+          "location_id": d.location_id
+          },
+        "geometry": {
+          "type": "Point",
+          "coordinates": latlng
+          }
+        };
+        dataGeoJson.features.push(thisGeoJsonObject);
+      }
+    });
+    locationData=response;
+		fetchData();
+  });
+}
+
+function fetchData(){
+
+  $.get('{{opts.nginxlocation}}api/pages/community-led-groups', function(response){
+    $.each(response, function(index, group){
+      if(locationLookup[group['location_id']] != null){
+        group['municipality'] =  locationLookup[group['location_id'].slice(0,2)].municipality;
+        group['barangay'] = locationLookup[group['location_id']].barangay;
+      }
+    });
+    data = response;
+    filteredData = data;
+    drawPoints(); 
+    buildPies();
+  });
+}
+
+function drawPoints(){
+  marker = L.geoJson(dataGeoJson, {
+    pointToLayer: function (feature, latlng) { return L.marker(latlng); },
+    onEachFeature: function(feature, layer) { layer.on({ click: markerClick })}
+  });
+
+  marker.addTo(map);
+}
+
+function markerClick(e) {
+  clickedGroup(e.target.feature.properties);
+}
+
+function clickedGroup(response){
+  $('#intro').hide();
+
+  filter(response);
+
+    if(response != null){
+
+    var brgyData = data.filter(function(d){ return d.location_id===response.location_id; });
+    var brgyHTML = ["","",""];
+
+      $("#modal-assoc-name").empty().text(response.community_group_name);
+      $("#modal-assoc-brgy").empty().text(response.barangay);
+      $("#modal-assoc-muni").empty().text(response.municipality);
+
+      brgyData.forEach(function(d){
+        if(d.description === "CMLP"){ brgyHTML[0] += d.community_group_name+"<br>"; }
+        if(d.description === "ED"){ brgyHTML[1] += d.community_group_name+"<br>"; }
+        if(d.description === "BAWASA"){ brgyHTML[2] += d.community_group_name+"<br>"; }
+      })
+
+      $('#cmlp-list').empty().html(brgyHTML[0]);
+      $('#ed-list').empty().html(brgyHTML[1]);
+      $('#bawasa-list').empty().html(brgyHTML[2]);
+    } else {
+      $("#modal-assoc-name").empty();
+      $("#modal-assoc-brgy").empty();
+      $("#modal-assoc-muni").empty();
+    }
+  $('#content').show();
+}
+
+function filter(response){
+
+  if(response === 'all'){
+    filteredData=data;
+    $('#intro').show();
+    $('#content').hide();
+  }else{
+    filteredData = data.filter(function(d){ return d.location_id===response.location_id; });
+  }
+
+  drawPies();
+  buildList();
+}
+
+var pieRadius, sectorPie, sectorPiePath, typePie, typePiePath;
+function buildPies(){
+
+  var widthOnPage = $('#sectorPie').innerWidth();
+  var width = (widthOnPage < 300) ? widthOnPage : 300;
+  var height = width;
+  pieRadius = Math.min(width, height) / 2;
+
+  sectorPie = d3.select('#sectorPie').append("svg")
+      .attr("width", width).attr("height", height)
+      .append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+  sectorPiePath = sectorPie.selectAll("path");
+
+  typePie = d3.select('#typePie').append("svg")
+      .attr("width", width).attr("height", height)
+      .append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  typePiePath = sectorPie.selectAll("path");
+
+  drawPies();
+}
+
+function drawPies(){
+  /////////////////
+  // PIE HELPERS //
+  // ########### //
+  /////////////////
+  function findNeighborArc(i, data0, data1, key) {
+    var d;
+    return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
+    : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
+    : null;
+  }
+  // # Find the element in data0 that joins the highest preceding element in data1.
+  function findPreceding(i, data0, data1, key) {
+    var m = data0.length;
+    while (--i >= 0) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+  // # Find the element in data0 that joins the lowest following element in data1.
+  function findFollowing(i, data0, data1, key) {
+    var n = data1.length, m = data0.length;
+    while (++i < n) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+
+  function key(d) { return d.data.key }
+
+  var pie = d3.pie().sort(null).value(function(d) { return d.value; });
+
+  var path = d3.arc().outerRadius(pieRadius - 10).innerRadius(0);
+
+  arcTween = function(d) {
+    var i = d3.interpolate(this._current, d);
+    this._current = i(0);
+    return function(t) { return path(i(t)); };
+  }
+
+  ////////////////
+  // sector PIE //
+  // ########## //
+  ////////////////
+  var sectorColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['sector']; }))
+
+  var sectorPieData = d3.nest()
+    .key(function(d) { return d['sector']; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var sectorData0 = sectorPiePath.data(),
+    sectorData1 = pie(sectorPieData);
+
+  sectorPiePath = d3.select('#sectorPie').select('svg').select('g').selectAll('path').data(sectorData1, key);
+
+  sectorPiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, sectorData0, sectorData1, key) || d; })
+    .attr("fill", function(d) { return sectorColor(d.data.key); })
+    .attr('d', path).append("title").text(function(d) { return d.data.key; });
+
+
+  sectorPiePath.exit().remove();
+  sectorPiePath.transition().duration(750).attrTween("d", arcTween);
+
+  // Legend
+  var sectorLegend = d3.select('#sectorLegend').selectAll('div').data(sectorPieData, function(d) { return d['key']; });
+  // UPDATE
+  sectorLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + sectorColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // ENTER
+  sectorLegend.enter().append('div')
+  .attr('class', "legend-item").html(function(d){
+    return '<i class="fa fa-square" style="color:' + sectorColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // REMOVE
+  sectorLegend.exit().remove();
+  // sort
+  sectorLegend.sort(function(a, b) { return b.value - a.value; })
+
+  //////////////////////
+  // type STATUS PIE //
+  // ################ //
+  //////////////////////
+  var typeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['description']; }))
+
+  var typePieData = d3.nest()
+    .key(function(d) { return d['description']; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var typeData0 = typePiePath.data(),
+    typeData1 = pie(typePieData);
+
+  typePiePath = d3.select('#typePie').select('svg').select('g').selectAll('path').data(typeData1, key);
+
+  typePiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, typeData0, typeData1, key) || d; })
+    .attr("fill", function(d) { return typeColor(d.data.key); })
+    .attr('d', path).append("title")
+    .text(function(d) { return d.data.key; });
+
+  typePiePath.exit().remove();
+
+  typePiePath.transition().duration(750).attrTween("d", arcTween);
+
+  // Legend
+  var typeLegend = d3.select('#typeLegend').selectAll('div').data(typePieData, function(d) { return d['key']; });
+  // UPDATE
+  typeLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + typeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // ENTER
+  typeLegend.enter().append('div')
+  .attr('class', "legend-item").html(function(d){
+    return '<i class="fa fa-square" style="color:' + typeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>';
+  })
+  // REMOVE
+  typeLegend.exit().remove();
+  // sort
+  typeLegend.sort(function(a, b) { return b.value - a.value; });
+
+  buildList();
+}
+
+function buildList(){
+
+  $('#listTable').empty();
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
+        '<thead>'+
+          '<tr><th>Group Id<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Group Name<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Group Type<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Sector<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Details</th>'+'</thead>'+'<tbody></tbody></table>');
+  $.each(filteredData, function(i,d){
+    var rowHtml = '<tr>' +
+      '<td>' + d.community_group_id + '</td>' +
+      '<td>' + d.community_group_name + '</td>' +
+      '<td>' + locationLookup[d.location_id].municipality + '</td>' +
+      '<td>' + locationLookup[d.location_id].barangay + '</td>' +
+      '<td>' + d.description + '</td>' +
+      '<td>' + d.sector + '</td>' +
+      '<td><span class="info-modal-trigger" data-id=' + d.community_group_id +
+      '><i class="fa fa-info-circle"></i></span></td>' + '</tr>';
+    $('#listTable tbody').append(rowHtml);
+  });
+
+  $('.info-modal-trigger').on('click', function (event) {
+    var modal = $("#details-modal");
+    var triggerId = $(this).data('id').toString();
+
+    var selectedGroup = filteredData.filter(function(d){ return d.community_group_id===triggerId; });
+
+      if(selectedGroup != null){
+
+        var hhId = selectedGroup[0].community_group_id;
+        var name = selectedGroup[0].community_group_name;
+
+        modal.find('.modal-title').html(name);
+
+        var location = (locationLookup[selectedGroup[0].location_id] === undefined) ? "not known" :
+        locationLookup[selectedGroup[0].location_id].barangay + ", " +
+        locationLookup[selectedGroup[0].location_id].municipality;
+
+        var detailsHtml = "<b></b> " + location + "<br><hr>"+
+          "<b>President:</b> " + (selectedGroup[0].head == null ? "Data Not Available" : selectedGroup[0].head) + "<br>" +
+          "<b>Member Count:</b> " + selectedGroup[0].member_count + "<br><hr>";
+
+        if(selectedGroup[0].sector === 'Livelihood'){
+          detailsHtml += "<b>Proposed Business</b><br> " + selectedGroup[0].proposed_business + "<br><br>"
+          + "<b>Assistance Received</b><br>";
+          if(selectedGroup[0].assistance_cash != null){ detailsHtml += " Cash Assistance<br>"; }
+          if(selectedGroup[0].assistance_input != null){ detailsHtml += " Inputs Assistance<br>"; }
+          if(selectedGroup[0].assistance_facility != null){ detailsHtml += " Equipment/Facility<br>"; }
+        }
+        modal.find('.modal-body p').html(detailsHtml);
+      }
+
+    modal.foundation('open');
+  });
+
+  var table = $('#dataTable').DataTable({
+      // scrollX: true,
+      "sDom":'lrtip',
+      "lengthChange": false,
+      "pageLength": 10,
+      // "lengthMenu": [ 10, 50, 100 ],
+      "language": {
+        "lengthMenu": "Display _MENU_ records",
+        "info": "Showing _START_ to _END_ of _TOTAL_ records",
+      }
+    });
+
+    // stop a click in the search input box from triggering a sort on the column
+    $('.column-search').on('click', function(e){
+      e.stopPropagation();
+    });
+
+    // initialize column search functionality
+    table.columns().every( function() {
+      var that = this;
+      $('input', this.header() ).on('keyup change', function(){
+        if( that.search() !== this.value ){
+          that
+          .search( this.value )
+          .draw();
+        }
+      });
+    });
+}
+
+getLocationData()
+</script>

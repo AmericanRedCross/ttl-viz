@@ -726,6 +726,26 @@ app.get('/api/pages/sted', function(req, res) {
 	}
 })
 
+app.get('/community-led-groups',function(req,res) {
+	if (req.user) {
+    res.render('community-led-groups', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/community-led-groups', function(req, res) {
+	if (req.user) {
+    var queryStr = 'SELECT * FROM public."COMMUNITY_MANAGED_GROUPS";';
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+});
+
 app.get('/sra',function(req, res) {
 	if (req.user) {
     res.render('sra', {
@@ -983,7 +1003,7 @@ app.get('/analytics', function(req, res) {
 
 app.get('/api/pages/targetlocations', function(req,res) {
 	if (req.user) {
-			var queryStr = 'SELECT * FROM "TARGET_LOCATION";';
+			var queryStr = 'SELECT * FROM "TARGET_LOCATION" WHERE "TARGET_LOCATION".lng IS NOT NULL;';
 			pghelper.query(queryStr, function(err, data) {
 				res.json(data);
 			})
