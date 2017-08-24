@@ -17,9 +17,9 @@
     <div class="row">
       <div id="map" class="columns small-8" style="height:400px;"></div>
       <div id="brgy-profile" class="columns small-4">
-        <button class="button secondary hollow" style="background:#fff;" onclick="filter('all');">Reset All</button>
+        <button class="button secondary hollow" style="background:#fff;" onclick="filter('all');">Clear All</button>
         <div id="intro">
-          <p>Summary graphs here</p>
+          <!-- <h4>Outlined in this page are all of the community-managed groups supported by the TTL Program.</h4> -->
         </div>
         <div id="content">
           <h3><span id="modal-assoc-brgy"></span>, <span id="modal-assoc-muni"></span></h3>
@@ -151,27 +151,12 @@ function fetchData(){
 }
 
 function drawPoints(){
-
-  points = pointsGroup.selectAll("circle")
-           .data(locationData).enter().append("circle")
-           .classed('point', true)
-           .attr('fill', "#ed1b2e")
-           .on('click', function(d){ clickedGroup(d, this); })
-
   marker = L.geoJson(dataGeoJson, {
     pointToLayer: function (feature, latlng) { return L.marker(latlng); },
     onEachFeature: function(feature, layer) { layer.on({ click: markerClick })}
   });
 
   marker.addTo(map);
-  // when map view changes adjust the locations of the svg circles
-  updatePoint = function() {
-    points.attr('cx',function(d) { return map.latLngToLayerPoint(d.LatLng).x; });
-    points.attr('cy',function(d) { return map.latLngToLayerPoint(d.LatLng).y; });
-	}
-	map.on('zoom move viewreset', updatePoint);
-
-  updatePoint();
 }
 
 function markerClick(e) {
@@ -388,6 +373,8 @@ function buildList(){
           '<th>Group Name<br><input class="column-search" type="search" placeholder="search..." /></th>'+
           '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
           '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Group Type<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Sector<br><input class="column-search" type="search" placeholder="search..." /></th>'+
           '<th>Details</th>'+'</thead>'+'<tbody></tbody></table>');
   $.each(filteredData, function(i,d){
     var rowHtml = '<tr>' +
@@ -395,6 +382,8 @@ function buildList(){
       '<td>' + d.community_group_name + '</td>' +
       '<td>' + locationLookup[d.location_id].municipality + '</td>' +
       '<td>' + locationLookup[d.location_id].barangay + '</td>' +
+      '<td>' + d.description + '</td>' +
+      '<td>' + d.sector + '</td>' +
       '<td><span class="info-modal-trigger" data-id=' + d.community_group_id +
       '><i class="fa fa-info-circle"></i></span></td>' + '</tr>';
     $('#listTable tbody').append(rowHtml);
@@ -418,16 +407,16 @@ function buildList(){
         locationLookup[selectedGroup[0].location_id].municipality;
 
         var detailsHtml = "<b></b> " + location + "<br><hr>"+
-          "<b>President:</b> " + selectedGroup[0].head + "<br>" +
+          "<b>President:</b> " + (selectedGroup[0].head == null ? "Data Not Available" : selectedGroup[0].head) + "<br>" +
           "<b>Member Count:</b> " + selectedGroup[0].member_count + "<br><hr>";
 
         if(selectedGroup[0].sector === 'Livelihood'){
-          detailsHtml += "<b>Proposed Business:</b> " + selectedGroup[0].proposed_business + "<br><br>"
+          detailsHtml += "<b>Proposed Business</b><br> " + selectedGroup[0].proposed_business + "<br><br>"
           + "<b>Assistance Received</b><br>";
           if(selectedGroup[0].assistance_cash != null){ detailsHtml += " Cash Assistance<br>"; }
           if(selectedGroup[0].assistance_input != null){ detailsHtml += " Inputs Assistance<br>"; }
+          if(selectedGroup[0].assistance_facility != null){ detailsHtml += " Equipment/Facility<br>"; }
         }
-        // detailsHtml += "<b>Trainings Attended</b> " + "<br>";
         modal.find('.modal-body p').html(detailsHtml);
       }
 
