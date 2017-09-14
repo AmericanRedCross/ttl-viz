@@ -1,0 +1,495 @@
+<div id="cbhfa-page">
+
+<div id="details-modal" class="reveal" data-reveal>
+  <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
+  <h5 class="modal-title"></h5>
+  <div class="modal-body">
+    <p></p>
+  </div>
+</div>
+
+
+<div class="row">
+	<div class="columns">
+		<h2>Community-Based Health and First Aid</h2>
+	</div>
+</div>
+
+<br>
+
+<div class="row">
+  <div class="columns">
+    <div id="loader" class="text-center">
+    	<img src="{{opts.nginxlocation}}media/ajax_loader_gray_512.gif" alt="loading..." />
+    </div>
+    <p>
+      <u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span><br>
+      <a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
+    </p>
+    <ul class="tabs" data-active-collapse="true" data-tabs id="filter-nav">
+    	<!-- panel titles go here -->
+    </ul>
+    <div class="tabs-content" data-tabs-content="filter-nav" id="filter-nav-tabs">
+      <!-- collapse divs go here -->
+    </div>
+  </div>
+</div>
+<br>
+
+
+<div class="row">
+  <div class="columns">
+	   <div id="trainingBars"></div>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+  <!-- <div class="small-3 columns">
+		<h4>Beneficiaries per Type of Assistance</h4>
+	  <div id="perTypePie"></div>
+	</div>
+	<div class="small-3 columns end"><div id="perTypeLegend"> </div></div>
+	<div class="small-3 columns">
+		<h4>Beneficiaries per Assistance Received</h4>
+	  <div id="perAssistancePie"></div>
+	</div>
+	<div class="small-3 columns end"><div id="perAssistanceLegend"> </div></div> -->
+</div>
+
+<br>
+
+<div class="row">
+  <!-- <div class="columns">
+      <div id="listTable"></div>
+  </div> -->
+</div>
+
+<br>
+{{> page/footer}}
+</div>
+
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+<style>
+  /* because we want dark grey not blue sort arrows */
+  table.dataTable thead .sorting_asc { background-image: url("{{opts.nginxlocation}}media/sort_asc.png"); }
+  table.dataTable thead .sorting_desc { background-image: url("{{opts.nginxlocation}}media/sort_desc.png"); }
+</style>
+<script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+<script src="{{opts.nginxlocation}}js/nouislider.min.js"></script>
+<script>
+var data, filteredData, dateData;
+var locationLookup = {};
+var topicsList = ["Malnutrition", "Tuberculosis", "Diarrhea", "Schistosomiasis", "Hypertension", "Cough and Colds",
+                 "Pneumonia", "Dengue", "Acute Respiratory Infection"];
+// # HELPERS
+function topicText(topicId){
+  if(topicsList[topicId-1] === undefined){ return "no data"}
+  else{ return topicsList[topicId-1] }
+}
+
+function adminText(locationId, type){
+  if(locationLookup[locationId] === undefined){ return "no data"}
+  else if (type === "muni") {
+    return locationLookup[locationId].municipality;
+  } else if (type === "brgy") {
+    return locationLookup[locationId].barangay;
+  } else { return "error" }
+}
+
+d3.select(window).on("resize", throttle);
+var throttleTimer;
+function throttle() {
+  window.clearTimeout(throttleTimer);
+    throttleTimer = window.setTimeout(function() {
+      resize();
+    }, 200);
+}
+function resize() {
+  d3.select('#trainingBars').select("svg").remove();
+  d3.select('#perAssistancePie').select("svg").remove();
+  d3.select('#perTypePie').select("svg").remove();
+  buildBars();
+}
+
+function clearAllCheckboxes(){
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+  filter();
+}
+
+function getLocationData(){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+    fetchData();
+  });
+}
+
+function fetchData(){
+  $.get('{{opts.nginxlocation}}api/pages/cbhfa', function(response){
+    data = response;
+		var counter = 0;
+    data.forEach(function(d){
+      d['location'] = (d['household_id'] === null) ? ['data missing','data missing'] : [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
+      d['location_id'] = [d['household_id'].slice(0,5)];
+      d['training_attended'] = [];
+      for (var i = 0; i < 9; i++) {
+        d['training_attended'].push(topicText(i+1));
+      }
+      counter++;
+      if(counter === data.length){ console.log(data);buildFilters(); }
+    });
+  });
+}
+
+var trainingArray = [];
+
+function buildFilters(){
+  // # get the unique values from the data for all our filter fields
+  var locationArray = [];
+  $.each(data, function(i,item){
+    item['training_attended'].forEach(function(d){ if($.inArray(d, trainingArray) === -1 && d != null){ trainingArray.push(d) }});
+    item['location_id'].forEach(function(d){
+    if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
+    });
+  });
+  locationArray.sort(function(a, b) { return a - b; });
+  var panelTitles = [];
+  function panelHtml(title, dataId, array, geo){
+		var thisTitleHtml = '<li class="tabs-title">' +
+			'<a href="#' + dataId + '">' + title + '</a></li>';
+		panelTitles.push(thisTitleHtml);
+		var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
+		if(geo === true) {
+			var municipArray = [];
+			$.each(array, function(i, a){
+				var thisMunicip = a.toString().slice(0,2);
+				if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
+					municipArray.push(thisMunicip);
+					thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
+					thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+							thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
+				}
+        if(locationLookup[a] === undefined){ thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + 'data error' + '</label></div>'; }
+        else { thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>'; }
+      })
+    } else {
+			$.each(array, function(i, a){
+				thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
+						dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
+			})
+		}
+		thisBodyHtml += '</div>';
+		$('#filter-nav-tabs').append(thisBodyHtml);
+
+	}
+  panelHtml('Training', 'training_attended', trainingArray,false);
+  panelHtml('Location', null, locationArray, true);
+	  $('#filter-nav').append(panelTitles);
+	Foundation.reInit($('#filter-nav'))
+  filteredData = data;
+  $('#loader').hide();
+  buildBars();
+}
+
+function filter(){
+	activeFilters = []
+	checkboxes = $("#filter-nav-tabs input[type=checkbox]");
+		for (i=0; i<checkboxes.length; i++) {
+			if(checkboxes[i].checked === true) {
+				activeFilters.push({
+					filterKey: checkboxes[i].name,
+					filterValue: checkboxes[i].value
+				})
+			}
+		}
+
+	filterData = d3.nest().key(function(d){ return d.filterKey }).rollup(function(value){
+			var valuesArray = [];
+			value.forEach(function(d){
+				valuesArray.push(d.filterValue);
+			});
+			return valuesArray;
+		}).entries(activeFilters)
+	var keyGroups = [];
+	$.each(filterData,function(i,filterKey){
+		var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
+		var valueGroups = [];
+		$.each(filterKey.value, function(j,filterValue){
+			valueGroups.push('<b>' + filterValue + '</b>');
+		})
+		keyGroupHtml += valueGroups.join(" <small>OR</small> ") + ")"
+		keyGroups.push(keyGroupHtml);
+	});
+	$('#filter-active-text').html(keyGroups.join(" <small>AND</small> "));
+	var filterKeyCount = filterData.length;
+	filteredData = data.filter(function(d){
+		var passCount = 0;
+		var project = d;
+		$.each(filterData,function(iKey, filterKey){
+			var pass = false;
+			var thisKey = filterKey.key;
+			$.each(filterKey.value, function(iValue, filterValue){
+				if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
+			});
+			if(pass === true){ passCount ++; }
+		});
+		return passCount === filterKeyCount;
+	})
+	console.log(filteredData.length)
+
+  drawBars();
+}
+
+var pieRadius, perAssistancePie, perAssistancePiePath;
+function buildPies(){
+
+  var widthOnPage = $('#perAssistancePie').innerWidth();
+  var width = (widthOnPage < 300) ? widthOnPage : 300;
+  var height = width;
+  pieRadius = Math.min(width, height) / 2;
+
+	// build the pie charts
+  perAssistancePie = d3.select('#perAssistancePie').append("svg")
+      .attr("width", width).attr("height", height).append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  perAssistancePiePath = perAssistancePie.selectAll("path");
+
+  perTypePie = d3.select('#perTypePie').append("svg")
+      .attr("width", width).attr("height", height).append("g")
+      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  perTypePiePath = perTypePie.selectAll("path");
+
+drawBars();
+};
+
+
+var trainingBarsMeas, trainingBars, trainingBarsX;
+function buildBars(){
+	// build the bar charts
+  trainingBarsMeas = {top: 20, right: 50, bottom: 20, left: 170, barHeight: 20, width: $('#trainingBars').innerWidth()};
+  trainingBars = d3.select('#trainingBars').append('svg')
+      .attr("width", trainingBarsMeas.width)
+
+  trainingBarsX = d3.scaleLinear()
+      .range([0, trainingBarsMeas.width - trainingBarsMeas.left - trainingBarsMeas.right])
+
+  buildPies();
+}
+function drawPies(){
+  /////////////////
+  // PIE HELPERS //
+  // ########### //
+  /////////////////
+	function findNeighborArc(i, data0, data1, key) {
+    var d;
+    return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
+    : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
+    : null;
+  }
+  // # Find the element in data0 that joins the highest preceding element in data1.
+  function findPreceding(i, data0, data1, key) {
+    var m = data0.length;
+    while (--i >= 0) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+  // # Find the element in data0 that joins the lowest following element in data1.
+  function findFollowing(i, data0, data1, key) {
+    var n = data1.length, m = data0.length;
+    while (++i < n) {
+      var k = key(data1[i]);
+      for (var j = 0; j < m; ++j) {
+        if (key(data0[j]) === k) return data0[j];
+      }
+    }
+  }
+  function key(d) {
+    return d.data.key;
+  }
+
+	var pie = d3.pie().sort(null).value(function(d) { return d.value; });
+
+  var path = d3.arc()
+        .outerRadius(pieRadius - 10)
+        .innerRadius(0);
+
+  arcTween = function(d) {
+    var i = d3.interpolate(this._current, d);
+    this._current = i(0);
+    return function(t) { return path(i(t)); };
+  }
+
+  /////////////////////////////////
+  // PER Assistance Type PIE     //
+  // ########################### //
+  /////////////////////////////////
+
+  var perTypeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['type_assistance'][0]; }))
+
+  var perTypeData = d3.nest()
+    .key(function(d) { return d['type_assistance'][0]; })
+    .rollup(function(value){
+      return value.length
+    })
+    .entries(filteredData)
+
+  var perTypeData0 = perTypePiePath.data(),
+    perTypeData1 = pie(perTypeData);
+
+  perTypePiePath =  d3.select('#perTypePie').select('svg').select('g').selectAll('path').data(perTypeData1, key);
+
+  perTypePiePath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, perTypeData0, perTypeData1, key) || d; })
+    .attr("fill", function(d) { return perTypeColor(d.data.key); })
+		.attr('d', path)
+  .append("title")
+    .text(function(d) { return d.data.key; });
+
+  perTypePiePath.exit()
+    .remove();
+
+  perTypePiePath.transition()
+    .duration(750)
+    .attrTween("d", arcTween);
+
+  // Legend
+  var perTypeLegend = d3.select('#perTypeLegend').selectAll('div').data(perTypeData, function(d) { return d['key']; });
+  // UPDATE
+
+  perTypeLegend.html(function(d){
+    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // ENTER
+  perTypeLegend.enter().append('div')
+  .attr('class', "legend-item")
+  .html(function(d){
+    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
+  })
+  // REMOVE
+  perTypeLegend.exit().remove();
+  // sort
+  perTypeLegend.sort(function(a, b) {
+    return b.values - a.values;
+  })
+
+  buildList();
+}
+
+function drawBars(){
+
+  var trainingBarsData = d3.nest()
+                         .key(function(d){return d['training_activity_1'] != null;})
+                         .key(function(d){return d['training_activity_2'] != null;})
+                         .key(function(d){return d['training_activity_3'] != null;})
+                         .key(function(d){return d['training_activity_4'] != null;})
+                         .key(function(d){return d['training_activity_5'] != null;})
+                         .key(function(d){return d['training_activity_6'] != null;})
+                         .key(function(d){return d['training_activity_7'] != null;})
+                         .key(function(d){return d['training_activity_8'] != null;})
+                         .key(function(d){return d['training_activity_9'] != null;})
+                         .rollup(function(d){ return d.length;}).entries(filteredData);
+
+  trainingBarsX.domain([0, d3.max(trainingBarsData, function(d) { return d.value; })]);
+
+  trainingBars.attr("height", trainingBarsMeas.barHeight * trainingBarsData.length);
+
+	var barEnter= d3.select('#trainingBars').select('svg').selectAll("g")
+			.data(trainingBarsData, function(d){ return d['key']; })
+
+  barEnter.exit().remove();
+
+  barEnter.enter().append("g").each(function(d){
+    d3.select(this).append('rect').attr("height", trainingBarsMeas.barHeight - 1).attr("fill", "#c11b2b")
+
+		d3.select(this).append("text").attr("class","topic-label").attr("font-size","11px").attr("font-family","inherit").attr("x", -5).attr("y", trainingBarsMeas.barHeight / 2)
+      .attr("dy", ".35em").attr("text-anchor","end").attr("fill","black")
+
+		d3.select(this).append("text").attr("class","topic-total").attr("font-size","11px").attr("font-family","inherit").attr("y", trainingBarsMeas.barHeight / 2)
+      .attr("dy", ".35em").attr("text-anchor","start").attr("fill","black")
+	});
+
+	var barUpdate = d3.select('#trainingBars').select('svg').selectAll("g");
+  barUpdate.sort(function(a, b) { return b.value - a.value; })
+    .transition().duration(1000).ease(d3.easeLinear).attr("transform", function(d, i) { return "translate(" + trainingBarsMeas.left + "," + i * trainingBarsMeas.barHeight + ")"; });
+
+	barUpdate.select("rect").transition().duration(1000).ease(d3.easeLinear).attr("width", function(d) { return trainingBarsX(d.value); })
+
+	barUpdate.select(".topic-label")
+    .text(function(d) {
+			if(topicsList[d.key] === undefined){ return d.key; }
+      else { return topicsList[d.key].title; }
+    });
+
+    barUpdate.select(".topic-total").transition().duration(1000).ease(d3.easeLinear).attr("x", function(d) { return trainingBarsX(d.value) + 3; }).text(function(d) { return d.value; });
+
+    drawPies();
+  }
+
+function buildList(){
+  $('#listTable').empty();
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
+        '<thead>'+
+          '<th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>School<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          activitiesHeaders +
+          '<th>Modules attended<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '</thead>'+
+        '<tbody></tbody></table>');
+  $.each(filteredData, function(i,d){
+    var rowHtml = '<tr>' +
+      '<td>' + d['participant_fname'] + '</td>' +
+      '<td>' + d['participant_lname'] + '</td>' +
+      '<td>' + adminText(d.location_id, 'school') + '</td>';
+  $.each(d3.range(1,11), function(i, a){
+    var thisSearch = "training_activity_" + a;
+    rowHtml += '<td>' + d[thisSearch] + '</td>';
+  })
+  rowHtml += '<td>' + d['training_total_attendance'] + '</td>' +
+    '</tr>';
+    $('#listTable tbody').append(rowHtml);
+  });
+
+
+  var table = $('#dataTable').DataTable({
+      // scrollX: true,
+      "sDom":'lrtip',
+      "lengthChange": false,
+      "pageLength": 10,
+      // "lengthMenu": [ 10, 50, 100 ],
+      "language": {
+        "lengthMenu": "Display _MENU_ records",
+        "info": "Showing _START_ to _END_ of _TOTAL_ records",
+      }
+    });
+
+    // stop a click in the search input box from triggering a sort on the column
+    $('.column-search').on('click', function(e){
+      e.stopPropagation();
+    });
+
+    // initialize column search functionality
+    table.columns().every( function() {
+      var that = this;
+      $('input', this.header() ).on('keyup change', function(){
+        if( that.search() !== this.value ){
+          that
+          .search( this.value )
+          .draw();
+        }
+      });
+    });
+}
+
+getLocationData();
+</script>
