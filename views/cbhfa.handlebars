@@ -46,12 +46,12 @@
 <br>
 
 <div class="row">
-  <!-- <div class="small-3 columns">
-		<h4>Beneficiaries per Type of Assistance</h4>
-	  <div id="perTypePie"></div>
+  <div class="small-3 columns">
+		<h4>Number of topics participated in</h4>
+	  <div id="perTopicPie"></div>
 	</div>
-	<div class="small-3 columns end"><div id="perTypeLegend"> </div></div>
-	<div class="small-3 columns">
+	<div class="small-3 columns end"><div id="perTopicLegend"> </div></div>
+	<!-- <div class="small-3 columns">
 		<h4>Beneficiaries per Assistance Received</h4>
 	  <div id="perAssistancePie"></div>
 	</div>
@@ -61,9 +61,9 @@
 <br>
 
 <div class="row">
-  <!-- <div class="columns">
+  <div class="columns">
       <div id="listTable"></div>
-  </div> -->
+  </div>
 </div>
 
 <br>
@@ -77,7 +77,6 @@
   table.dataTable thead .sorting_desc { background-image: url("{{opts.nginxlocation}}media/sort_desc.png"); }
 </style>
 <script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
-<script src="{{opts.nginxlocation}}js/nouislider.min.js"></script>
 <script>
 var data, filteredData, dateData;
 var locationLookup = {};
@@ -138,8 +137,10 @@ function fetchData(){
       d['location_id'] = [d['household_id'].slice(0,5)];
       d['training_attended'] = [];
       for (var i = 0; i < 9; i++) {
-        d['training_attended'].push(topicText(i+1));
+        d['training_activity_'+(i+1)] != null ? d['training_attended'].push(topicText(i+1)) : d['training_attended'].push(null)
       }
+      d['training_count']=0;
+			d['training_attended'].forEach(function(a){ if(a != null){ d['training_count']++; }});
       counter++;
       if(counter === data.length){ console.log(data);buildFilters(); }
     });
@@ -250,21 +251,15 @@ function filter(){
 var pieRadius, perAssistancePie, perAssistancePiePath;
 function buildPies(){
 
-  var widthOnPage = $('#perAssistancePie').innerWidth();
+  var widthOnPage = $('#perTopicPie').innerWidth();
   var width = (widthOnPage < 300) ? widthOnPage : 300;
   var height = width;
   pieRadius = Math.min(width, height) / 2;
 
-	// build the pie charts
-  perAssistancePie = d3.select('#perAssistancePie').append("svg")
+  perTopicPie = d3.select('#perTopicPie').append("svg")
       .attr("width", width).attr("height", height).append("g")
       .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  perAssistancePiePath = perAssistancePie.selectAll("path");
-
-  perTypePie = d3.select('#perTypePie').append("svg")
-      .attr("width", width).attr("height", height).append("g")
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-  perTypePiePath = perTypePie.selectAll("path");
+  perTopicPiePath = perTopicPie.selectAll("path");
 
 drawBars();
 };
@@ -283,10 +278,10 @@ function buildBars(){
   buildPies();
 }
 function drawPies(){
-  /////////////////
+  // ///////////////
   // PIE HELPERS //
   // ########### //
-  /////////////////
+  // ///////////////
 	function findNeighborArc(i, data0, data1, key) {
     var d;
     return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
@@ -329,82 +324,68 @@ function drawPies(){
     return function(t) { return path(i(t)); };
   }
 
-  /////////////////////////////////
-  // PER Assistance Type PIE     //
-  // ########################### //
-  /////////////////////////////////
+  /////////////////////////
+  // TOPIC COUNT PIE //
+  // ################### //
+  /////////////////////////
+  var topicCountColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['training_count']; }))
 
-  var perTypeColor = d3.scaleOrdinal(d3.schemeCategory20).domain(data.map(function(d) { return d['type_assistance'][0]; }))
-
-  var perTypeData = d3.nest()
-    .key(function(d) { return d['type_assistance'][0]; })
+  var topicCountPieData = d3.nest()
+    .key(function(d) { return d['training_count']; })
     .rollup(function(value){
       return value.length
     })
     .entries(filteredData)
 
-  var perTypeData0 = perTypePiePath.data(),
-    perTypeData1 = pie(perTypeData);
+  var topicCountData0 = perTopicPiePath.data(),
+    topicCountData1 = pie(topicCountPieData);
 
-  perTypePiePath =  d3.select('#perTypePie').select('svg').select('g').selectAll('path').data(perTypeData1, key);
+  topicCountPath = d3.select('#perTopicPie').select('svg').select('g').selectAll('path').data(topicCountData1, key);
 
-  perTypePiePath.enter().append("path")
-    .each(function(d, i) { this._current = findNeighborArc(i, perTypeData0, perTypeData1, key) || d; })
-    .attr("fill", function(d) { return perTypeColor(d.data.key); })
-		.attr('d', path)
+  topicCountPath.enter().append("path")
+    .each(function(d, i) { this._current = findNeighborArc(i, topicCountData0, topicCountData1, key) || d; })
+    .attr("fill", function(d) { return topicCountColor(d.data.key); })
+    .attr('d', path)
   .append("title")
     .text(function(d) { return d.data.key; });
 
-  perTypePiePath.exit()
-    .remove();
 
-  perTypePiePath.transition()
-    .duration(750)
-    .attrTween("d", arcTween);
+		topicCountPath.exit().remove();
 
-  // Legend
-  var perTypeLegend = d3.select('#perTypeLegend').selectAll('div').data(perTypeData, function(d) { return d['key']; });
-  // UPDATE
+	  topicCountPath.transition().duration(750).attrTween("d", arcTween);
 
-  perTypeLegend.html(function(d){
-    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
-  })
-  // ENTER
-  perTypeLegend.enter().append('div')
-  .attr('class', "legend-item")
-  .html(function(d){
-    return '<i class="fa fa-square" style="color:' + perTypeColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>' + ' <small>' + Math.round((d.value/filteredData.length)*100) + '%</small>';
-  })
-  // REMOVE
-  perTypeLegend.exit().remove();
-  // sort
-  perTypeLegend.sort(function(a, b) {
-    return b.values - a.values;
-  })
+	  // Legend
+	  var topicCountLegend = d3.select('#perTopicLegend').selectAll('div').data(topicCountPieData, function(d) { return d['key']; });
+	  // UPDATE
+	  topicCountLegend.html(function(d){ return '<i class="fa fa-square" style="color:' + topicCountColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>'; })
+	  // ENTER
+	  topicCountLegend.enter().append('div').attr('class', "legend-item")
+	  .html(function(d){ return '<i class="fa fa-square" style="color:' + topicCountColor(d.key) + '"></i> &nbsp;' + d.key + ' <small>(' + d.value + ')</small>'; })
+	  // REMOVE
+	  topicCountLegend.exit().remove();
+	  // sort
+	  topicCountLegend.sort(function(a, b) { return b.value - a.value; })
 
   buildList();
 }
 
 function drawBars(){
 
-  var trainingBarsData = d3.nest()
-                         .key(function(d){return d['training_activity_1'] != null;})
-                         .key(function(d){return d['training_activity_2'] != null;})
-                         .key(function(d){return d['training_activity_3'] != null;})
-                         .key(function(d){return d['training_activity_4'] != null;})
-                         .key(function(d){return d['training_activity_5'] != null;})
-                         .key(function(d){return d['training_activity_6'] != null;})
-                         .key(function(d){return d['training_activity_7'] != null;})
-                         .key(function(d){return d['training_activity_8'] != null;})
-                         .key(function(d){return d['training_activity_9'] != null;})
-                         .rollup(function(d){ return d.length;}).entries(filteredData);
+  // var trainingBarsData2 = d3.nest().key(function(d){ return 1;})
+  //                        .rollup(function(d){ return d.length;})
+  //                        .entries(filteredData.filter( function(d){ return d['training_activity_1'] === "yes"; }))
 
-  trainingBarsX.domain([0, d3.max(trainingBarsData, function(d) { return d.value; })]);
+  var trainingBarsData2 = d3.nest().key(function(d){return d['location_id']})
+                            .rollup(function(d){ return d.length;})
+                            .entries(filteredData)
+  console.log(trainingBarsData2);
 
-  trainingBars.attr("height", trainingBarsMeas.barHeight * trainingBarsData.length);
+  trainingBarsX.domain([0, d3.max(trainingBarsData2, function(d) { return d.value; })]);
+
+  trainingBars.attr("height", trainingBarsMeas.barHeight * trainingBarsData2.length);
 
 	var barEnter= d3.select('#trainingBars').select('svg').selectAll("g")
-			.data(trainingBarsData, function(d){ return d['key']; })
+			.data(trainingBarsData2,function(d){ return d['key'] != undefined; })
 
   barEnter.exit().remove();
 
@@ -424,10 +405,10 @@ function drawBars(){
 
 	barUpdate.select("rect").transition().duration(1000).ease(d3.easeLinear).attr("width", function(d) { return trainingBarsX(d.value); })
 
-	barUpdate.select(".topic-label")
+  barUpdate.select(".topic-label")
     .text(function(d) {
-			if(topicsList[d.key] === undefined){ return d.key; }
-      else { return topicsList[d.key].title; }
+			if(d.key === undefined){ return d.key; }
+      else { return locationLookup[d.key].barangay+","+locationLookup[d.key].municipality}
     });
 
     barUpdate.select(".topic-total").transition().duration(1000).ease(d3.easeLinear).attr("x", function(d) { return trainingBarsX(d.value) + 3; }).text(function(d) { return d.value; });
@@ -435,13 +416,21 @@ function drawBars(){
     drawPies();
   }
 
+  var activitiesHeaders = "";
+
+  $.each(d3.range(1,10), function(i, a){
+    activitiesHeaders += '<th>Activity ' + a + '<br><input class="column-search" type="search" placeholder="search..." /></th>';
+  })
+
+
 function buildList(){
   $('#listTable').empty();
   $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
         '<thead>'+
           '<th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
           '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
-          '<th>School<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
           activitiesHeaders +
           '<th>Modules attended<br><input class="column-search" type="search" placeholder="search..." /></th>'+
         '</thead>'+
@@ -450,10 +439,11 @@ function buildList(){
     var rowHtml = '<tr>' +
       '<td>' + d['participant_fname'] + '</td>' +
       '<td>' + d['participant_lname'] + '</td>' +
-      '<td>' + adminText(d.location_id, 'school') + '</td>';
-  $.each(d3.range(1,11), function(i, a){
+      '<td>' + adminText(d.location_id, 'brgy') + '</td>'+
+      '<td>' + adminText(d['location'][0], 'muni') + '</td>';
+  $.each(d3.range(1,10), function(i, a){
     var thisSearch = "training_activity_" + a;
-    rowHtml += '<td>' + d[thisSearch] + '</td>';
+    rowHtml += '<td>' + (d[thisSearch]==null ? "no" : d[thisSearch])+ '</td>';
   })
   rowHtml += '<td>' + d['training_total_attendance'] + '</td>' +
     '</tr>';
