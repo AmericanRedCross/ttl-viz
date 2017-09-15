@@ -142,7 +142,7 @@ function fetchData(){
       d['training_count']=0;
 			d['training_attended'].forEach(function(a){ if(a != null){ d['training_count']++; }});
       counter++;
-      if(counter === data.length){ console.log(data);buildFilters(); }
+      if(counter === data.length){ buildFilters(); }
     });
   });
 }
@@ -378,7 +378,6 @@ function drawBars(){
   var trainingBarsData2 = d3.nest().key(function(d){return d['location_id']})
                             .rollup(function(d){ return d.length;})
                             .entries(filteredData)
-  console.log(trainingBarsData2);
 
   trainingBarsX.domain([0, d3.max(trainingBarsData2, function(d) { return d.value; })]);
 
