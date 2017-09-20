@@ -298,7 +298,7 @@ function buildGraph(){
 
 
   moduleCountYscale = d3.scaleLinear().range([moduleCountMeas.height, 0])
-  moduleCountXscale = d3.scaleBand().range([1, moduleCountMeas.width]).domain(d3.range(1,10))
+  moduleCountXscale = d3.scaleBand().range([1, moduleCountMeas.width]).domain(d3.range(0,10))
 
   moduleCountSvg.append("g")
     .attr("class", "x axis graph-axis").attr("transform", "translate(0," + moduleCountMeas.height + ")")
@@ -421,8 +421,6 @@ function drawGraphs(){
 
   moduleCountData.forEach(function(d){ d.key = parseInt(d.key); });
 
-  console.log(moduleCountData);
-
   moduleCountYscale.domain([0, d3.max(moduleCountData, function(d){ return d.value })])
   moduleCountYele.call(moduleCountYaxis)
 
@@ -437,9 +435,9 @@ function drawGraphs(){
 
   moduleCountG.enter().append("rect").transition().duration(1000).ease(d3.easeLinear)
               .attr("class", "graph-bar-2")
-              .attr("x", function(d) { console.log(d); return moduleCountXscale(d.key); })
+              .attr("x", function(d) { return moduleCountXscale(d.key); })
               .attr("width", moduleCountXscale.bandwidth() - 4)
-              .attr("y", function(d) { console.log(d); return moduleCountYscale(d.value); })
+              .attr("y", function(d) { return moduleCountYscale(d.value); })
               .attr("height", function(d) { return moduleCountMeas.height - moduleCountYscale(d.value) + 1; });
 
   moduleCountG.exit().remove();
