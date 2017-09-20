@@ -109,9 +109,7 @@ d3.select(window).on("resize", throttle);
 var throttleTimer;
 function throttle() {
   window.clearTimeout(throttleTimer);
-    throttleTimer = window.setTimeout(function() {
-      resize();
-    }, 200);
+    throttleTimer = window.setTimeout(function() { resize(); }, 200);
 }
 function resize() {
   d3.select('#trainingBars').select("svg").remove();
@@ -254,7 +252,8 @@ function filter(){
 	})
 	console.log(filteredData.length)
 
-  drawBars();
+  resize();
+  // drawBars();
 }
 
 var perModuleMeas, perModuleSvg, perModuleXscale, perModuleYscale, perModuleYaxis, perModuleYele,
@@ -372,10 +371,15 @@ function drawBars(){
 
     barUpdate.select(".topic-total").transition().duration(1000).ease(d3.easeLinear).attr("x", function(d) { return trainingBarsX(d.value) + 3; }).text(function(d) { return d.value; });
 
+
+
     drawGraphs();
   }
 
 function drawGraphs(){
+
+
+
   // ### PARTICIPANTS PER MODULE
   var perModuleData = []
   d3.range(1,10).forEach(function(d){ perModuleData.push(0); })
@@ -395,8 +399,6 @@ function drawGraphs(){
 
   var perModuleG = perModuleSvg.selectAll(".bar").data(perModuleData, function(d, i){ return i; });
 
-  perModuleG.exit().remove();
-
   perModuleG.enter().append("text").transition().duration(1000).ease(d3.easeLinear)
             .attr("class","topic-label").attr("font-size","11px").attr("font-family","inherit")
             .attr("fill","black").style("text-anchor","middle")
@@ -411,10 +413,12 @@ function drawGraphs(){
         .attr("y", function(d) { return perModuleYscale(d); })
         .attr("height", function(d) { return perModuleMeas.height - perModuleYscale(d); });
 
+  perModuleG.exit().remove();
+
   // ### PARTICIPANTS PER NUMBER OF MODULES
   var moduleCountData = d3.nest().key(function(d) { return d.training_count; } )
-      .rollup(function(value) { return value.length; })
-      .entries(filteredData);
+      .rollup(function(value) { return value.length; }).entries(filteredData);
+
   moduleCountData.forEach(function(d){ d.key = parseInt(d.key); });
 
   console.log(moduleCountData);
@@ -432,11 +436,12 @@ function drawGraphs(){
             .text(function(d){return d.value;});
 
   moduleCountG.enter().append("rect").transition().duration(1000).ease(d3.easeLinear)
-              .attr("class", "graph-bar")
-              .attr("x", function(d) { return moduleCountXscale(d.key); })
+              .attr("class", "graph-bar-2")
+              .attr("x", function(d) { console.log(d); return moduleCountXscale(d.key); })
               .attr("width", moduleCountXscale.bandwidth() - 4)
-              .attr("y", function(d) { return moduleCountYscale(d.value); })
+              .attr("y", function(d) { console.log(d); return moduleCountYscale(d.value); })
               .attr("height", function(d) { return moduleCountMeas.height - moduleCountYscale(d.value) + 1; });
+
   moduleCountG.exit().remove();
 
   buildList();
