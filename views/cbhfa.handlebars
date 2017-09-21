@@ -1,0 +1,513 @@
+<div id="cbhfa-page">
+
+<div id="details-modal" class="reveal" data-reveal>
+  <button class="close-button" data-close aria-label="Close modal" type="button"><span aria-hidden="true">&times;</span></button>
+  <h5 class="modal-title"></h5>
+  <div class="modal-body">
+    <p></p>
+  </div>
+</div>
+
+
+<div class="row">
+	<div class="columns">
+		<h2>Community-Based Health and First Aid</h2>
+	</div>
+</div>
+
+<br>
+
+<div class="row">
+  <div class="columns">
+    <div id="loader" class="text-center">
+    	<img src="{{opts.nginxlocation}}media/ajax_loader_gray_512.gif" alt="loading..." />
+    </div>
+    <p>
+      <u>ACTIVE FILTERS</u>: <span id="filter-active-text"></span><br>
+      <a onclick="clearAllCheckboxes();"><i class="fa fa-trash-o"></i> clear ALL filters</a>
+    </p>
+    <ul class="tabs" data-active-collapse="true" data-tabs id="filter-nav">
+    	<!-- panel titles go here -->
+    </ul>
+    <div class="tabs-content" data-tabs-content="filter-nav" id="filter-nav-tabs">
+      <!-- collapse divs go here -->
+    </div>
+  </div>
+</div>
+<br>
+
+
+<div class="row">
+  <div class="columns">
+	   <div id="trainingBars"></div>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+  	<div class="small-12 medium-offset-1 medium-10 columns">
+      <h4>Percentage of participants that attended each topic</h4>
+  			<div id="perModuleGraph"></div>
+    </div>
+</div>
+
+<div class="row">
+  <div class="small-12 medium-offset-1 medium-10 columns">
+    <h4>Number of topics attended</h4>
+      <div id="numModulesGraph"></div>
+  </div>
+</div>
+
+<br>
+
+<div class="row">
+  <div class="columns">
+      <div id="listTable"></div>
+  </div>
+</div>
+
+<br>
+{{> page/footer}}
+</div>
+
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+<style>
+  /* because we want dark grey not blue sort arrows */
+  table.dataTable thead .sorting_asc { background-image: url("{{opts.nginxlocation}}media/sort_asc.png"); }
+  table.dataTable thead .sorting_desc { background-image: url("{{opts.nginxlocation}}media/sort_desc.png"); }
+</style>
+<script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+<script>
+var data, filteredData, dateData;
+var locationLookup = {};
+var topicsList = [{topic:1, title:"Malnutrition"},
+                  {topic:2, title:"Tuberculosis"},
+                  {topic:3, title:"Diarrhea"},
+                  {topic:4, title:"Schistosomiasis"},
+                  {topic:5, title:"Hypertension"},
+                  {topic:6, title:"Cough and Colds"},
+                  {topic:7, title:"Pneumonia"},
+                  {topic:8, title:"Dengue"},
+                  {topic:9, title:"Acute Respiratory Infection"}];
+// # HELPERS
+function topicText(topicId){
+  if(topicsList[topicId-1] === undefined){ return "no data"}
+  else{ return topicsList[topicId-1].title }
+}
+
+function adminText(locationId, type){
+  if(locationLookup[locationId] === undefined){ return "no data"}
+  else if (type === "muni") {
+    return locationLookup[locationId].municipality;
+  } else if (type === "brgy") {
+    return locationLookup[locationId].barangay;
+  } else { return "error" }
+}
+
+d3.select(window).on("resize", throttle);
+var throttleTimer;
+function throttle() {
+  window.clearTimeout(throttleTimer);
+    throttleTimer = window.setTimeout(function() { resize(); }, 200);
+}
+function resize() {
+  d3.select('#trainingBars').select("svg").remove();
+  d3.select('#perModuleGraph').select("svg").remove();
+  d3.select('#numModulesGraph').select("svg").remove();
+  d3.select('#perTopicPie').select("svg").remove();
+  buildBars();
+}
+
+function clearAllCheckboxes(){
+  var allCheckboxes = $.find("input:checkbox");
+  $.each(allCheckboxes, function(i, box){ $(box).prop('checked',false); });
+  filter();
+}
+
+function getLocationData(){
+  $.get('{{opts.nginxlocation}}api/pages/targetlocations', function(response){
+    $.each(response, function(index, location){
+      locationLookup[location.location_id] = location;
+      locationLookup[location['location_id'].slice(0,2)] = location;
+    });
+    fetchData();
+  });
+}
+
+function fetchData(){
+  $.get('{{opts.nginxlocation}}api/pages/cbhfa', function(response){
+    data = response;
+		var counter = 0;
+    data.forEach(function(d){
+      d['location'] = (d['household_id'] === null) ? ['data missing','data missing'] : [d['household_id'].slice(0,2), d['household_id'].slice(0,5)];
+      d['location_id'] = [d['household_id'].slice(0,5)];
+      d['training_attended'] = [];
+      for (var i = 0; i < 9; i++) {
+        d['training_activity_'+(i+1)] != null ? d['training_attended'].push(topicText(i+1)) : d['training_attended'].push(null)
+      }
+      d['training_count']=0;
+			d['training_attended'].forEach(function(a){ if(a != null){ d['training_count']++; }});
+      counter++;
+      if(counter === data.length){ buildFilters(); }
+    });
+  });
+}
+
+var trainingArray = [];
+
+function buildFilters(){
+  // # get the unique values from the data for all our filter fields
+  var locationArray = [];
+  $.each(data, function(i,item){
+    item['training_attended'].forEach(function(d){ if($.inArray(d, trainingArray) === -1 && d != null){ trainingArray.push(d) }});
+    item['location_id'].forEach(function(d){
+    if($.inArray(d, locationArray) === -1){ locationArray.push(d) }
+    });
+  });
+  locationArray.sort(function(a, b) { return a - b; });
+  var panelTitles = [];
+  function panelHtml(title, dataId, array, geo){
+		var thisTitleHtml = '<li class="tabs-title">' +
+			'<a href="#' + dataId + '">' + title + '</a></li>';
+		panelTitles.push(thisTitleHtml);
+		var thisBodyHtml = '<div class="tabs-panel" id="' + dataId + '">';
+		if(geo === true) {
+			var municipArray = [];
+			$.each(array, function(i, a){
+				var thisMunicip = a.toString().slice(0,2);
+				if($.inArray(thisMunicip, municipArray) === -1 && locationLookup[thisMunicip] !== undefined){
+					municipArray.push(thisMunicip);
+					thisBodyHtml += (municipArray.length > 0) ? '<br>' : '';
+					thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+							thisMunicip + '" onchange="filter();"><strong>' + locationLookup[thisMunicip].municipality + '<strong></label></div><br>';
+				}
+        if(locationLookup[a] === undefined){ thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + 'data error' + '</label></div>'; }
+        else { thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="location" value="' +
+            a + '" onchange="filter();">' + locationLookup[a].barangay + '</label></div>'; }
+      })
+    } else {
+			$.each(array, function(i, a){
+				thisBodyHtml += '<div class="checkbox"><label><input type="checkbox" name="'+
+						dataId + '" value="' + a + '" onchange="filter();">' + a + '</label></div>';
+			})
+		}
+		thisBodyHtml += '</div>';
+		$('#filter-nav-tabs').append(thisBodyHtml);
+
+	}
+  panelHtml('Training', 'training_attended', trainingArray,false);
+  panelHtml('Location', null, locationArray, true);
+	  $('#filter-nav').append(panelTitles);
+	Foundation.reInit($('#filter-nav'))
+  filteredData = data;
+  $('#loader').hide();
+  buildBars();
+}
+
+function filter(){
+	activeFilters = []
+	checkboxes = $("#filter-nav-tabs input[type=checkbox]");
+		for (i=0; i<checkboxes.length; i++) {
+			if(checkboxes[i].checked === true) {
+				activeFilters.push({
+					filterKey: checkboxes[i].name,
+					filterValue: checkboxes[i].value
+				})
+			}
+		}
+
+	filterData = d3.nest().key(function(d){ return d.filterKey }).rollup(function(value){
+			var valuesArray = [];
+			value.forEach(function(d){
+				valuesArray.push(d.filterValue);
+			});
+			return valuesArray;
+		}).entries(activeFilters)
+	var keyGroups = [];
+	$.each(filterData,function(i,filterKey){
+		var keyGroupHtml = '(<b>' + filterKey.key + '</b> <small>=</small> ';
+		var valueGroups = [];
+		$.each(filterKey.value, function(j,filterValue){
+			valueGroups.push('<b>' + filterValue + '</b>');
+		})
+		keyGroupHtml += valueGroups.join(" <small>OR</small> ") + ")"
+		keyGroups.push(keyGroupHtml);
+	});
+	$('#filter-active-text').html(keyGroups.join(" <small>AND</small> "));
+	var filterKeyCount = filterData.length;
+	filteredData = data.filter(function(d){
+		var passCount = 0;
+		var project = d;
+		$.each(filterData,function(iKey, filterKey){
+			var pass = false;
+			var thisKey = filterKey.key;
+			$.each(filterKey.value, function(iValue, filterValue){
+				if($.inArray(filterValue, project[thisKey]) !== -1){ pass = true; }
+			});
+			if(pass === true){ passCount ++; }
+		});
+		return passCount === filterKeyCount;
+	})
+	console.log(filteredData.length)
+
+  resize();
+  // drawBars();
+}
+
+var perModuleMeas, perModuleSvg, perModuleXscale, perModuleYscale, perModuleYaxis, perModuleYele,
+    moduleCountMeas, moduleCountSvg, moduleCountXscale, moduleCountYscale, moduleCountYaxis, moduleCountYele;
+function buildGraph(){
+
+  // ### PARTICIPANTS PER TOPIC
+  perModuleMeas = {top: 20, right: 60, bottom: 45, left: 60, height: 250 - 40, width: $('#perModuleGraph').innerWidth() - 60 - 60 };
+  perModuleMeas.barWidth = perModuleMeas.width / (20 * 2)
+
+  perModuleSvg = d3.select('#perModuleGraph').append('svg')
+    .attr("width", perModuleMeas.width + perModuleMeas.left + perModuleMeas.right)
+    .attr("height", perModuleMeas.height + perModuleMeas.top + perModuleMeas.bottom)
+    .append('g').attr("transform", "translate(" + perModuleMeas.left + "," + perModuleMeas.top + ")");
+
+  perModuleYscale = d3.scaleLinear().range([perModuleMeas.height, 0]);
+  perModuleXscale = d3.scaleBand().range([0, perModuleMeas.width]).domain(d3.range(0,9));
+
+  perModuleSvg.append("g")
+    .attr("class", "x axis graph-axis").attr("transform", "translate(0," + perModuleMeas.height + ")")
+    .call(d3.axisBottom(perModuleXscale).tickFormat(function(d,i){return topicsList[i].title;}))
+
+  perModuleSvg.append("text")
+    .attr("transform", "translate(" + (perModuleMeas.width / 2) + " ," + (perModuleMeas.height + perModuleMeas.bottom - 5) + ")")
+    .style("text-anchor", "middle").text("Topic Attended");
+
+  perModuleSvg.append("text").attr("transform", "rotate(-90)").attr("y", 0 - perModuleMeas.left)
+    .attr("x", 0 - (perModuleMeas.height / 2)).attr("dy", "1em")
+    .style("text-anchor", "middle").text("Percentage of participants");
+
+  perModuleYaxis = d3.axisLeft(perModuleYscale).ticks(10, "%");
+  perModuleYele = perModuleSvg.append("g").attr("class", "y axis graph-axis");
+
+  // ### PARTICIPANTS PER NUMBER OF MODULES COMPLETED
+  moduleCountMeas = {top: 20, right: 60, bottom: 45, left: 60, height: 250 - 40, width: $('#numModulesGraph').innerWidth() - 60 - 60 };
+  moduleCountMeas.barWidth = moduleCountMeas.width / (20 * 2)
+
+  moduleCountSvg = d3.select('#numModulesGraph').append('svg')
+    .attr("width", moduleCountMeas.width + moduleCountMeas.left + moduleCountMeas.right)
+    .attr("height", moduleCountMeas.height + moduleCountMeas.top + moduleCountMeas.bottom)
+    .append('g').attr("transform", "translate(" + moduleCountMeas.left + "," + moduleCountMeas.top + ")");
+
+
+  moduleCountYscale = d3.scaleLinear().range([moduleCountMeas.height, 0])
+  moduleCountXscale = d3.scaleBand().range([1, moduleCountMeas.width]).domain(d3.range(0,10))
+
+  moduleCountSvg.append("g")
+    .attr("class", "x axis graph-axis").attr("transform", "translate(0," + moduleCountMeas.height + ")")
+    .call(d3.axisBottom(moduleCountXscale))
+
+  moduleCountSvg.append("text")
+    .attr("transform", "translate(" + (moduleCountMeas.width / 2) + " ," + (moduleCountMeas.height + moduleCountMeas.bottom - 5) + ")")
+    .style("text-anchor", "middle").text("Number of topics attended");
+
+    moduleCountSvg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - moduleCountMeas.left)
+      .attr("x", 0 - (moduleCountMeas.height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Number of participants");
+
+  moduleCountYaxis = d3.axisLeft(moduleCountYscale);
+  moduleCountYele = moduleCountSvg.append("g").attr("class", "y axis graph-axis");
+
+  drawBars();
+}
+
+var trainingBarsMeas, trainingBars, trainingBarsX;
+function buildBars(){
+	// build the bar charts
+  trainingBarsMeas = {top: 20, right: 50, bottom: 20, left: 170, barHeight: 20, width: $('#trainingBars').innerWidth()};
+  trainingBars = d3.select('#trainingBars').append('svg').attr("width", trainingBarsMeas.width)
+
+  trainingBarsX = d3.scaleLinear().range([0, trainingBarsMeas.width - trainingBarsMeas.left - trainingBarsMeas.right])
+
+  buildGraph();
+}
+
+function drawBars(){
+
+  var trainingBarsData2 = d3.nest().key(function(d){return d['location_id']}).rollup(function(d){ return d.length;})
+                            .entries(filteredData)
+
+  trainingBarsX.domain([0, d3.max(trainingBarsData2, function(d) { return d.value; })]);
+
+  trainingBars.attr("height", trainingBarsMeas.barHeight * trainingBarsData2.length);
+
+	var barEnter= d3.select('#trainingBars').select('svg').selectAll("g")
+			.data(trainingBarsData2,function(d){ return d['key'] != undefined; })
+
+  barEnter.exit().remove();
+
+  barEnter.enter().append("g").each(function(d){
+    d3.select(this).append('rect').attr("height", trainingBarsMeas.barHeight - 1).attr("fill", "#c11b2b")
+
+		d3.select(this).append("text").attr("class","topic-label").attr("font-size","11px").attr("font-family","inherit").attr("x", -5).attr("y", trainingBarsMeas.barHeight / 2)
+      .attr("dy", ".35em").attr("text-anchor","end").attr("fill","black")
+
+		d3.select(this).append("text").attr("class","topic-total").attr("font-size","11px").attr("font-family","inherit").attr("y", trainingBarsMeas.barHeight / 2)
+      .attr("dy", ".35em").attr("text-anchor","start").attr("fill","black")
+	});
+
+	var barUpdate = d3.select('#trainingBars').select('svg').selectAll("g");
+  barUpdate.sort(function(a, b) { return b.value - a.value; })
+    .transition().duration(1000).ease(d3.easeLinear).attr("transform", function(d, i) { return "translate(" + trainingBarsMeas.left + "," + i * trainingBarsMeas.barHeight + ")"; });
+
+	barUpdate.select("rect").transition().duration(1000).ease(d3.easeLinear).attr("width", function(d) { return trainingBarsX(d.value); })
+
+  barUpdate.select(".topic-label")
+    .text(function(d) {
+			if(d.key === undefined){ return d.key; }
+      else { return locationLookup[d.key].barangay+","+locationLookup[d.key].municipality}
+    });
+
+    barUpdate.select(".topic-total").transition().duration(1000).ease(d3.easeLinear).attr("x", function(d) { return trainingBarsX(d.value) + 3; }).text(function(d) { return d.value; });
+
+
+
+    drawGraphs();
+  }
+
+function drawGraphs(){
+
+
+
+  // ### PARTICIPANTS PER MODULE
+  var perModuleData = []
+  d3.range(1,10).forEach(function(d){ perModuleData.push(0); })
+
+  filteredData.forEach(function(d){
+    d3.range(1,10).forEach(function(n){
+      var columnName = "training_activity_" + n;
+      if(d[columnName] !== null) {
+        if(d[columnName].indexOf("yes") !== -1) { ; perModuleData[n-1]++; }
+      }
+    })
+  })
+  $.each(perModuleData, function(i, a){ perModuleData[i] = a / filteredData.length; })
+
+  perModuleYscale.domain([0, 1])
+  perModuleYele.call(perModuleYaxis)
+
+  var perModuleG = perModuleSvg.selectAll(".bar").data(perModuleData, function(d, i){ return i; });
+
+  perModuleG.enter().append("text").transition().duration(1000).ease(d3.easeLinear)
+            .attr("class","topic-label").attr("font-size","11px").attr("font-family","inherit")
+            .attr("fill","black").style("text-anchor","middle")
+            .attr("x", function(d, i) { return perModuleXscale(i) + ((perModuleXscale.bandwidth()/2) - 4); })
+            .attr("y", function(d) { return perModuleYscale(d)-5; })
+            .text(function(d){return (parseFloat(d*100).toFixed(1)+"%");});
+
+  perModuleG.enter().append("rect").transition().duration(1000).ease(d3.easeLinear)
+        .attr("class", "graph-bar")
+        .attr("x", function(d, i) {  return perModuleXscale(i); })
+        .attr("width", perModuleXscale.bandwidth() - 4)
+        .attr("y", function(d) { return perModuleYscale(d); })
+        .attr("height", function(d) { return perModuleMeas.height - perModuleYscale(d); });
+
+  perModuleG.exit().remove();
+
+  // ### PARTICIPANTS PER NUMBER OF MODULES
+  var moduleCountData = d3.nest().key(function(d) { return d.training_count; } )
+      .rollup(function(value) { return value.length; }).entries(filteredData);
+
+  moduleCountData.forEach(function(d){ d.key = parseInt(d.key); });
+
+  moduleCountYscale.domain([0, d3.max(moduleCountData, function(d){ return d.value })])
+  moduleCountYele.call(moduleCountYaxis)
+
+  var moduleCountG = moduleCountSvg.selectAll(".bar").data(moduleCountData, function(d){ return d['key']; })
+
+  moduleCountG.enter().append("text").transition().duration(1000).ease(d3.easeLinear)
+            .attr("class","topic-label").attr("font-size","11px").attr("font-family","inherit")
+            .attr("fill","black").style("text-anchor","middle")
+            .attr("x", function(d) { return moduleCountXscale(d.key) + ((moduleCountXscale.bandwidth()/2) - 4); })
+            .attr("y", function(d) { return moduleCountYscale(d.value) - 5; })
+            .text(function(d){return d.value;});
+
+  moduleCountG.enter().append("rect").transition().duration(1000).ease(d3.easeLinear)
+              .attr("class", "graph-bar-2")
+              .attr("x", function(d) { return moduleCountXscale(d.key); })
+              .attr("width", moduleCountXscale.bandwidth() - 4)
+              .attr("y", function(d) { return moduleCountYscale(d.value); })
+              .attr("height", function(d) { return moduleCountMeas.height - moduleCountYscale(d.value) + 1; });
+
+  moduleCountG.exit().remove();
+
+  buildList();
+}
+
+var activitiesHeaders = "";
+
+$.each(d3.range(1,10), function(i, a){
+  activitiesHeaders += '<th>' + topicText(a) + '<br><input class="column-search" type="search" placeholder="search..." /></th>';
+})
+
+function buildList(){
+  $('#listTable').empty();
+  $('#listTable').html('<table data-sortable id="dataTable" class="compact stripe cell-border" cellspacing="0">' +
+        '<thead>'+
+          '<th>First<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Last<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Barangay<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          '<th>Municipality<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+          activitiesHeaders +
+          '<th>Modules attended<br><input class="column-search" type="search" placeholder="search..." /></th>'+
+        '</thead>'+
+        '<tbody></tbody></table>');
+  $.each(filteredData, function(i,d){
+    var rowHtml = '<tr>' +
+      '<td>' + d['participant_fname'] + '</td>' +
+      '<td>' + d['participant_lname'] + '</td>' +
+      '<td>' + adminText(d.location_id, 'brgy') + '</td>'+
+      '<td>' + adminText(d['location'][0], 'muni') + '</td>';
+  $.each(d3.range(1,10), function(i, a){
+    var thisSearch = "training_activity_" + a;
+    rowHtml += '<td>' + (d[thisSearch]==null ? "no" : d[thisSearch])+ '</td>';
+  })
+  rowHtml += '<td>' + d['training_total_attendance'] + '</td>' +
+    '</tr>';
+    $('#listTable tbody').append(rowHtml);
+  });
+
+
+  var table = $('#dataTable').DataTable({
+      // scrollX: true,
+      "sDom":'lrtip',
+      "lengthChange": false,
+      "pageLength": 10,
+      // "lengthMenu": [ 10, 50, 100 ],
+      "language": {
+        "lengthMenu": "Display _MENU_ records",
+        "info": "Showing _START_ to _END_ of _TOTAL_ records",
+      }
+    });
+
+    // stop a click in the search input box from triggering a sort on the column
+    $('.column-search').on('click', function(e){
+      e.stopPropagation();
+    });
+
+    // initialize column search functionality
+    table.columns().every( function() {
+      var that = this;
+      $('input', this.header() ).on('keyup change', function(){
+        if( that.search() !== this.value ){
+          that
+          .search( this.value )
+          .draw();
+        }
+      });
+    });
+}
+
+getLocationData();
+</script>

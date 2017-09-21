@@ -746,6 +746,26 @@ app.get('/api/pages/community-led-groups', function(req, res) {
 	}
 });
 
+app.get('/cbhfa',function(req, res) {
+	if (req.user) {
+    res.render('cbhfa', {
+      user:req.user,
+			opts:settings.page
+    });
+	} else {
+		res.redirect(settings.page.nginxlocation);
+	}
+})
+
+app.get('/api/pages/cbhfa', function(req, res) {
+	if (req.user) {
+    var queryStr ='SELECT * FROM "TRAINING_MODULE_PARTICIPATION" WHERE "TRAINING_MODULE_PARTICIPATION".training_name='+"'CBHFA';";
+    pghelper.query(queryStr, function(err, data) {
+			res.json(data);
+		})
+	}
+})
+
 app.get('/sra',function(req, res) {
 	if (req.user) {
     res.render('sra', {
